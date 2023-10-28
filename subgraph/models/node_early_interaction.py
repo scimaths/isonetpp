@@ -53,7 +53,7 @@ class NodeEarlyInteraction(torch.nn.Module):
         cgraph_sizes = cudavar(self.av, torch.tensor(cgraph_sizes))
         batch_data_sizes_flat = [item for sublist in batch_data_sizes for item in sublist]
         batch_data_sizes_flat_tensor = cudavar(self.av, torch.LongTensor(batch_data_sizes_flat))
-        cumulative_sizes = torch.cumsum(batch_data_sizes_flat_tensor, dim=0)
+        cumulative_sizes = torch.cumsum(cudavar(self.av, torch.tensor(self.max_set_size, dtype=torch.long)).repeat(len(batch_data_sizes_flat_tensor)), dim=0)
 
         node_features, edge_features, from_idx, to_idx, graph_idx = self.get_graph(batch_data)
         
@@ -118,7 +118,7 @@ class NodeEarlyInteraction(torch.nn.Module):
             interleaved_node_features = torch.cat([
                 qnode_features_from_cnodes.unsqueeze(1),
                 cnode_features_from_qnodes.unsqueeze(1)
-            ], dim=1).permute(0, 2, 1, 3).reshape(-1, n_prop_update_steps * node_feature_dim)
+            ], dim=1)[:, :, :, node_feature_dim:].reshape(-1, n_prop_update_steps * node_feature_dim) 
             node_feature_store[:, node_feature_dim:] = interleaved_node_features[node_indices, :]
 
         if self.diagnostic_mode:
