@@ -4,6 +4,9 @@ def get_default_config():
     # Set to `embedding` to use the graph embedding net.
     node_state_dim = 32
     graph_rep_dim = 128
+    fringe_isonet_config = dict(
+        masking_for_msg_passing_count = 4,
+    )
     graph_embedding_net_config = dict(
         node_state_dim=node_state_dim,
         edge_hidden_sizes=[node_state_dim * 2, node_state_dim * 2],
@@ -29,6 +32,7 @@ def get_default_config():
     graph_matching_net_config['similarity'] = 'dotproduct'  # other: euclidean, cosine
     graph_matching_net_config['prop_type'] = 'matching'  # other: euclidean, cosine
     return dict(
+        fringe_isonet=fringe_isonet_config,
         encoder=dict(
             node_hidden_sizes=[node_state_dim],
             node_feature_dim=1,
