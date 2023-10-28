@@ -33,8 +33,8 @@ class NodeEarlyInteraction(torch.nn.Module):
         prop_config = self.config['graph_embedding_net'].copy()
         prop_config.pop('n_prop_layers',None)
         prop_config.pop('share_prop_params',None)
-        if self.config['temporal_gnn']['prop_separate_params']:
-            self.prop_layers = torch.nn.ModuleList([gmngen.GraphPropLayer(**prop_config) for _ in range(self.config['temporal_gnn']['n_time_updates'])])
+        if self.config['early_interaction']['prop_separate_params']:
+            self.prop_layers = torch.nn.ModuleList([gmngen.GraphPropLayer(**prop_config) for _ in range(self.config['early_interaction']['n_time_updates'])])
         else:
             self.prop_layer = gmngen.GraphPropLayer(**prop_config)
         
@@ -61,7 +61,7 @@ class NodeEarlyInteraction(torch.nn.Module):
         num_nodes, node_feature_dim = encoded_node_features.shape
         batch_size = len(batch_data_sizes)
 
-        n_time_update_steps = self.config['temporal_gnn']['n_time_updates']
+        n_time_update_steps = self.config['early_interaction']['n_time_updates']
         n_prop_update_steps = self.config['graph_embedding_net']['n_prop_layers']
 
         node_feature_store = torch.zeros(num_nodes, node_feature_dim * (n_prop_update_steps + 1), device=node_features.device)
@@ -77,13 +77,13 @@ class NodeEarlyInteraction(torch.nn.Module):
             edge_features_enc = torch.clone(encoded_edge_features)
             for prop_idx in range(1, n_prop_update_steps + 1) :
                 nf_idx = node_feature_dim * prop_idx
-                if self.config['temporal_gnn']['time_update_idx'] == "k_t":
+                if self.config['early_interaction']['time_update_idx'] == "k_t":
                     interaction_features = node_feature_store[:, nf_idx - node_feature_dim : nf_idx]
-                elif self.config['temporal_gnn']['time_update_idx'] == "kp1_t":
+                elif self.config['early_interaction']['time_update_idx'] == "kp1_t":
                     interaction_features = node_feature_store[:, nf_idx : nf_idx + node_feature_dim]
                 
                 combined_features = self.fc_combine_interaction(torch.cat([node_features_enc, interaction_features], dim=1))
-                if self.config['temporal_gnn']['prop_separate_params']:
+                if self.config['early_interaction']['prop_separate_params']:
                     node_features_enc = self.prop_layers[time_idx - 1](combined_features, from_idx, to_idx, edge_features_enc)
                 else:
                     node_features_enc = self.prop_layer(combined_features, from_idx, to_idx, edge_features_enc)

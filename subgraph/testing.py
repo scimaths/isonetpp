@@ -38,7 +38,7 @@ def load_config(av):
   config['graph_embedding_net'] ['node_hidden_sizes'] = [10]
   config['fringe_isonet'] ['masking_for_msg_passing_count'] = av.MASKING_FOR_MSG_PASSING_COUNT
 
-  config['temporal_gnn'] = {
+  config['early_interaction'] = {
     'n_time_updates': av.time_updates,
     'time_update_idx': av.time_update_idx,
     'prop_separate_params': av.prop_separate_params
@@ -202,8 +202,6 @@ task_dict = {}
 
 task_dict['node_align_node_loss'] = "Node Align Node Loss"
 task_dict['isonet'] = "ISONET"
-# for idx in range(1, 6):
-#   task_dict[f'temporal_gnn_kt_{idx}_iters_shared_params'] = f"TemporalGNN ({idx} iters)"
 datasets = ["aids", "mutag", "ptc_fr", "ptc_fm", "ptc_mr", "ptc_mm"]
 test_model_dir = ad.model_dir
 

@@ -106,14 +106,10 @@ def train(av,config):
 
     logger.info("Run: %d train loss: %f Time: %.2f",run,epoch_loss,time.time()-start_time)
     start_time = time.time()
-    model.to('cpu')
-    av.want_cuda = False
     temp_batch_size = av.BATCH_SIZE
     av.BATCH_SIZE = 1024
     ap_score, map_score = evaluate_embeddings_similarity(av,model,val_data)
     av.BATCH_SIZE = temp_batch_size
-    av.want_cuda = True
-    model.to(device)
     logger.info("Run: %d VAL ap_score: %.6f map_score: %.6f Time: %.2f", run, ap_score,map_score, time.time()-start_time)
     if av.RUN_TILL_ES:
       if es.check([map_score],model,run):
@@ -178,10 +174,13 @@ if __name__ == "__main__":
   ap.add_argument("--DIR_PATH",                       type=str,   default=".",help="path/to/datasets")
   ap.add_argument("--DATASET_NAME",                   type=str,   default="mutag")
   ap.add_argument("--SEED",                           type=int,   default=0)
+  ap.add_argument('--EXPLICIT_SEED',                  type=int,   nargs='?')
 
   av = ap.parse_args()
   seeds = [4586, 7366, 7474, 7762, 4929, 3543, 1704, 356, 4891, 3133]
   av.SEED = seeds[av.SEED]
+  if av.EXPLICIT_SEED is not None:
+     av.SEED = av.EXPLICIT_SEED
   av.time_key = str(datetime.now()).replace(' ', '_')
   
   exp_name = f"{av.TASK}_{av.DATASET_NAME}_margin_{av.MARGIN}_seed_{av.SEED}_time_{av.time_key}"
@@ -208,7 +207,7 @@ if __name__ == "__main__":
   config['graph_embedding_net'] ['node_hidden_sizes'] = [10]
   config['graph_embedding_net'] ['n_prop_layers'] = 5
   config['graph_embedding_net'] ['n_prop_layers'] = 5
-  config['temporal_gnn'] = {
+  config['early_interaction'] = {
     'n_time_updates': av.time_updates,
     'time_update_idx': av.time_update_idx,
     'prop_separate_params': av.prop_separate_params
