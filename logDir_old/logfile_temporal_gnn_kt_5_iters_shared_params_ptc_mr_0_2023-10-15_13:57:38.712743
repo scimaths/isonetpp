@@ -1,0 +1,79 @@
+Command line
+/mnt/home/ashwinr/btp24/grph/ISONET/subgraph/iso_matching_models.py
+--TASK=temporal_gnn_kt_5_iters_shared_params
+--NOISE_FACTOR=0
+--MARGIN=0.5
+--filters_1=10
+--filters_2=10
+--filters_3=10
+--transform_dim=16
+--FEAT_TYPE=One
+--DATASET_NAME=ptc_mr
+--SEED=0
+--time_updates
+5
+fringe_isonet= {'masking_for_msg_passing_count': 5}
+encoder= {'node_hidden_sizes': [10], 'node_feature_dim': 1, 'edge_hidden_sizes': None, 'edge_feature_dim': 1}
+aggregator= {'node_hidden_sizes': [10], 'graph_transform_sizes': [10], 'input_size': [10], 'gated': True, 'aggregation_type': 'sum'}
+graph_embedding_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'embedding'}
+graph_matching_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'matching', 'similarity': 'dotproduct'}
+model_type= embedding
+data= {'problem': 'graph_edit_distance', 'dataset_params': {'n_nodes_range': [20, 20], 'p_edge_range': [0.2, 0.2], 'n_changes_positive': 1, 'n_changes_negative': 2, 'validation_dataset_size': 1000}}
+training= {'batch_size': 128, 'learning_rate': 0.0001, 'mode': 'pair', 'loss': 'margin', 'margin': 0.5, 'graph_vec_regularizer_weight': 1e-06, 'clip_value': 10.0, 'n_training_steps': 500000, 'print_after': 100, 'eval_after': 10}
+evaluation= {'batch_size': 128}
+seed= 0
+temporal_gnn= {'n_time_updates': 5, 'time_update_idx': 'k_t', 'prop_param_sharing': True}
+graphsim= {'conv_kernel_size': [10, 4, 2], 'linear_size': [24, 16], 'gcn_size': [10, 10, 10], 'conv_pool_size': [3, 3, 2], 'conv_out_channels': [2, 4, 8], 'dropout': 0}
+loading train query graphs from ./Datasets/splits/train/train_ptc_mr80k_query_subgraphs.pkl
+loading train relationships from ./Datasets/splits/train/train_ptc_mr80k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from ./Datasets/splits/ptc_mr80k_corpus_subgraphs.pkl
+loading val query graphs from ./Datasets/splits/val/val_ptc_mr80k_query_subgraphs.pkl
+loading val relationships from ./Datasets/splits/val/val_ptc_mr80k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from ./Datasets/splits/ptc_mr80k_corpus_subgraphs.pkl
+Loading model Temporal_GMM
+This model implements early interaction with a temporal GNN
+saving initial model to ./initialModels/temporal_gnn_kt_5_iters_shared_params_ptc_mr_0
+no. of params in model: 2498
+Run: 0 train loss: 75.529036 Time: 198.76
+Run: 0 VAL ap_score: 0.558019 map_score: 0.580362 Time: 72.91
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_ptc_mr_0
+Run: 1 train loss: 44.079937 Time: 196.23
+Run: 1 VAL ap_score: 0.661559 map_score: 0.650050 Time: 75.16
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_ptc_mr_0
+Run: 2 train loss: 38.647256 Time: 201.98
+Run: 2 VAL ap_score: 0.638476 map_score: 0.636213 Time: 78.67
+Run: 3 train loss: 37.349287 Time: 192.26
+Run: 3 VAL ap_score: 0.669936 map_score: 0.668597 Time: 78.93
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_ptc_mr_0
+Run: 4 train loss: 38.360430 Time: 191.04
+Run: 4 VAL ap_score: 0.741036 map_score: 0.706520 Time: 78.89
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_ptc_mr_0
+Run: 5 train loss: 33.166466 Time: 192.39
+Run: 5 VAL ap_score: 0.676864 map_score: 0.661807 Time: 80.66
+Run: 6 train loss: 31.278915 Time: 189.77
+Run: 6 VAL ap_score: 0.768744 map_score: 0.734628 Time: 80.65
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_ptc_mr_0
+Run: 7 train loss: 30.250407 Time: 189.68
+Run: 7 VAL ap_score: 0.731035 map_score: 0.696611 Time: 76.94
+Run: 8 train loss: 27.317742 Time: 190.24
+Run: 8 VAL ap_score: 0.771037 map_score: 0.729505 Time: 76.58
+Run: 9 train loss: 25.439234 Time: 191.28
+Run: 9 VAL ap_score: 0.804804 map_score: 0.774885 Time: 75.88
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_ptc_mr_0
+Run: 10 train loss: 23.416178 Time: 190.26
+Run: 10 VAL ap_score: 0.796115 map_score: 0.756726 Time: 71.58
+Run: 11 train loss: 22.998745 Time: 194.53
+Run: 11 VAL ap_score: 0.809112 map_score: 0.773428 Time: 70.57
+Run: 12 train loss: 21.005296 Time: 198.51
+Run: 12 VAL ap_score: 0.840874 map_score: 0.795451 Time: 68.69
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_ptc_mr_0
+Run: 13 train loss: 20.411227 Time: 196.21
+Run: 13 VAL ap_score: 0.827166 map_score: 0.785258 Time: 62.54
+Run: 14 train loss: 20.068406 Time: 204.19
+Run: 14 VAL ap_score: 0.836865 map_score: 0.780797 Time: 64.90
+Run: 15 train loss: 18.878332 Time: 207.20
+Run: 15 VAL ap_score: 0.796762 map_score: 0.769372 Time: 68.38
+Run: 16 train loss: 17.275334 Time: 202.09
+Run: 16 VAL ap_score: 0.821834 map_score: 0.747622 Time: 68.83
+Run: 17 train loss: 16.715176 Time: 199.23
+Run: 17 VAL ap_score: 0.840728 map_score: 0.787333 Time: 72.09

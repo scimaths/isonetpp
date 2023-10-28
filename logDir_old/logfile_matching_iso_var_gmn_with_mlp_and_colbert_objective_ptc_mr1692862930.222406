@@ -1,0 +1,60 @@
+Command line
+/mnt/home/ashwinr/btp24/grph/ISONET/subgraph/iso_matching_models.py
+--TASK=matching_iso_var_gmn_with_mlp_and_colbert_objective
+--MARGIN=0.5
+--transform_dim=16
+--FEAT_TYPE=One
+--DATASET_NAME=ptc_mr
+encoder= {'node_hidden_sizes': [10], 'node_feature_dim': 1, 'edge_hidden_sizes': None, 'edge_feature_dim': 1}
+aggregator= {'node_hidden_sizes': [10], 'graph_transform_sizes': [10], 'input_size': [10], 'gated': True, 'aggregation_type': 'sum'}
+graph_embedding_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'embedding'}
+graph_matching_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'matching', 'similarity': 'dotproduct'}
+model_type= embedding
+data= {'problem': 'graph_edit_distance', 'dataset_params': {'n_nodes_range': [20, 20], 'p_edge_range': [0.2, 0.2], 'n_changes_positive': 1, 'n_changes_negative': 2, 'validation_dataset_size': 1000}}
+training= {'batch_size': 128, 'learning_rate': 0.0001, 'mode': 'pair', 'loss': 'margin', 'margin': 0.5, 'graph_vec_regularizer_weight': 1e-06, 'clip_value': 10.0, 'n_training_steps': 500000, 'print_after': 100, 'eval_after': 10}
+evaluation= {'batch_size': 128}
+seed= 0
+graphsim= {'conv_kernel_size': [10, 4, 2], 'linear_size': [24, 16], 'gcn_size': [10, 10, 10], 'conv_pool_size': [3, 3, 2], 'conv_out_channels': [2, 4, 8], 'dropout': 0}
+loading train query graphs from ./Datasets/splits/train/train_ptc_mr80k_query_subgraphs.pkl
+loading train relationships from ./Datasets/splits/train/train_ptc_mr80k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from ./Datasets/splits/ptc_mr80k_corpus_subgraphs.pkl
+loading val query graphs from ./Datasets/splits/val/val_ptc_mr80k_query_subgraphs.pkl
+loading val relationships from ./Datasets/splits/val/val_ptc_mr80k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from ./Datasets/splits/ptc_mr80k_corpus_subgraphs.pkl
+Loading model GMN_with_MLP_and_ColBERT_scores
+This uses GMN encoder to obtain set of node embeddings per graph processed with a gated MLP, then subjects that to ColBERT loss
+saving initial model to ./initialModels/matching_iso_var_gmn_with_mlp_and_colbert_objective_ptc_mr_0
+no. of params in model: 1640
+Run: 0 train loss: 89.028467 Time: 10.54
+Run: 0 VAL ap_score: 0.478933 map_score: 0.503875 Time: 3.54
+saving best validated model to ./bestValidationModels/matching_iso_var_gmn_with_mlp_and_colbert_objective_ptc_mr_0
+Run: 1 train loss: 69.057679 Time: 9.93
+Run: 1 VAL ap_score: 0.499311 map_score: 0.491457 Time: 3.55
+Run: 2 train loss: 66.398342 Time: 10.18
+Run: 2 VAL ap_score: 0.456247 map_score: 0.541012 Time: 3.54
+saving best validated model to ./bestValidationModels/matching_iso_var_gmn_with_mlp_and_colbert_objective_ptc_mr_0
+Run: 3 train loss: 64.057815 Time: 10.89
+Run: 3 VAL ap_score: 0.570858 map_score: 0.545756 Time: 3.73
+saving best validated model to ./bestValidationModels/matching_iso_var_gmn_with_mlp_and_colbert_objective_ptc_mr_0
+Run: 4 train loss: 58.611664 Time: 9.85
+Run: 4 VAL ap_score: 0.569281 map_score: 0.550726 Time: 3.55
+saving best validated model to ./bestValidationModels/matching_iso_var_gmn_with_mlp_and_colbert_objective_ptc_mr_0
+Run: 5 train loss: 52.420430 Time: 10.95
+Run: 5 VAL ap_score: 0.543367 map_score: 0.504072 Time: 3.75
+Run: 6 train loss: 48.291885 Time: 9.93
+Run: 6 VAL ap_score: 0.602328 map_score: 0.582309 Time: 3.50
+saving best validated model to ./bestValidationModels/matching_iso_var_gmn_with_mlp_and_colbert_objective_ptc_mr_0
+Run: 7 train loss: 44.798582 Time: 9.83
+Run: 7 VAL ap_score: 0.579831 map_score: 0.588020 Time: 3.49
+saving best validated model to ./bestValidationModels/matching_iso_var_gmn_with_mlp_and_colbert_objective_ptc_mr_0
+Run: 8 train loss: 41.074776 Time: 9.82
+Run: 8 VAL ap_score: 0.626814 map_score: 0.613735 Time: 3.49
+saving best validated model to ./bestValidationModels/matching_iso_var_gmn_with_mlp_and_colbert_objective_ptc_mr_0
+Run: 9 train loss: 37.510155 Time: 9.82
+Run: 9 VAL ap_score: 0.612421 map_score: 0.615135 Time: 3.50
+saving best validated model to ./bestValidationModels/matching_iso_var_gmn_with_mlp_and_colbert_objective_ptc_mr_0
+Run: 10 train loss: 35.112781 Time: 9.85
+Run: 10 VAL ap_score: 0.660286 map_score: 0.633946 Time: 3.51
+saving best validated model to ./bestValidationModels/matching_iso_var_gmn_with_mlp_and_colbert_objective_ptc_mr_0
+Run: 11 train loss: 33.553269 Time: 9.90
+Run: 11 VAL ap_score: 0.573238 map_score: 0.629595 Time: 3.53

@@ -1,0 +1,573 @@
+Command line
+/raid/infolab/vaibhav/subgraph_matching/ISONET/subgraph/iso_matching_models.py
+--TASK=temporal_gnn_kt_5_iters_shared_params_0.01
+--NOISE_FACTOR=0
+--MARGIN=0.01
+--filters_1=10
+--filters_2=10
+--filters_3=10
+--transform_dim=16
+--FEAT_TYPE=One
+--DATASET_NAME=ptc_mm
+--SEED=0
+--time_updates=5
+fringe_isonet= {'masking_for_msg_passing_count': 5}
+encoder= {'node_hidden_sizes': [10], 'node_feature_dim': 1, 'edge_hidden_sizes': None, 'edge_feature_dim': 1}
+aggregator= {'node_hidden_sizes': [10], 'graph_transform_sizes': [10], 'input_size': [10], 'gated': True, 'aggregation_type': 'sum'}
+graph_embedding_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'embedding'}
+graph_matching_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'matching', 'similarity': 'dotproduct'}
+model_type= embedding
+data= {'problem': 'graph_edit_distance', 'dataset_params': {'n_nodes_range': [20, 20], 'p_edge_range': [0.2, 0.2], 'n_changes_positive': 1, 'n_changes_negative': 2, 'validation_dataset_size': 1000}}
+training= {'batch_size': 128, 'learning_rate': 0.0001, 'mode': 'pair', 'loss': 'margin', 'margin': 0.01, 'graph_vec_regularizer_weight': 1e-06, 'clip_value': 10.0, 'n_training_steps': 500000, 'print_after': 100, 'eval_after': 10}
+evaluation= {'batch_size': 128}
+seed= 0
+temporal_gnn= {'n_time_updates': 5, 'time_update_idx': 'k_t', 'prop_separate_params': None}
+graphsim= {'conv_kernel_size': [10, 4, 2], 'linear_size': [24, 16], 'gcn_size': [10, 10, 10], 'conv_pool_size': [3, 3, 2], 'conv_out_channels': [2, 4, 8], 'dropout': 0}
+loading train query graphs from ./Datasets/splits/train/train_ptc_mm80k_query_subgraphs.pkl
+loading train relationships from ./Datasets/splits/train/train_ptc_mm80k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from ./Datasets/splits/ptc_mm80k_corpus_subgraphs.pkl
+loading val query graphs from ./Datasets/splits/val/val_ptc_mm80k_query_subgraphs.pkl
+loading val relationships from ./Datasets/splits/val/val_ptc_mm80k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from ./Datasets/splits/ptc_mm80k_corpus_subgraphs.pkl
+Loading model Temporal_GMM
+This model implements early interaction with a temporal GNN
+saving initial model to ./initialModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+no. of params in model: 2498
+Run: 0 train loss: 15.376934 Time: 198.94
+Run: 0 VAL ap_score: 0.346875 map_score: 0.400504 Time: 79.93
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 1 train loss: 3.564311 Time: 261.85
+Run: 1 VAL ap_score: 0.407009 map_score: 0.456407 Time: 89.81
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 2 train loss: 2.819041 Time: 267.60
+Run: 2 VAL ap_score: 0.390475 map_score: 0.430057 Time: 102.28
+Run: 3 train loss: 2.498375 Time: 263.01
+Run: 3 VAL ap_score: 0.393787 map_score: 0.434340 Time: 103.39
+Run: 4 train loss: 2.255134 Time: 268.22
+Run: 4 VAL ap_score: 0.417551 map_score: 0.452531 Time: 104.94
+Run: 5 train loss: 1.963683 Time: 278.02
+Run: 5 VAL ap_score: 0.430812 map_score: 0.469245 Time: 95.16
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 6 train loss: 1.920337 Time: 259.89
+Run: 6 VAL ap_score: 0.452118 map_score: 0.492195 Time: 101.69
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 7 train loss: 1.743085 Time: 261.20
+Run: 7 VAL ap_score: 0.446912 map_score: 0.445348 Time: 102.67
+Run: 8 train loss: 1.689977 Time: 287.45
+Run: 8 VAL ap_score: 0.436839 map_score: 0.481962 Time: 101.06
+Run: 9 train loss: 1.663767 Time: 273.28
+Run: 9 VAL ap_score: 0.466792 map_score: 0.482650 Time: 113.32
+Run: 10 train loss: 1.608195 Time: 285.88
+Run: 10 VAL ap_score: 0.455532 map_score: 0.439196 Time: 86.80
+Run: 11 train loss: 1.601402 Time: 236.06
+Run: 11 VAL ap_score: 0.467573 map_score: 0.467415 Time: 79.57
+Run: 12 train loss: 1.542556 Time: 226.64
+Run: 12 VAL ap_score: 0.470673 map_score: 0.513208 Time: 84.38
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 13 train loss: 1.500644 Time: 212.99
+Run: 13 VAL ap_score: 0.501828 map_score: 0.501032 Time: 79.74
+Run: 14 train loss: 1.641954 Time: 190.90
+Run: 14 VAL ap_score: 0.492936 map_score: 0.485210 Time: 77.88
+Run: 15 train loss: 1.484716 Time: 193.78
+Run: 15 VAL ap_score: 0.491398 map_score: 0.490531 Time: 81.26
+Run: 16 train loss: 1.482852 Time: 189.72
+Run: 16 VAL ap_score: 0.505977 map_score: 0.519250 Time: 80.49
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 17 train loss: 1.423258 Time: 186.91
+Run: 17 VAL ap_score: 0.498948 map_score: 0.508790 Time: 81.43
+Run: 18 train loss: 1.411334 Time: 187.09
+Run: 18 VAL ap_score: 0.516792 map_score: 0.516049 Time: 83.54
+Run: 19 train loss: 1.374546 Time: 183.25
+Run: 19 VAL ap_score: 0.517989 map_score: 0.488421 Time: 84.53
+Run: 20 train loss: 1.375005 Time: 183.78
+Run: 20 VAL ap_score: 0.514868 map_score: 0.515608 Time: 84.48
+Run: 21 train loss: 1.426316 Time: 183.89
+Run: 21 VAL ap_score: 0.514999 map_score: 0.525699 Time: 84.22
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 22 train loss: 1.384329 Time: 182.48
+Run: 22 VAL ap_score: 0.510308 map_score: 0.536995 Time: 84.63
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 23 train loss: 1.403012 Time: 183.50
+Run: 23 VAL ap_score: 0.511759 map_score: 0.531659 Time: 84.89
+Run: 24 train loss: 1.342623 Time: 181.62
+Run: 24 VAL ap_score: 0.504311 map_score: 0.515001 Time: 85.71
+Run: 25 train loss: 1.344765 Time: 183.49
+Run: 25 VAL ap_score: 0.521919 map_score: 0.529411 Time: 86.15
+Run: 26 train loss: 1.345948 Time: 182.35
+Run: 26 VAL ap_score: 0.516436 map_score: 0.538809 Time: 85.85
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 27 train loss: 1.358098 Time: 182.10
+Run: 27 VAL ap_score: 0.514079 map_score: 0.522637 Time: 85.07
+Run: 28 train loss: 1.323272 Time: 182.51
+Run: 28 VAL ap_score: 0.509493 map_score: 0.471357 Time: 84.86
+Run: 29 train loss: 1.359046 Time: 182.24
+Run: 29 VAL ap_score: 0.506447 map_score: 0.503946 Time: 85.34
+Run: 30 train loss: 1.298204 Time: 182.30
+Run: 30 VAL ap_score: 0.531374 map_score: 0.538674 Time: 85.65
+Run: 31 train loss: 1.366925 Time: 182.80
+Run: 31 VAL ap_score: 0.538208 map_score: 0.539443 Time: 85.85
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 32 train loss: 1.335677 Time: 182.78
+Run: 32 VAL ap_score: 0.469192 map_score: 0.475059 Time: 83.22
+Run: 33 train loss: 1.319915 Time: 182.75
+Run: 33 VAL ap_score: 0.504641 map_score: 0.485342 Time: 84.23
+Run: 34 train loss: 1.364143 Time: 184.35
+Run: 34 VAL ap_score: 0.509401 map_score: 0.518357 Time: 83.08
+Run: 35 train loss: 1.336806 Time: 185.15
+Run: 35 VAL ap_score: 0.534552 map_score: 0.534803 Time: 83.44
+Run: 36 train loss: 1.286829 Time: 184.36
+Run: 36 VAL ap_score: 0.517013 map_score: 0.499967 Time: 81.55
+Run: 37 train loss: 1.325312 Time: 184.90
+Run: 37 VAL ap_score: 0.530358 map_score: 0.530101 Time: 81.94
+Run: 38 train loss: 1.288045 Time: 185.62
+Run: 38 VAL ap_score: 0.520506 map_score: 0.510257 Time: 81.32
+Run: 39 train loss: 1.310430 Time: 185.02
+Run: 39 VAL ap_score: 0.516874 map_score: 0.540500 Time: 80.96
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 40 train loss: 1.303493 Time: 185.96
+Run: 40 VAL ap_score: 0.539379 map_score: 0.533546 Time: 79.96
+Run: 41 train loss: 1.320714 Time: 186.12
+Run: 41 VAL ap_score: 0.511184 map_score: 0.506797 Time: 80.68
+Run: 42 train loss: 1.323833 Time: 186.57
+Run: 42 VAL ap_score: 0.533473 map_score: 0.520111 Time: 81.11
+Run: 43 train loss: 1.274437 Time: 186.52
+Run: 43 VAL ap_score: 0.486817 map_score: 0.508289 Time: 82.04
+Run: 44 train loss: 1.343500 Time: 185.72
+Run: 44 VAL ap_score: 0.521045 map_score: 0.512452 Time: 82.39
+Run: 45 train loss: 1.303117 Time: 184.72
+Run: 45 VAL ap_score: 0.502039 map_score: 0.530030 Time: 83.19
+Run: 46 train loss: 1.312107 Time: 183.73
+Run: 46 VAL ap_score: 0.495400 map_score: 0.487416 Time: 83.39
+Run: 47 train loss: 1.260680 Time: 183.57
+Run: 47 VAL ap_score: 0.448722 map_score: 0.505346 Time: 84.09
+Run: 48 train loss: 1.315987 Time: 182.68
+Run: 48 VAL ap_score: 0.508109 map_score: 0.516316 Time: 84.17
+Run: 49 train loss: 1.298635 Time: 182.01
+Run: 49 VAL ap_score: 0.496514 map_score: 0.537981 Time: 84.74
+Run: 50 train loss: 1.254389 Time: 181.46
+Run: 50 VAL ap_score: 0.504365 map_score: 0.521766 Time: 84.78
+Run: 51 train loss: 1.247847 Time: 181.82
+Run: 51 VAL ap_score: 0.531815 map_score: 0.511882 Time: 86.29
+Run: 52 train loss: 1.271316 Time: 183.19
+Run: 52 VAL ap_score: 0.521851 map_score: 0.528592 Time: 84.73
+Run: 53 train loss: 1.250087 Time: 179.13
+Run: 53 VAL ap_score: 0.526162 map_score: 0.529747 Time: 70.79
+Run: 54 train loss: 1.291775 Time: 156.32
+Run: 54 VAL ap_score: 0.508441 map_score: 0.543280 Time: 69.53
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 55 train loss: 1.274442 Time: 157.78
+Run: 55 VAL ap_score: 0.514406 map_score: 0.517241 Time: 69.53
+Run: 56 train loss: 1.284544 Time: 157.39
+Run: 56 VAL ap_score: 0.539976 map_score: 0.549400 Time: 68.70
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 57 train loss: 1.259575 Time: 158.21
+Run: 57 VAL ap_score: 0.502641 map_score: 0.530717 Time: 69.44
+Run: 58 train loss: 1.291368 Time: 157.69
+Run: 58 VAL ap_score: 0.530619 map_score: 0.529736 Time: 68.20
+Run: 59 train loss: 1.238019 Time: 157.77
+Run: 59 VAL ap_score: 0.491157 map_score: 0.501204 Time: 68.76
+Run: 60 train loss: 1.243277 Time: 159.59
+Run: 60 VAL ap_score: 0.494734 map_score: 0.497693 Time: 65.84
+Run: 61 train loss: 1.242005 Time: 158.41
+Run: 61 VAL ap_score: 0.520167 map_score: 0.524614 Time: 67.52
+Run: 62 train loss: 1.260838 Time: 159.61
+Run: 62 VAL ap_score: 0.539322 map_score: 0.537863 Time: 66.47
+Run: 63 train loss: 1.273206 Time: 159.06
+Run: 63 VAL ap_score: 0.500286 map_score: 0.531536 Time: 66.55
+Run: 64 train loss: 1.231630 Time: 159.75
+Run: 64 VAL ap_score: 0.515753 map_score: 0.513909 Time: 65.83
+Run: 65 train loss: 1.239453 Time: 159.74
+Run: 65 VAL ap_score: 0.524052 map_score: 0.520282 Time: 65.41
+Run: 66 train loss: 1.224238 Time: 160.02
+Run: 66 VAL ap_score: 0.520541 map_score: 0.546602 Time: 64.86
+Run: 67 train loss: 1.245872 Time: 160.45
+Run: 67 VAL ap_score: 0.532104 map_score: 0.515731 Time: 65.18
+Run: 68 train loss: 1.180611 Time: 160.29
+Run: 68 VAL ap_score: 0.496854 map_score: 0.504741 Time: 64.82
+Run: 69 train loss: 1.224495 Time: 159.75
+Run: 69 VAL ap_score: 0.533645 map_score: 0.530009 Time: 65.91
+Run: 70 train loss: 1.149118 Time: 159.94
+Run: 70 VAL ap_score: 0.505869 map_score: 0.527622 Time: 64.93
+Run: 71 train loss: 1.210275 Time: 160.02
+Run: 71 VAL ap_score: 0.505142 map_score: 0.509773 Time: 64.96
+Run: 72 train loss: 1.265201 Time: 160.18
+Run: 72 VAL ap_score: 0.522095 map_score: 0.552917 Time: 65.96
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 73 train loss: 1.208311 Time: 159.77
+Run: 73 VAL ap_score: 0.546612 map_score: 0.550884 Time: 66.56
+Run: 74 train loss: 1.178760 Time: 159.23
+Run: 74 VAL ap_score: 0.495141 map_score: 0.474960 Time: 66.32
+Run: 75 train loss: 1.184346 Time: 158.89
+Run: 75 VAL ap_score: 0.549849 map_score: 0.552474 Time: 66.81
+Run: 76 train loss: 1.233607 Time: 159.24
+Run: 76 VAL ap_score: 0.547417 map_score: 0.549078 Time: 65.83
+Run: 77 train loss: 1.180570 Time: 158.23
+Run: 77 VAL ap_score: 0.550071 map_score: 0.562290 Time: 66.94
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 78 train loss: 1.207687 Time: 159.08
+Run: 78 VAL ap_score: 0.542681 map_score: 0.520943 Time: 66.10
+Run: 79 train loss: 1.204312 Time: 159.10
+Run: 79 VAL ap_score: 0.521072 map_score: 0.515613 Time: 67.25
+Run: 80 train loss: 1.184785 Time: 159.02
+Run: 80 VAL ap_score: 0.488048 map_score: 0.539582 Time: 66.93
+Run: 81 train loss: 1.173222 Time: 158.70
+Run: 81 VAL ap_score: 0.523673 map_score: 0.540297 Time: 67.59
+Run: 82 train loss: 1.180242 Time: 158.44
+Run: 82 VAL ap_score: 0.562289 map_score: 0.563846 Time: 67.23
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 83 train loss: 1.169470 Time: 158.08
+Run: 83 VAL ap_score: 0.552574 map_score: 0.538817 Time: 67.51
+Run: 84 train loss: 1.204741 Time: 158.06
+Run: 84 VAL ap_score: 0.501351 map_score: 0.521773 Time: 67.33
+Run: 85 train loss: 1.170726 Time: 139.06
+Run: 85 VAL ap_score: 0.545304 map_score: 0.545235 Time: 53.07
+Run: 86 train loss: 1.159522 Time: 130.88
+Run: 86 VAL ap_score: 0.539166 map_score: 0.550874 Time: 53.17
+Run: 87 train loss: 1.139951 Time: 130.09
+Run: 87 VAL ap_score: 0.537403 map_score: 0.531200 Time: 53.36
+Run: 88 train loss: 1.146911 Time: 129.91
+Run: 88 VAL ap_score: 0.541663 map_score: 0.562054 Time: 53.21
+Run: 89 train loss: 1.120507 Time: 130.38
+Run: 89 VAL ap_score: 0.529669 map_score: 0.560340 Time: 53.47
+Run: 90 train loss: 1.190959 Time: 130.52
+Run: 90 VAL ap_score: 0.525791 map_score: 0.551381 Time: 53.15
+Run: 91 train loss: 1.163518 Time: 129.48
+Run: 91 VAL ap_score: 0.531493 map_score: 0.551463 Time: 53.51
+Run: 92 train loss: 1.180576 Time: 130.37
+Run: 92 VAL ap_score: 0.528779 map_score: 0.531533 Time: 53.01
+Run: 93 train loss: 1.144841 Time: 130.28
+Run: 93 VAL ap_score: 0.543341 map_score: 0.553703 Time: 53.42
+Run: 94 train loss: 1.194519 Time: 129.75
+Run: 94 VAL ap_score: 0.533334 map_score: 0.530874 Time: 53.64
+Run: 95 train loss: 1.189130 Time: 130.72
+Run: 95 VAL ap_score: 0.543953 map_score: 0.558309 Time: 53.00
+Run: 96 train loss: 1.157286 Time: 130.78
+Run: 96 VAL ap_score: 0.500611 map_score: 0.480589 Time: 53.94
+Run: 97 train loss: 1.133211 Time: 130.76
+Run: 97 VAL ap_score: 0.490981 map_score: 0.524774 Time: 52.60
+Run: 98 train loss: 1.191732 Time: 130.29
+Run: 98 VAL ap_score: 0.539317 map_score: 0.542321 Time: 51.69
+Run: 99 train loss: 1.175234 Time: 130.47
+Run: 99 VAL ap_score: 0.559719 map_score: 0.554509 Time: 52.29
+Run: 100 train loss: 1.159226 Time: 131.31
+Run: 100 VAL ap_score: 0.523841 map_score: 0.542265 Time: 52.19
+Run: 101 train loss: 1.159868 Time: 131.06
+Run: 101 VAL ap_score: 0.551881 map_score: 0.562340 Time: 51.86
+Run: 102 train loss: 1.143582 Time: 131.87
+Run: 102 VAL ap_score: 0.569580 map_score: 0.557935 Time: 51.21
+Run: 103 train loss: 1.158938 Time: 132.16
+Run: 103 VAL ap_score: 0.522397 map_score: 0.550979 Time: 51.17
+Run: 104 train loss: 1.181468 Time: 130.93
+Run: 104 VAL ap_score: 0.546452 map_score: 0.557396 Time: 50.37
+Run: 105 train loss: 1.126369 Time: 132.31
+Run: 105 VAL ap_score: 0.530290 map_score: 0.564855 Time: 50.53
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 106 train loss: 1.149133 Time: 132.37
+Run: 106 VAL ap_score: 0.525928 map_score: 0.523050 Time: 49.66
+Run: 107 train loss: 1.157426 Time: 132.61
+Run: 107 VAL ap_score: 0.534772 map_score: 0.524043 Time: 49.37
+Run: 108 train loss: 1.137819 Time: 133.20
+Run: 108 VAL ap_score: 0.522424 map_score: 0.496973 Time: 49.89
+Run: 109 train loss: 1.133375 Time: 133.53
+Run: 109 VAL ap_score: 0.561525 map_score: 0.534561 Time: 50.90
+Run: 110 train loss: 1.132734 Time: 133.13
+Run: 110 VAL ap_score: 0.540965 map_score: 0.558244 Time: 50.87
+Run: 111 train loss: 1.154133 Time: 132.36
+Run: 111 VAL ap_score: 0.526063 map_score: 0.532752 Time: 51.46
+Run: 112 train loss: 1.148398 Time: 132.43
+Run: 112 VAL ap_score: 0.545602 map_score: 0.565979 Time: 51.40
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 113 train loss: 1.190215 Time: 132.28
+Run: 113 VAL ap_score: 0.550298 map_score: 0.559878 Time: 50.70
+Run: 114 train loss: 1.140564 Time: 132.07
+Run: 114 VAL ap_score: 0.530620 map_score: 0.505013 Time: 51.66
+Run: 115 train loss: 1.111177 Time: 132.08
+Run: 115 VAL ap_score: 0.528172 map_score: 0.542876 Time: 52.42
+Run: 116 train loss: 1.113082 Time: 131.22
+Run: 116 VAL ap_score: 0.526994 map_score: 0.550043 Time: 52.84
+Run: 117 train loss: 1.137113 Time: 131.17
+Run: 117 VAL ap_score: 0.516382 map_score: 0.534245 Time: 53.41
+Run: 118 train loss: 1.123371 Time: 131.47
+Run: 118 VAL ap_score: 0.548379 map_score: 0.574211 Time: 53.66
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 119 train loss: 1.129142 Time: 130.76
+Run: 119 VAL ap_score: 0.550429 map_score: 0.560506 Time: 55.39
+Run: 120 train loss: 1.107433 Time: 130.13
+Run: 120 VAL ap_score: 0.542542 map_score: 0.528442 Time: 55.96
+Run: 121 train loss: 1.140188 Time: 128.55
+Run: 121 VAL ap_score: 0.525760 map_score: 0.539765 Time: 56.63
+Run: 122 train loss: 1.092459 Time: 127.91
+Run: 122 VAL ap_score: 0.528580 map_score: 0.529064 Time: 57.58
+Run: 123 train loss: 1.115333 Time: 126.08
+Run: 123 VAL ap_score: 0.569742 map_score: 0.559795 Time: 57.70
+Run: 124 train loss: 1.100056 Time: 126.62
+Run: 124 VAL ap_score: 0.566367 map_score: 0.560317 Time: 58.07
+Run: 125 train loss: 1.075640 Time: 126.15
+Run: 125 VAL ap_score: 0.531684 map_score: 0.576430 Time: 59.69
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 126 train loss: 1.104007 Time: 125.45
+Run: 126 VAL ap_score: 0.554860 map_score: 0.580974 Time: 57.74
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 127 train loss: 1.050096 Time: 125.23
+Run: 127 VAL ap_score: 0.539578 map_score: 0.537494 Time: 59.28
+Run: 128 train loss: 1.117611 Time: 125.00
+Run: 128 VAL ap_score: 0.553729 map_score: 0.551650 Time: 58.05
+Run: 129 train loss: 1.045564 Time: 122.28
+Run: 129 VAL ap_score: 0.572543 map_score: 0.556276 Time: 44.35
+Run: 130 train loss: 1.044738 Time: 100.30
+Run: 130 VAL ap_score: 0.542606 map_score: 0.538060 Time: 43.28
+Run: 131 train loss: 1.074532 Time: 100.84
+Run: 131 VAL ap_score: 0.564993 map_score: 0.559132 Time: 44.21
+Run: 132 train loss: 1.043595 Time: 100.21
+Run: 132 VAL ap_score: 0.578968 map_score: 0.560135 Time: 43.85
+Run: 133 train loss: 1.127230 Time: 100.37
+Run: 133 VAL ap_score: 0.540320 map_score: 0.547450 Time: 44.22
+Run: 134 train loss: 0.998933 Time: 99.75
+Run: 134 VAL ap_score: 0.568143 map_score: 0.583310 Time: 42.95
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 135 train loss: 1.021086 Time: 100.07
+Run: 135 VAL ap_score: 0.579785 map_score: 0.579796 Time: 43.49
+Run: 136 train loss: 1.002841 Time: 100.66
+Run: 136 VAL ap_score: 0.552701 map_score: 0.555235 Time: 42.70
+Run: 137 train loss: 1.027139 Time: 100.41
+Run: 137 VAL ap_score: 0.554118 map_score: 0.545112 Time: 41.85
+Run: 138 train loss: 1.031534 Time: 101.45
+Run: 138 VAL ap_score: 0.539619 map_score: 0.535076 Time: 43.11
+Run: 139 train loss: 1.015544 Time: 100.87
+Run: 139 VAL ap_score: 0.526336 map_score: 0.543931 Time: 41.80
+Run: 140 train loss: 0.995713 Time: 101.32
+Run: 140 VAL ap_score: 0.547631 map_score: 0.575913 Time: 40.36
+Run: 141 train loss: 1.015291 Time: 101.81
+Run: 141 VAL ap_score: 0.554235 map_score: 0.585298 Time: 41.14
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 142 train loss: 1.013285 Time: 101.89
+Run: 142 VAL ap_score: 0.569464 map_score: 0.583853 Time: 41.61
+Run: 143 train loss: 1.018791 Time: 101.92
+Run: 143 VAL ap_score: 0.572368 map_score: 0.552987 Time: 41.28
+Run: 144 train loss: 0.996773 Time: 102.09
+Run: 144 VAL ap_score: 0.546208 map_score: 0.560197 Time: 41.09
+Run: 145 train loss: 1.005628 Time: 102.11
+Run: 145 VAL ap_score: 0.564046 map_score: 0.551955 Time: 41.25
+Run: 146 train loss: 0.989288 Time: 102.79
+Run: 146 VAL ap_score: 0.563563 map_score: 0.585017 Time: 39.87
+Run: 147 train loss: 0.990931 Time: 101.98
+Run: 147 VAL ap_score: 0.555946 map_score: 0.570432 Time: 39.62
+Run: 148 train loss: 1.012294 Time: 102.83
+Run: 148 VAL ap_score: 0.550895 map_score: 0.560550 Time: 38.97
+Run: 149 train loss: 1.041448 Time: 103.14
+Run: 149 VAL ap_score: 0.543736 map_score: 0.571177 Time: 39.75
+Run: 150 train loss: 1.001989 Time: 102.94
+Run: 150 VAL ap_score: 0.535464 map_score: 0.583514 Time: 39.74
+Run: 151 train loss: 0.993357 Time: 103.24
+Run: 151 VAL ap_score: 0.556033 map_score: 0.532702 Time: 39.06
+Run: 152 train loss: 1.046982 Time: 103.51
+Run: 152 VAL ap_score: 0.528749 map_score: 0.560367 Time: 39.25
+Run: 153 train loss: 0.984820 Time: 103.58
+Run: 153 VAL ap_score: 0.540085 map_score: 0.546091 Time: 39.42
+Run: 154 train loss: 1.004292 Time: 103.51
+Run: 154 VAL ap_score: 0.588548 map_score: 0.587156 Time: 39.38
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 155 train loss: 0.991647 Time: 104.09
+Run: 155 VAL ap_score: 0.565244 map_score: 0.585832 Time: 38.50
+Run: 156 train loss: 1.017557 Time: 103.88
+Run: 156 VAL ap_score: 0.561570 map_score: 0.545311 Time: 38.56
+Run: 157 train loss: 0.988117 Time: 104.44
+Run: 157 VAL ap_score: 0.571886 map_score: 0.584373 Time: 38.79
+Run: 158 train loss: 1.002892 Time: 104.20
+Run: 158 VAL ap_score: 0.551277 map_score: 0.563192 Time: 37.87
+Run: 159 train loss: 1.022905 Time: 104.72
+Run: 159 VAL ap_score: 0.533610 map_score: 0.561228 Time: 38.42
+Run: 160 train loss: 1.012673 Time: 104.44
+Run: 160 VAL ap_score: 0.558213 map_score: 0.567700 Time: 38.10
+Run: 161 train loss: 0.981755 Time: 104.25
+Run: 161 VAL ap_score: 0.528662 map_score: 0.529497 Time: 38.47
+Run: 162 train loss: 1.034610 Time: 104.63
+Run: 162 VAL ap_score: 0.539788 map_score: 0.560315 Time: 37.77
+Run: 163 train loss: 1.015173 Time: 105.04
+Run: 163 VAL ap_score: 0.575215 map_score: 0.580849 Time: 37.64
+Run: 164 train loss: 0.981946 Time: 105.24
+Run: 164 VAL ap_score: 0.555367 map_score: 0.570618 Time: 37.55
+Run: 165 train loss: 1.006947 Time: 106.04
+Run: 165 VAL ap_score: 0.553336 map_score: 0.571361 Time: 37.20
+Run: 166 train loss: 1.034704 Time: 105.84
+Run: 166 VAL ap_score: 0.586423 map_score: 0.597287 Time: 36.82
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 167 train loss: 0.993000 Time: 106.36
+Run: 167 VAL ap_score: 0.529165 map_score: 0.511563 Time: 37.02
+Run: 168 train loss: 1.007835 Time: 106.47
+Run: 168 VAL ap_score: 0.546447 map_score: 0.516285 Time: 36.50
+Run: 169 train loss: 1.008728 Time: 106.55
+Run: 169 VAL ap_score: 0.547928 map_score: 0.555656 Time: 36.85
+Run: 170 train loss: 1.023592 Time: 106.22
+Run: 170 VAL ap_score: 0.505962 map_score: 0.569217 Time: 36.85
+Run: 171 train loss: 0.970211 Time: 106.75
+Run: 171 VAL ap_score: 0.554358 map_score: 0.586504 Time: 37.00
+Run: 172 train loss: 1.007089 Time: 106.40
+Run: 172 VAL ap_score: 0.536637 map_score: 0.576263 Time: 36.40
+Run: 173 train loss: 1.031462 Time: 106.72
+Run: 173 VAL ap_score: 0.581132 map_score: 0.570566 Time: 36.98
+Run: 174 train loss: 0.991873 Time: 106.39
+Run: 174 VAL ap_score: 0.517142 map_score: 0.562394 Time: 36.88
+Run: 175 train loss: 1.018731 Time: 106.75
+Run: 175 VAL ap_score: 0.557062 map_score: 0.537251 Time: 37.13
+Run: 176 train loss: 0.972556 Time: 106.21
+Run: 176 VAL ap_score: 0.554629 map_score: 0.596233 Time: 36.88
+Run: 177 train loss: 1.007962 Time: 105.79
+Run: 177 VAL ap_score: 0.580811 map_score: 0.576453 Time: 37.22
+Run: 178 train loss: 0.992106 Time: 106.07
+Run: 178 VAL ap_score: 0.565478 map_score: 0.574203 Time: 37.13
+Run: 179 train loss: 1.022943 Time: 105.95
+Run: 179 VAL ap_score: 0.566895 map_score: 0.581245 Time: 37.44
+Run: 180 train loss: 0.977798 Time: 105.47
+Run: 180 VAL ap_score: 0.557206 map_score: 0.568890 Time: 37.33
+Run: 181 train loss: 0.989138 Time: 105.60
+Run: 181 VAL ap_score: 0.572016 map_score: 0.567315 Time: 37.50
+Run: 182 train loss: 0.983508 Time: 105.58
+Run: 182 VAL ap_score: 0.539306 map_score: 0.540332 Time: 37.65
+Run: 183 train loss: 1.002485 Time: 104.96
+Run: 183 VAL ap_score: 0.559518 map_score: 0.571640 Time: 37.89
+Run: 184 train loss: 0.973077 Time: 104.46
+Run: 184 VAL ap_score: 0.548882 map_score: 0.537448 Time: 38.21
+Run: 185 train loss: 1.002439 Time: 103.97
+Run: 185 VAL ap_score: 0.576604 map_score: 0.579885 Time: 38.69
+Run: 186 train loss: 0.997938 Time: 104.13
+Run: 186 VAL ap_score: 0.526575 map_score: 0.528395 Time: 39.32
+Run: 187 train loss: 0.995641 Time: 103.83
+Run: 187 VAL ap_score: 0.571003 map_score: 0.545227 Time: 40.23
+Run: 188 train loss: 0.996183 Time: 102.79
+Run: 188 VAL ap_score: 0.553528 map_score: 0.579073 Time: 40.97
+Run: 189 train loss: 0.979342 Time: 101.64
+Run: 189 VAL ap_score: 0.571694 map_score: 0.588879 Time: 41.36
+Run: 190 train loss: 0.943411 Time: 101.44
+Run: 190 VAL ap_score: 0.569743 map_score: 0.581852 Time: 32.26
+Run: 191 train loss: 0.949316 Time: 77.82
+Run: 191 VAL ap_score: 0.569695 map_score: 0.583387 Time: 29.08
+Run: 192 train loss: 0.967253 Time: 77.23
+Run: 192 VAL ap_score: 0.551767 map_score: 0.567727 Time: 28.91
+Run: 193 train loss: 1.015109 Time: 75.01
+Run: 193 VAL ap_score: 0.574000 map_score: 0.566696 Time: 28.92
+Run: 194 train loss: 0.964412 Time: 77.32
+Run: 194 VAL ap_score: 0.546217 map_score: 0.546013 Time: 28.67
+Run: 195 train loss: 1.010309 Time: 76.25
+Run: 195 VAL ap_score: 0.572164 map_score: 0.589948 Time: 28.66
+Run: 196 train loss: 0.975292 Time: 78.67
+Run: 196 VAL ap_score: 0.562309 map_score: 0.558737 Time: 29.04
+Run: 197 train loss: 0.985896 Time: 78.98
+Run: 197 VAL ap_score: 0.555617 map_score: 0.540941 Time: 28.21
+Run: 198 train loss: 1.017867 Time: 75.55
+Run: 198 VAL ap_score: 0.569403 map_score: 0.575988 Time: 28.90
+Run: 199 train loss: 1.046117 Time: 78.31
+Run: 199 VAL ap_score: 0.564509 map_score: 0.569309 Time: 29.21
+Run: 200 train loss: 0.966738 Time: 78.24
+Run: 200 VAL ap_score: 0.568201 map_score: 0.556535 Time: 28.72
+Run: 201 train loss: 0.993204 Time: 75.22
+Run: 201 VAL ap_score: 0.581742 map_score: 0.557853 Time: 28.57
+Run: 202 train loss: 0.990890 Time: 78.66
+Run: 202 VAL ap_score: 0.540915 map_score: 0.571415 Time: 29.19
+Run: 203 train loss: 0.977501 Time: 76.82
+Run: 203 VAL ap_score: 0.580378 map_score: 0.572996 Time: 28.96
+Run: 204 train loss: 0.984657 Time: 74.70
+Run: 204 VAL ap_score: 0.558986 map_score: 0.603968 Time: 28.52
+saving best validated model to ./bestValidationModels/temporal_gnn_kt_5_iters_shared_params_0.01_ptc_mm_0
+Run: 205 train loss: 0.999678 Time: 77.35
+Run: 205 VAL ap_score: 0.566801 map_score: 0.568660 Time: 28.94
+Run: 206 train loss: 0.981406 Time: 74.31
+Run: 206 VAL ap_score: 0.568396 map_score: 0.570004 Time: 29.08
+Run: 207 train loss: 0.977322 Time: 75.09
+Run: 207 VAL ap_score: 0.576998 map_score: 0.597059 Time: 28.52
+Run: 208 train loss: 0.993950 Time: 74.98
+Run: 208 VAL ap_score: 0.573227 map_score: 0.572858 Time: 28.26
+Run: 209 train loss: 0.985855 Time: 75.19
+Run: 209 VAL ap_score: 0.558213 map_score: 0.584282 Time: 29.23
+Run: 210 train loss: 0.994561 Time: 78.79
+Run: 210 VAL ap_score: 0.569100 map_score: 0.593876 Time: 29.04
+Run: 211 train loss: 0.956259 Time: 76.18
+Run: 211 VAL ap_score: 0.554202 map_score: 0.561090 Time: 28.34
+Run: 212 train loss: 0.970379 Time: 75.06
+Run: 212 VAL ap_score: 0.549878 map_score: 0.564735 Time: 29.10
+Run: 213 train loss: 0.996012 Time: 75.76
+Run: 213 VAL ap_score: 0.552713 map_score: 0.550062 Time: 28.69
+Run: 214 train loss: 0.961495 Time: 76.72
+Run: 214 VAL ap_score: 0.538220 map_score: 0.520128 Time: 28.97
+Run: 215 train loss: 0.994863 Time: 77.92
+Run: 215 VAL ap_score: 0.563552 map_score: 0.570335 Time: 28.89
+Run: 216 train loss: 0.972166 Time: 75.86
+Run: 216 VAL ap_score: 0.567991 map_score: 0.575388 Time: 28.99
+Run: 217 train loss: 0.981249 Time: 78.20
+Run: 217 VAL ap_score: 0.573458 map_score: 0.556502 Time: 29.29
+Run: 218 train loss: 0.985270 Time: 76.86
+Run: 218 VAL ap_score: 0.564910 map_score: 0.589505 Time: 28.59
+Run: 219 train loss: 0.985807 Time: 75.31
+Run: 219 VAL ap_score: 0.582201 map_score: 0.594723 Time: 29.25
+Run: 220 train loss: 0.958914 Time: 76.35
+Run: 220 VAL ap_score: 0.580019 map_score: 0.577628 Time: 29.19
+Run: 221 train loss: 0.946987 Time: 74.49
+Run: 221 VAL ap_score: 0.541554 map_score: 0.544927 Time: 29.38
+Run: 222 train loss: 0.959317 Time: 78.88
+Run: 222 VAL ap_score: 0.541210 map_score: 0.575078 Time: 28.74
+Run: 223 train loss: 0.965381 Time: 78.55
+Run: 223 VAL ap_score: 0.579880 map_score: 0.581056 Time: 29.33
+Run: 224 train loss: 1.000042 Time: 78.08
+Run: 224 VAL ap_score: 0.575639 map_score: 0.588108 Time: 28.71
+Run: 225 train loss: 0.969272 Time: 75.88
+Run: 225 VAL ap_score: 0.557411 map_score: 0.564804 Time: 28.92
+Run: 226 train loss: 0.988634 Time: 75.72
+Run: 226 VAL ap_score: 0.570674 map_score: 0.579220 Time: 28.85
+Run: 227 train loss: 1.001408 Time: 77.62
+Run: 227 VAL ap_score: 0.575062 map_score: 0.589586 Time: 29.07
+Run: 228 train loss: 0.973196 Time: 74.87
+Run: 228 VAL ap_score: 0.567488 map_score: 0.576511 Time: 28.71
+Run: 229 train loss: 0.984054 Time: 75.12
+Run: 229 VAL ap_score: 0.584379 map_score: 0.575218 Time: 29.23
+Run: 230 train loss: 0.991127 Time: 78.59
+Run: 230 VAL ap_score: 0.582881 map_score: 0.590520 Time: 28.66
+Run: 231 train loss: 0.978442 Time: 74.34
+Run: 231 VAL ap_score: 0.558519 map_score: 0.568726 Time: 28.79
+Run: 232 train loss: 0.970909 Time: 74.43
+Run: 232 VAL ap_score: 0.594127 map_score: 0.576770 Time: 28.58
+Run: 233 train loss: 0.947748 Time: 77.61
+Run: 233 VAL ap_score: 0.574775 map_score: 0.588424 Time: 28.71
+Run: 234 train loss: 0.992914 Time: 76.19
+Run: 234 VAL ap_score: 0.589577 map_score: 0.593608 Time: 28.21
+Run: 235 train loss: 1.020134 Time: 75.47
+Run: 235 VAL ap_score: 0.589377 map_score: 0.568329 Time: 28.41
+Run: 236 train loss: 0.963706 Time: 75.51
+Run: 236 VAL ap_score: 0.572670 map_score: 0.577475 Time: 28.13
+Run: 237 train loss: 0.953950 Time: 75.38
+Run: 237 VAL ap_score: 0.561894 map_score: 0.586221 Time: 28.83
+Run: 238 train loss: 0.999922 Time: 76.35
+Run: 238 VAL ap_score: 0.567207 map_score: 0.582117 Time: 28.56
+Run: 239 train loss: 0.958356 Time: 77.09
+Run: 239 VAL ap_score: 0.563637 map_score: 0.574374 Time: 28.56
+Run: 240 train loss: 0.957058 Time: 75.38
+Run: 240 VAL ap_score: 0.574053 map_score: 0.557915 Time: 28.60
+Run: 241 train loss: 0.991423 Time: 68.52
+Run: 241 VAL ap_score: 0.567475 map_score: 0.579208 Time: 20.52
+Run: 242 train loss: 0.974978 Time: 65.08
+Run: 242 VAL ap_score: 0.541079 map_score: 0.550963 Time: 20.43
+Run: 243 train loss: 0.985404 Time: 64.79
+Run: 243 VAL ap_score: 0.583797 map_score: 0.552729 Time: 20.48
+Run: 244 train loss: 0.960765 Time: 64.71
+Run: 244 VAL ap_score: 0.592198 map_score: 0.589400 Time: 20.60
+Run: 245 train loss: 0.950764 Time: 64.74
+Run: 245 VAL ap_score: 0.562698 map_score: 0.570477 Time: 20.71
+Run: 246 train loss: 1.009409 Time: 65.17
+Run: 246 VAL ap_score: 0.587732 map_score: 0.582398 Time: 20.43
+Run: 247 train loss: 0.999201 Time: 64.66
+Run: 247 VAL ap_score: 0.576269 map_score: 0.581387 Time: 20.54
+Run: 248 train loss: 0.977094 Time: 65.32
+Run: 248 VAL ap_score: 0.509902 map_score: 0.541436 Time: 20.52
+Run: 249 train loss: 0.955654 Time: 65.57
+Run: 249 VAL ap_score: 0.553501 map_score: 0.583094 Time: 20.65
+Run: 250 train loss: 0.974681 Time: 65.46
+Run: 250 VAL ap_score: 0.551631 map_score: 0.576013 Time: 20.57
+Run: 251 train loss: 0.955303 Time: 65.18
+Run: 251 VAL ap_score: 0.546352 map_score: 0.581043 Time: 20.88
+Run: 252 train loss: 0.964289 Time: 65.31
+Run: 252 VAL ap_score: 0.580936 map_score: 0.578955 Time: 20.77
+Run: 253 train loss: 0.973398 Time: 65.58
+Run: 253 VAL ap_score: 0.569146 map_score: 0.585852 Time: 20.87
+Run: 254 train loss: 0.979002 Time: 65.12
+Run: 254 VAL ap_score: 0.580715 map_score: 0.574061 Time: 20.56
+Run: 255 train loss: 0.978975 Time: 65.70
+Run: 255 VAL ap_score: 0.554988 map_score: 0.549026 Time: 20.78

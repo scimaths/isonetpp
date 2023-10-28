@@ -21,7 +21,7 @@ class EarlyStoppingModule(object):
       os.makedirs(save_dir)
     name = self.av.DATASET_NAME
     if self.av.TASK !="":
-      name = self.av.TASK + "_" + name
+      name = self.av.TASK + "_" + name + "_" + str(self.av.SEED)
     #name = name + "_tfrac_" + str(self.av.TEST_FRAC) + "_vfrac_" + str(self.av.VAL_FRAC)
     save_path = os.path.join(save_dir, name)
 
@@ -40,7 +40,8 @@ class EarlyStoppingModule(object):
       raise Exception('{} does not exist'.format(load_dir))
     name = self.av.DATASET_NAME
     if self.av.TASK !="":
-      name = self.av.TASK + "_" + name
+      name = self.av.TASK + "_" + name + "_" + str(self.av.SEED)
+      # name = self.av.TASK + "_" + name + "_" + str(self.av.SEED)
     #name = name + "_tfrac_" + str(self.av.TEST_FRAC) + "_vfrac_" + str(self.av.VAL_FRAC)
     load_path = os.path.join(load_dir, name)
     logger.info("loading best validated model from %s",load_path)

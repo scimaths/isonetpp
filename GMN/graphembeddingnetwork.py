@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 from GMN.segment import unsorted_segment_sum
 
-
 class GraphEncoder(nn.Module):
     """Encoder module that projects node and edge features to some embeddings."""
 
@@ -75,13 +74,13 @@ class GraphEncoder(nn.Module):
 
         return node_outputs, edge_outputs
 
-
 def graph_prop_once(node_states,
                     from_idx,
                     to_idx,
                     message_net,
                     aggregation_module=None,
-                    edge_features=None):
+                    edge_features=None,
+                    mask_from_idx=None):
     """One round of propagation (message passing) in a graph.
 
     Args:
@@ -114,7 +113,10 @@ def graph_prop_once(node_states,
 
     edge_inputs = torch.cat(edge_inputs, dim=-1)
     messages = message_net(edge_inputs)
-
+    
+    if mask_from_idx is not None:
+        messages *= mask_from_idx[from_idx][:, None]
+  
     from GMN.segment import unsorted_segment_sum
     tensor = unsorted_segment_sum(messages, to_idx, node_states.shape[0])
     return tensor
@@ -210,7 +212,7 @@ class GraphPropLayer(nn.Module):
             self.MLP = nn.Sequential(*layer)
 
     def _compute_aggregated_messages(
-            self, node_states, from_idx, to_idx, edge_features=None):
+            self, node_states, from_idx, to_idx, edge_features=None, mask_from_idx=None):
         """Compute aggregated messages for each node.
 
         Args:
@@ -231,7 +233,8 @@ class GraphPropLayer(nn.Module):
             to_idx,
             self._message_net,
             aggregation_module=None,
-            edge_features=edge_features)
+            edge_features=edge_features,
+            mask_from_idx=mask_from_idx)
 
         # optionally compute message vectors in the reverse direction
         if self._use_reverse_direction:
@@ -241,7 +244,8 @@ class GraphPropLayer(nn.Module):
                 from_idx,
                 self._reverse_message_net,
                 aggregation_module=None,
-                edge_features=edge_features)
+                edge_features=edge_features,
+                mask_from_idx=mask_from_idx)
 
             aggregated_messages += reverse_aggregated_messages
 
@@ -306,7 +310,8 @@ class GraphPropLayer(nn.Module):
                 from_idx,
                 to_idx,
                 edge_features=None,
-                node_features=None):
+                node_features=None,
+                mask_from_idx=None):
         """Run one propagation step.
 
         Args:
@@ -323,12 +328,11 @@ class GraphPropLayer(nn.Module):
           node_states: [n_nodes, node_state_dim] float tensor, new node states.
         """
         aggregated_messages = self._compute_aggregated_messages(
-            node_states, from_idx, to_idx, edge_features=edge_features)
+            node_states, from_idx, to_idx, edge_features=edge_features, mask_from_idx=mask_from_idx)
 
         return self._compute_node_update(node_states,
                                          [aggregated_messages],
                                          node_features=node_features)
-
 
 class GraphAggregator(nn.Module):
     """This module computes graph representations by aggregating from parts."""
@@ -423,6 +427,60 @@ class GraphAggregator(nn.Module):
             graph_states = self.MLP2(graph_states)
 
         return graph_states
+
+class NodeFeatureProcessor(nn.Module):
+    """This module uses two MLPs on top of node embeddings."""
+
+    def __init__(self,
+                 node_hidden_sizes,
+                 input_sizes,
+                 name='node-feature-processor'):
+        """Constructor.
+
+        Args:
+          node_hidden_sizes: the hidden layer sizes of the node transformation nets.
+            The last element is the size of the final node representation.
+          input_sizes: singleton array with size of input node embedding
+          name: name of this module.
+        """
+        super(NodeFeatureProcessor, self).__init__()
+
+        self._node_hidden_sizes = node_hidden_sizes
+        self._node_state_dim = node_hidden_sizes[-1]
+        self._input_sizes = input_sizes
+        #  The last element is the size of the aggregated graph representation.
+        self.MLP = self.build_model()
+
+    def build_model(self):
+        node_hidden_sizes = self._node_hidden_sizes
+        node_hidden_sizes[-1] *= 2
+
+        layer = []
+        layer.append(nn.Linear(self._input_sizes[0], node_hidden_sizes[0]))
+        for i in range(1, len(node_hidden_sizes)):
+            layer.append(nn.ReLU())
+            layer.append(nn.Linear(node_hidden_sizes[i - 1], node_hidden_sizes[i]))
+        MLP = nn.Sequential(*layer)
+
+        return MLP
+
+    def forward(self, node_states):
+        """Compute processed node representations.
+
+        Args:
+          node_states: [n_nodes, node_state_dim] float tensor, node states of a
+            batch of graphs concatenated together along the first dimension.
+
+        Returns:
+          node_states_g: [n_nodes, node_final_dim] float tensor, node
+            representations, one row for each  node.
+        """
+
+        node_states_g = self.MLP(node_states)
+
+        gates = torch.sigmoid(node_states_g[:, :self._node_state_dim])
+        node_states_g = node_states_g[:, self._node_state_dim:] * gates
+        return node_states_g
 
 class GraphEmbeddingNet(nn.Module):
     """A graph to embedding mapping network."""

@@ -1,7 +1,49 @@
-from common import logger
 import os
 import torch
+import colorsys
+import numpy as np
 import torch.nn as nn
+import networkx as nx
+from common import logger
+import matplotlib.pyplot as plt
+from networkx.drawing.nx_agraph import graphviz_layout
+
+def adjacency_matrix_from_batched_data(idx, batch_data_sizes, from_idx, to_idx, max_set_size):
+  batch_data_sizes_flat  = [item for sublist in batch_data_sizes for item in sublist]
+  corpus_min, corpus_max = sum(batch_data_sizes_flat[:2*idx+1]), sum(batch_data_sizes_flat[:2*idx+2])  
+  query_min, query_max = sum(batch_data_sizes_flat[:2*idx]), sum(batch_data_sizes_flat[:2*idx+1])
+  def get_adjacency_matrix(min_idx, max_idx):
+    adjacency_matrix = np.zeros((max_set_size, max_set_size))
+    for edge_idx, from_node in enumerate(from_idx):
+      if from_node >= min_idx and from_node < max_idx:
+        adjacency_matrix[from_node - min_idx, to_idx[edge_idx] - min_idx] = 1
+    return adjacency_matrix + adjacency_matrix.T
+  return get_adjacency_matrix(query_min, query_max), get_adjacency_matrix(corpus_min, corpus_max)
+
+def choose_colors(num_colors):
+  np.random.seed(42)
+  colors=[]
+  for i in np.arange(0., 360., 360. / num_colors):
+    hue = i/360.
+    lightness = (30 + np.random.rand() * 70)/100.0
+    saturation = (30 + np.random.rand() * 70)/100.0
+    colors.append(colorsys.hls_to_rgb(hue, lightness, saturation))
+  return np.array(colors)
+
+def plot_permuted_graphs(query_adj_matrix, corpus_adj_matrix, corpus_permutation, exp_name):
+  color_set = choose_colors(len(query_adj_matrix))
+  def plot_graph(graph_name, adj_matrix, indexing):
+    graph = nx.from_numpy_array(adj_matrix)
+    layout = graphviz_layout(graph, prog='neato')  # You can try different layouts here
+    nx.draw(graph, pos = layout, with_labels=True, node_color=color_set[indexing])
+    loc = f'{exp_name}_{graph_name}.png'
+    print(graph_name, "saved to", loc)
+    plt.savefig(loc)
+    plt.clf()
+  plot_graph('query', query_adj_matrix, np.arange(len(query_adj_matrix)))
+  corpus_color_indexing = np.zeros(len(corpus_adj_matrix), dtype=np.uint32)
+  corpus_color_indexing[corpus_permutation] = np.arange(len(corpus_adj_matrix))
+  plot_graph('corpus', corpus_adj_matrix, corpus_color_indexing)
 
 def load_model(av):
   """
@@ -11,7 +53,7 @@ def load_model(av):
 def save_model(av,model,optimizerPerm, optimizerFunc, epoch, saveAllEpochs = True):
   """
   """
-  #TODO
+  #TODO``
 
 
 def pairwise_ranking_loss(predPos, predNeg, margin):
@@ -30,7 +72,7 @@ def pairwise_ranking_loss(predPos, predNeg, margin):
     #return sum_loss
 
 
-def load_model_at_epoch(av,epoch):
+def load_model_at_epoch(av,epoch,seed=None):
   """
     :param av           : args
     :return checkpoint  : dict containing model state dicts and av  
@@ -40,8 +82,9 @@ def load_model_at_epoch(av,epoch):
     os.makedirs(load_dir)
     #raise Exception('{} does not exist'.format(load_dir))
   name = av.DATASET_NAME
+  seed_suffix = "" if seed is None else f"_{str(seed)}"
   if av.TASK !="":
-    name = av.TASK + "_" + name
+    name = av.TASK + "_" + name + seed_suffix
   load_prefix = os.path.join(load_dir, name)
   load_path = '{}_epoch_{}'.format(load_prefix, epoch)
   if os.path.exists(load_path):
@@ -64,7 +107,7 @@ def save_model_at_epoch(av,model, epoch):
     os.makedirs(save_dir)
   name = av.DATASET_NAME
   if av.TASK !="":
-    name = av.TASK + "_" + name
+    name = av.TASK + "_" + name + "_" + str(av.SEED)
   save_prefix = os.path.join(save_dir, name)
   save_path = '{}_epoch_{}'.format(save_prefix, epoch)
 
@@ -88,7 +131,7 @@ def save_initial_model(av,model):
     os.makedirs(save_dir)
   name = av.DATASET_NAME
   if av.TASK !="":
-    name = av.TASK + "_" + name
+    name = av.TASK + "_" + name + "_" + str(av.SEED)
   save_prefix = os.path.join(save_dir, name)
   #save_path = '{}_epoch_{}'.format(save_prefix, epoch)
 
