@@ -3,7 +3,6 @@ import sys
 import time
 import torch
 import argparse
-import random
 
 from datetime import datetime
 from common import logger, set_log

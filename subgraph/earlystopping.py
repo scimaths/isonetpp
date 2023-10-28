@@ -7,9 +7,8 @@ class EarlyStoppingModule(object):
     Module to keep track of validation score across epochs
     Stop training if score not imroving exceeds patience
   """  
-  def __init__(self, av, time_key, patience=100, delta=0.0001):
+  def __init__(self, av, patience=100, delta=0.0001):
     self.av = av
-    self.time_key = time_key
     self.patience = patience 
     self.delta = delta
     self.best_scores = None
