@@ -50,10 +50,11 @@ class NodeEarlyInteraction(torch.nn.Module):
     def forward(self, batch_data, batch_data_sizes, batch_adj):
         qgraph_sizes, cgraph_sizes = zip(*batch_data_sizes)
         qgraph_sizes = cudavar(self.av, torch.tensor(qgraph_sizes))
-        cgraph_sizes = cudavar(self.av, torch.tensor(cgraph_sizes))
+        device = qgraph_sizes.device
+        cgraph_sizes = torch.tensor(cgraph_sizes, device=device)
         batch_data_sizes_flat = [item for sublist in batch_data_sizes for item in sublist]
-        batch_data_sizes_flat_tensor = cudavar(self.av, torch.LongTensor(batch_data_sizes_flat))
-        cumulative_sizes = torch.cumsum(cudavar(self.av, torch.tensor(self.max_set_size, dtype=torch.long)).repeat(len(batch_data_sizes_flat_tensor)), dim=0)
+        batch_data_sizes_flat_tensor = torch.tensor(batch_data_sizes_flat, device=device, dtype=torch.long)
+        cumulative_sizes = torch.cumsum(torch.tensor(self.max_set_size, dtype=torch.long, device=device).repeat(len(batch_data_sizes_flat_tensor)), dim=0)
 
         node_features, edge_features, from_idx, to_idx, graph_idx = self.get_graph(batch_data)
         
@@ -67,7 +68,7 @@ class NodeEarlyInteraction(torch.nn.Module):
         node_feature_store = torch.zeros(num_nodes, node_feature_dim * (n_prop_update_steps + 1), device=node_features.device)
         updated_node_feature_store = torch.zeros_like(node_feature_store)
 
-        max_set_size_arange = cudavar(self.av, torch.arange(self.max_set_size, dtype=torch.long).reshape(1, -1).repeat(batch_size * 2, 1))
+        max_set_size_arange = torch.arange(self.max_set_size, dtype=torch.long, device=device).reshape(1, -1).repeat(batch_size * 2, 1)
         node_presence_mask = max_set_size_arange < batch_data_sizes_flat_tensor.unsqueeze(1)
         max_set_size_arange[1:, ] += cumulative_sizes[:-1].unsqueeze(1)
         node_indices = max_set_size_arange[node_presence_mask]
