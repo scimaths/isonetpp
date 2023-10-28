@@ -3,7 +3,6 @@ import sys
 import time
 import torch
 import argparse
-import wandb
 import random
 
 from datetime import datetime
@@ -116,7 +115,6 @@ def train(av,config):
     av.want_cuda = True
     model.to(device)
     logger.info("Run: %d VAL ap_score: %.6f map_score: %.6f Time: %.2f", run, ap_score,map_score, time.time()-start_time)
-    wandb.log({"Run": run, "Loss (train)": epoch_loss, "Time": time.time()-start_time, "AP (val)": ap_score, "mAP (val)": map_score})
     if av.RUN_TILL_ES:
       if es.check([map_score],model,run):
         break
@@ -231,36 +229,5 @@ if __name__ == "__main__":
   seed_everything(seed)
 
   av.dataset = av.DATASET_NAME
-
-  wandb.init(
-    project = "ISONET++",
-    name = exp_name,
-    group = av.experiment_group,
-    dir = av.experiment_group,
-    config={
-        "dataset": av.DATASET_NAME,
-        "model": av.TASK,
-        "seed": av.SEED,
-        "noise_factor": av.NOISE_FACTOR,
-        "feat_type": av.FEAT_TYPE,
-        "noise_factor": av.NOISE_FACTOR,
-        "margin": av.MARGIN,
-        "filters_1": av.filters_1,
-        "filters_2": av.filters_2,
-        "filters_3": av.filters_3,
-        "transform_dim": av.transform_dim,
-        "gpu": torch.cuda.get_device_name('cuda'),
-        "time_updates": av.time_updates,
-        "time_update_index": av.time_update_idx,
-        "prop_param_sharing ": av.prop_separate_params,
-    }
-  )
-  wandb.define_metric("AP (val)", summary="max")
-  wandb.define_metric("mAP (val)", summary="max")
-  wandb.define_metric("Loss (train)", summary="min")
   
   train(av, config)
-  wandb.finish()
-  # plot_hungarian_graph_pairs(av,config)
-  # compare_hungarian_with_normal(av, config)
-

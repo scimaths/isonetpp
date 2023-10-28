@@ -1,7 +1,6 @@
 from common import logger
 import os
 import torch
-import wandb
 
 class EarlyStoppingModule(object):
   """
@@ -26,7 +25,6 @@ class EarlyStoppingModule(object):
     save_path = os.path.join(save_dir, name)
 
     logger.info("saving best validated model to %s",save_path)
-    wandb.log({"bestValidation_save_location": save_path})
 
     output = open(save_path, mode="wb")
     torch.save({
