@@ -105,10 +105,7 @@ def train(av,config):
 
     logger.info("Run: %d train loss: %f Time: %.2f",run,epoch_loss,time.time()-start_time)
     start_time = time.time()
-    temp_batch_size = av.BATCH_SIZE
-    av.BATCH_SIZE = 1024
     ap_score, map_score = evaluate_embeddings_similarity(av,model,val_data)
-    av.BATCH_SIZE = temp_batch_size
     logger.info("Run: %d VAL ap_score: %.6f map_score: %.6f Time: %.2f", run, ap_score,map_score, time.time()-start_time)
     if av.RUN_TILL_ES:
       if es.check([map_score],model,run):
