@@ -78,7 +78,7 @@ def evaluate_embeddings_similarity_map_mrr_mndcg(av,model,sampler):
 
   all_pred = torch.cat(pred,dim=0) 
   labels = cudavar(av,torch.cat((torch.ones(npos),torch.zeros(nneg))))
-  ap_score   = average_precision_score(labels.cpu(), all_pred.cpu())
+  ap_score = average_precision_score(labels.cpu(), all_pred.cpu())
   so = np.argsort(all_pred.cpu()).tolist()[::-1]
   labels_rearranged = labels.cpu()[so]
   rr = 1/(labels_rearranged.tolist().index(1)+1)
@@ -86,7 +86,7 @@ def evaluate_embeddings_similarity_map_mrr_mndcg(av,model,sampler):
 
   q_graphs = list(range(len(sampler.query_graphs)))   
     
-  all_ap, all_rr, all_ndcg = [], [], []
+  all_ap, all_rr, all_ndcg, all_hits_20 = [], [], [], []
 
   for q_id in q_graphs:
     dpos = list(filter(lambda x:x[0][0]==q_id,d_pos))
@@ -110,7 +110,12 @@ def evaluate_embeddings_similarity_map_mrr_mndcg(av,model,sampler):
       labels_rearranged = labels.cpu()[so]
       all_rr.append(1/(labels_rearranged.tolist().index(1)+1))
       all_ndcg.append(ndcg_score([labels.cpu().tolist()],[all_pred.cpu().tolist()]))
-  return ap_score, np.mean(all_ap), np.std(all_ap), rr, np.mean(all_rr), np.std(all_rr), ndcg, np.mean(all_ndcg), np.std(all_ndcg), all_ap, all_rr
+      ranking = np.argsort(-all_pred.cpu()).tolist()
+      labels_ranked = labels.cpu()[ranking]
+      neg_20 = np.where(labels_ranked == 0)[0][min(19, len(labels_ranked == 0) - 1)]
+      hits_20 = torch.sum(labels_ranked[:neg_20]) / (torch.sum(labels_ranked))
+      all_hits_20.append(hits_20)
+  return ap_score, np.mean(all_ap), np.std(all_ap), rr, np.mean(all_rr), np.std(all_rr), ndcg, np.mean(all_ndcg), np.std(all_ndcg), all_ap, all_rr, np.mean(all_hits_20)
 
 def fetch_gmn_data(av):
     data_mode = "test" if av.test_size==25 else "Extra_test_300"
@@ -200,6 +205,7 @@ av = Namespace(   want_cuda                    = True,
 
 task_dict = {} 
 
+# task_dict['node_early_interaction'] = "Early Interaction"
 task_dict['node_align_node_loss'] = "Node Align Node Loss"
 task_dict['isonet'] = "ISONET"
 datasets = ["aids", "mutag", "ptc_fr", "ptc_fm", "ptc_mr", "ptc_mm"]
@@ -230,7 +236,7 @@ for model_loc in os.listdir(test_model_dir):
     if dataset not in scores[model].keys():
        scores[model][dataset] = {}
     print("dataset", dataset)
-    scores[model][dataset][seed] = get_result(av,model_loc,model_state_dict)[1][1]
+    scores[model][dataset][seed] = get_result(av,model_loc,model_state_dict)[1][11]
     print(scores[model][dataset][seed])
     pickle.dump(scores, open('scores.pkl', 'wb'))
 
