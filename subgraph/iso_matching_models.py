@@ -5,7 +5,7 @@ import torch
 import argparse
 
 from datetime import datetime
-from common import logger, set_log
+from logger import logger, set_log
 from GMN.configure import get_default_config
 from subgraph.utils import save_initial_model
 

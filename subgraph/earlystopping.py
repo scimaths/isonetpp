@@ -1,4 +1,4 @@
-from common import logger
+from logger import logger
 import os
 import torch
 

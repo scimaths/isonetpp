@@ -1,7 +1,7 @@
 import argparse
 from subgraph.graphs import TUDatasetGraph
 import pickle
-from common import logger, set_log
+from logger import logger, set_log
 from subgraph.sampler import OnTheFlySubgraphSampler
 import time
 import networkx as nx

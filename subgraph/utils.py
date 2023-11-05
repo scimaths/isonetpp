@@ -5,7 +5,7 @@ import colorsys
 import numpy as np
 import torch.nn as nn
 import networkx as nx
-from common import logger
+from logger import logger
 import matplotlib.pyplot as plt
 from networkx.drawing.nx_agraph import graphviz_layout
 

@@ -5,7 +5,7 @@ import random
 import numpy as np
 import collections
 import networkx as nx
-from common import logger
+from logger import logger
 import torch.nn.functional as F
 from subgraph.utils import cudavar
 from torch_geometric.data import Data

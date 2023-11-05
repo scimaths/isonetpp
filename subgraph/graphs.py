@@ -1,7 +1,7 @@
 import numpy as np
 import networkx as nx
 from collections import defaultdict
-from common import logger
+from logger import logger
 import pickle
 import os
 
