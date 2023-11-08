@@ -23,13 +23,13 @@ else
     time_updates=0
 fi
 
-# datasets=('aids' 'mutag' 'ptc_fr' 'ptc_fm' 'ptc_mr' 'ptc_mm')
-datasets=('aids')
+datasets=('aids' 'mutag' 'ptc_fr' 'ptc_fm' 'ptc_mr' 'ptc_mm')
+# datasets=('aids')
 
 for ((idx=0; idx<${#datasets[@]}; idx++)); do
     dataset="${datasets[$idx]}"
-    for seed in 0; do
-        CUDA_VISIBLE_DEVICES=$((idx + 5)) python -m subgraph.iso_matching_models \
+    for seed in 0 1 2 3 4; do
+        CUDA_VISIBLE_DEVICES=$((idx % 4)) python -m subgraph.iso_matching_models \
         --experiment_group=${experiment_group} \
         --TASK=${TASK} \
         --time_updates=${time_updates} \
@@ -41,7 +41,6 @@ for ((idx=0; idx<${#datasets[@]}; idx++)); do
         --transform_dim=16 \
         --FEAT_TYPE="One" \
         --DATASET_NAME=${dataset} \
-        --EXPLICIT_SEED=${seed} \
         --SEED=${seed} &
         sleep 10s
     done
