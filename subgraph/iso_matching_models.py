@@ -28,6 +28,7 @@ from subgraph.models.node_align_node_loss import Node_align_Node_loss
 from subgraph.models.node_align_edge_loss import Node_align_Edge_loss
 from subgraph.models.hungarian_node_align import Hungarian_Node_align_Node_loss
 from subgraph.models.fringed_node_align_node_loss import Fringed_node_align_Node_loss
+from subgraph.models.model_new_1 import model_new_1
 from subgraph.models.gmn_embed import GMN_embed, GMN_embed_hinge, GMN_embed_with_ColBERT_scores, GMN_embed_with_MLP_and_ColBERT_scores, GMN_embed_maxsim_dot, GMN_embed_maxsim_dot_corrected
 
 from subgraph.eval_utils import evaluate_embeddings_similarity, pairwise_ranking_loss_similarity
@@ -41,6 +42,12 @@ def train(av,config):
     logger.info("Loading model NodeAlignNodeLoss")  
     logger.info("This uses GMN encoder followed by parameterized sinkhorn with LRL and similarity computation using hinge scoring (H_q, PH_c)")  
     model = Node_align_Node_loss(av,config,1).to(device)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"
+  elif av.TASK.startswith("model_new_1"):
+    logger.info("Loading model model_new_1")  
+    logger.info("Still Building")  
+    model = model_new_1(av,config,1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
   elif av.TASK.startswith("node_early_interaction"):

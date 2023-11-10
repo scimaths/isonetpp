@@ -28,7 +28,7 @@ datasets=('aids' 'mutag' 'ptc_fr' 'ptc_fm' 'ptc_mr' 'ptc_mm')
 
 for ((idx=0; idx<${#datasets[@]}; idx++)); do
     dataset="${datasets[$idx]}"
-    for seed in 0 1 2 3 4; do
+    for seed in 0; do
         CUDA_VISIBLE_DEVICES=$((idx % 4)) python -m subgraph.iso_matching_models \
         --experiment_group=${experiment_group} \
         --TASK=${TASK} \

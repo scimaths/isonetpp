@@ -165,10 +165,9 @@ class Fringed_node_align_Node_loss(torch.nn.Module):
           # Slice QueryMask(N, M, D) to (N, M, M)
           # QueryMask has ones where the query nodes are present and 0s in
           
-          temp_mask_from_idx = torch.sum(transport_plan * qgraph_mask[:, :, :self.max_set_size], dim=2)
+          temp_mask_from_idx = torch.sum(transport_plan * qgraph_mask[:, :, :self.max_set_size], dim=1)
           temp_mask_from_idx = torch.stack((cudavar(self.av, torch.ones(temp_mask_from_idx.shape)), temp_mask_from_idx), dim = 1).view( temp_mask_from_idx.shape[0] * 2, temp_mask_from_idx.shape[1]).flatten()
           mask_from_idx = torch.cat(torch.split(temp_mask_from_idx, torch.stack((torch.tensor(batch_data_sizes_flat), self.max_set_size - torch.tensor(batch_data_sizes_flat)), dim = 1).view(2 * len(batch_data_sizes_flat)).tolist(), dim=0)[0::2])
-          print(transport_plan[2])
         if self.diagnostic_mode:
             return transport_plan
         

@@ -132,6 +132,11 @@ def get_result(av,model_loc,state_dict):
       model = im.Node_align_Node_loss(av,config,1).to(device)
       test_data.data_type = "gmn"
       val_data.data_type = "gmn"
+    elif model_loc.startswith("model_new_1"):
+      config = load_config(av)
+      model = im.model_new_1(av,config,1).to(device)
+      test_data.data_type = "gmn"
+      val_data.data_type = "gmn"
     elif model_loc.startswith("isonet"):
       config = load_config(av)
       model = im.ISONET(av,config,1).to(device)
@@ -205,7 +210,8 @@ av = Namespace(   want_cuda                    = True,
 
 task_dict = {} 
 
-task_dict['node_early_interaction'] = "Early Interaction"
+task_dict['model_new_1'] = "Model New 1"
+# task_dict['node_early_interaction'] = "Early Interaction"
 # task_dict['node_align_node_loss'] = "Node Align Node Loss"
 # task_dict['isonet'] = "ISONET"
 datasets = ["aids", "mutag", "ptc_fr", "ptc_fm", "ptc_mr", "ptc_mm"]

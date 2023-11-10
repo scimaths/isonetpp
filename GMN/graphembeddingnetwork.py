@@ -111,9 +111,15 @@ def graph_prop_once(node_states,
     if edge_features is not None:
         edge_inputs.append(edge_features)
 
+    # [from_idx_node_ftrs - to_idx_node_ftrs]
     edge_inputs = torch.cat(edge_inputs, dim=-1)
     messages = message_net(edge_inputs)
-    
+    # (N_edges, 2*dimension)
+
+    # m(u,v) (sum(p(u,u'))) -> to_idx
+    # u -> if padding node in corpus, node will not be updated it will remain 0
+    # m(u,v) (sum(p(v,v'))) -> from_idx
+    # u -> i dont want update of u to depend on information from v
     if mask_from_idx is not None:
         messages *= mask_from_idx[from_idx][:, None]
   
