@@ -28,7 +28,7 @@ from subgraph.models.node_align_node_loss import Node_align_Node_loss
 from subgraph.models.node_align_edge_loss import Node_align_Edge_loss
 from subgraph.models.hungarian_node_align import Hungarian_Node_align_Node_loss
 from subgraph.models.fringed_node_align_node_loss import Fringed_node_align_Node_loss
-from subgraph.models.model_new_1 import model_new_1
+from subgraph.models.node_early_interaction_interpretability import NodeEarlyInteractionInterpretability
 from subgraph.models.gmn_embed import GMN_embed, GMN_embed_hinge, GMN_embed_with_ColBERT_scores, GMN_embed_with_MLP_and_ColBERT_scores, GMN_embed_maxsim_dot, GMN_embed_maxsim_dot_corrected
 
 from subgraph.eval_utils import evaluate_embeddings_similarity, pairwise_ranking_loss_similarity
@@ -44,10 +44,10 @@ def train(av,config):
     model = Node_align_Node_loss(av,config,1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
-  elif av.TASK.startswith("model_new_1"):
-    logger.info("Loading model model_new_1")  
-    logger.info("Still Building")  
-    model = model_new_1(av,config,1).to(device)
+  elif av.TASK.startswith("node_early_interaction_interpretability"):
+    logger.info("Loading model node_early_interaction_interpretability")  
+    logger.info("Still Building")
+    model = NodeEarlyInteractionInterpretability(av,config,1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
   elif av.TASK.startswith("node_early_interaction"):
@@ -178,6 +178,7 @@ if __name__ == "__main__":
   ap.add_argument("--DATASET_NAME",                   type=str,   default="mutag")
   ap.add_argument("--SEED",                           type=int,   default=0)
   ap.add_argument('--EXPLICIT_SEED',                  type=int,   nargs='?')
+  ap.add_argument('--lambd',                          type=float,   nargs='?')
 
   av = ap.parse_args()
   seeds = [4586, 7366, 7474, 7762, 4929, 3543, 1704, 356, 4891, 3133]
@@ -186,7 +187,7 @@ if __name__ == "__main__":
      av.SEED = av.EXPLICIT_SEED
   av.time_key = str(datetime.now()).replace(' ', '_')
   
-  exp_name = f"{av.TASK}_{av.DATASET_NAME}_margin_{av.MARGIN}_seed_{av.SEED}_time_{av.time_key}"
+  exp_name = f"{av.TASK}_{av.DATASET_NAME}_margin_{av.MARGIN}_seed_{av.SEED}_time_{av.time_key}_lambd_{av.lambd}"
   av.logpath = av.experiment_group + "/" + av.logpath + exp_name
   set_log(av)
   logger.info("Command line")
@@ -214,6 +215,9 @@ if __name__ == "__main__":
     'n_time_updates': av.time_updates,
     'time_update_idx': av.time_update_idx,
     'prop_separate_params': av.prop_separate_params
+  }
+  config['node_early_interaction_interpretability'] = {
+    'lambd' : av.lambd
   }
   config['graph_embedding_net'] ['n_prop_layers'] = av.GMN_NPROPLAYERS
   config['graph_matching_net'] ['n_prop_layers'] = av.GMN_NPROPLAYERS

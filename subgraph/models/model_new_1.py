@@ -93,15 +93,16 @@ class model_new_1(torch.nn.Module):
             # TempMask -> (N, 2, M)
             # TempMask -> (N * 2, M)
             # TempMask -> (N * 2 * M) (ones, score, ones, score)
-            temp_mask_from_idx = torch.stack((cudavar(self.av, torch.ones(temp_mask_from_idx.shape)), temp_mask_from_idx), dim = 1).view( temp_mask_from_idx.shape[0] * 2, temp_mask_from_idx.shape[1]).flatten()
+            temp_mask_from_idx = torch.stack((cudavar(self.av, torch.ones(temp_mask_from_idx.shape)), 1+0*temp_mask_from_idx), dim = 1).view( temp_mask_from_idx.shape[0] * 2, temp_mask_from_idx.shape[1]).flatten()
             
             # MaskIdx -> (ones(Q), scores(C), ones(Q), scores(C))
             mask_from_idx = torch.cat(torch.split(temp_mask_from_idx, torch.stack((torch.tensor(batch_data_sizes_flat), self.max_set_size - torch.tensor(batch_data_sizes_flat)), dim = 1).view(2 * len(batch_data_sizes_flat)).tolist(), dim=0)[0::2])
-            if self.diagnostic_mode:
-                return transport_plan
-            
-            scores = -torch.sum(torch.maximum(stacked_qnode_emb - transport_plan@stacked_cnode_emb,\
-                cudavar(self.av,torch.tensor([0]))),\
-            dim=(1,2))
+
+        if self.diagnostic_mode:
+            return transport_plan
+        
+        scores = -torch.sum(torch.maximum(stacked_qnode_emb - transport_plan@stacked_cnode_emb,\
+            cudavar(self.av,torch.tensor([0]))),\
+        dim=(1,2))
         
         return scores

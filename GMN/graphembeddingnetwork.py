@@ -122,7 +122,7 @@ def graph_prop_once(node_states,
     # u -> i dont want update of u to depend on information from v
     if mask_from_idx is not None:
         messages *= mask_from_idx[from_idx][:, None]
-  
+    
     from GMN.segment import unsorted_segment_sum
     tensor = unsorted_segment_sum(messages, to_idx, node_states.shape[0])
     return tensor
