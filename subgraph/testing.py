@@ -43,6 +43,10 @@ def load_config(av):
     'time_update_idx': av.time_update_idx,
     'prop_separate_params': av.prop_separate_params
   }
+
+  config['node_early_interaction_interpretability'] = {
+    'lambd' : av.lambd
+  }
   
   config['graphsim']= {}
   config['graphsim']['conv_kernel_size'] = [10,4,2]
@@ -117,7 +121,7 @@ def evaluate_embeddings_similarity_map_mrr_mndcg(av,model,sampler):
       all_hits_20.append(hits_20)
   return ap_score, np.mean(all_ap), np.std(all_ap), rr, np.mean(all_rr), np.std(all_rr), ndcg, np.mean(all_ndcg), np.std(all_ndcg), all_ap, all_rr, np.mean(all_hits_20)
 
-def evaluate_histogram(av,model,sampler):
+def evaluate_histogram(av,model,sampler,lambd=1):
   model.eval()
   d_pos = sampler.list_pos
   d_neg = sampler.list_neg
@@ -159,7 +163,6 @@ def evaluate_histogram(av,model,sampler):
 
           query_edges = [(query_from[k] - bef, query_to[k] - bef) for k in range(len(query_from))]
           Query.add_edges_from(query_edges)
-          Query.add_nodes_from(np.arange(15)[batch_data_sizes_flat[j*2]:])
           # print("query nodes", Query.number_of_nodes(), "original", batch_data_sizes_flat[j*2])
 
           bef += batch_data_sizes_flat[j*2]
@@ -172,7 +175,6 @@ def evaluate_histogram(av,model,sampler):
           
           corpus_edges = [(corpus_from[k] - bef, corpus_to[k] - bef) for k in range(len(corpus_from))]
           Corpus.add_edges_from(corpus_edges)
-          Corpus.add_nodes_from(np.arange(15)[batch_data_sizes_flat[j*2+1]:])
           # print("corpus nodes", Corpus.number_of_nodes(), "original", batch_data_sizes_flat[j*2 + 1])
 
           bef += batch_data_sizes_flat[j*2 + 1]
@@ -182,25 +184,23 @@ def evaluate_histogram(av,model,sampler):
           GM = iso.GraphMatcher(Corpus,Query)
           norm = torch.inf
           for mapping in GM.subgraph_isomorphisms_iter():
-            p_hat = torch.zeros(15, 15).to(transport_plans.device)
+            p_hat = torch.zeros(batch_data_sizes_flat[j*2], batch_data_sizes_flat[j*2+1]).to(transport_plans.device)
             for key in mapping.keys():
               p_hat[mapping[key]][key] = 1
-            norm = min(norm, torch.sum(torch.abs(transport_plans[j] - p_hat)))
-            print("ok")
-            # norm = min(norm, torch.sum(torch.abs(transport_plans[j][:batch_data_sizes_flat[j*2], :batch_data_sizes_flat[j*2+1]] - p_hat)))
+            norm = min(norm, torch.sum(torch.abs(transport_plans[j][:batch_data_sizes_flat[j*2], :batch_data_sizes_flat[j*2+1]] - p_hat)))
           norms.append(norm)
       norms_tot.extend(norms[:npos])
-  values_np = np.array([x for x in norms_tot])
+  values_np = np.array([x.cpu() for x in norms_tot])
   import pickle
-  pickle.dump(values_np, open('lambda_1.0_source_mask', 'wb'))
   import matplotlib.pyplot as plt
+  pickle.dump(values_np, open(f'lambda_{lambd}_source_mask', 'wb'))
   plt.figure(figsize=(8, 6))
   plt.hist(values_np, bins=20, color='skyblue', edgecolor='black')  # Adjust the number of bins as needed
   plt.xlabel('Norm(P - P_hat)')
   plt.ylabel('Frequency')
-  plt.title('Histogram for lambda=1.0 Source Masking : Aids (Seed 4586)')
+  plt.title(f'Histogram for lambda={lambd} Source Masking : Aids (Seed 4586)')
   plt.grid(True)
-  plt.savefig('lambda_1.0_source_mask_aids_4586.png')
+  plt.savefig(f'lambda_{lambd}_source_mask_aids_4586.png')
   return norms_tot
 
 def fetch_gmn_data(av):
@@ -218,9 +218,9 @@ def get_result(av,model_loc,state_dict):
       model = im.Node_align_Node_loss(av,config,1).to(device)
       test_data.data_type = "gmn"
       val_data.data_type = "gmn"
-    elif model_loc.startswith("model_new_1"):
+    elif model_loc.startswith("node_early_interaction_interpretability"):
       config = load_config(av)
-      model = im.model_new_1(av,config,1).to(device)
+      model = im.NodeEarlyInteractionInterpretability(av,config,1).to(device)
       test_data.data_type = "gmn"
       val_data.data_type = "gmn"
     elif model_loc.startswith("isonet"):
@@ -238,8 +238,8 @@ def get_result(av,model_loc,state_dict):
     model.eval()
     model.load_state_dict(state_dict)
     model.load_state_dict(state_dict)
-    val_result = evaluate_embeddings_similarity_map_mrr_mndcg(av,model,val_data)
-    test_result = evaluate_embeddings_similarity_map_mrr_mndcg(av,model,test_data)
+    val_result = None#evaluate_embeddings_similarity_map_mrr_mndcg(av,model,val_data)
+    test_result = evaluate_histogram(av,model,test_data,lambd=av.lambd)
 
     return val_result, test_result
 
@@ -291,14 +291,15 @@ av = Namespace(   want_cuda                    = True,
                   TASK                       = "",
                   test_size                  = 300,
                   SEED                       = 0,
+                  lambd                      = 1,
               )
 
 
 task_dict = {} 
 
-# task_dict['model_new_1'] = "Model New 1"
+task_dict['node_early_interaction_interpretability'] = "Early Interpretability"
 # task_dict['node_early_interaction'] = "Early Interaction"
-task_dict['node_align_node_loss'] = "Node Align Node Loss"
+# task_dict['node_align_node_loss'] = "Node Align Node Loss"
 # task_dict['isonet'] = "ISONET"
 datasets = ["aids", "mutag", "ptc_fr", "ptc_fm", "ptc_mr", "ptc_mm"]
 test_model_dir = ad.model_dir

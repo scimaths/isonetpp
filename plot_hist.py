@@ -8,7 +8,7 @@ lambda_1 = pickle.load(open('lambda_1.0_source_mask', 'rb'))
 lambda_2 = pickle.load(open('lambda_0.2_source_mask', 'rb'))
 lambda_5 = pickle.load(open('lambda_0.5_source_mask', 'rb'))
 lambda_8 = pickle.load(open('lambda_0.8_source_mask', 'rb'))
-lambda_0 = pickle.load(open('lambda_0_source_mask', 'rb'))
+lambda_0 = pickle.load(open('lambda_0.0_source_mask', 'rb'))
 
 print(np.mean(lambda_0))
 print(np.mean(lambda_2))

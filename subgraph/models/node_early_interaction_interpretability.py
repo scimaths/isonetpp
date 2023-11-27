@@ -12,7 +12,7 @@ class NodeEarlyInteractionInterpretability(torch.nn.Module):
         self.input_dim = input_dim
         self.build_masking_utility()
         self.build_layers()
-        self.diagnostic_mode = False
+        self.diagnostic_mode = True
         self.lambd = self.config["node_early_interaction_interpretability"]["lambd"]
     
     def build_masking_utility(self):
