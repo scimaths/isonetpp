@@ -80,7 +80,8 @@ def graph_prop_once(node_states,
                     message_net,
                     aggregation_module=None,
                     edge_features=None,
-                    mask_from_idx=None):
+                    mask_from_idx=None,
+                    interaction_features=None):
     """One round of propagation (message passing) in a graph.
 
     Args:
@@ -111,6 +112,9 @@ def graph_prop_once(node_states,
     if edge_features is not None:
         edge_inputs.append(edge_features)
 
+    if interaction_features is not None:
+      edge_inputs.append(interaction_features)
+
     # [from_idx_node_ftrs - to_idx_node_ftrs]
     edge_inputs = torch.cat(edge_inputs, dim=-1)
     messages = message_net(edge_inputs)
@@ -140,6 +144,7 @@ class GraphPropLayer(nn.Module):
                  reverse_dir_param_different=True,
                  layer_norm=False,
                  prop_type='embedding',
+                 use_edge_early=False,
                  name='graph-net'):
         """Constructor.
 
@@ -164,6 +169,7 @@ class GraphPropLayer(nn.Module):
 
         self._node_state_dim = node_state_dim
         self._edge_hidden_sizes = edge_hidden_sizes[:]
+        self.use_edge_early = use_edge_early
 
         # output size is node_state_dim
         self._node_hidden_sizes = node_hidden_sizes[:] + [node_state_dim]
@@ -183,7 +189,11 @@ class GraphPropLayer(nn.Module):
 
     def build_model(self):
         layer = []
-        layer.append(nn.Linear(self._edge_hidden_sizes[0] + 1, self._edge_hidden_sizes[0]))
+        if self.use_edge_early:
+          layer.append(nn.Linear(self._edge_hidden_sizes[0] + self._edge_hidden_sizes[-1] + 1, self._edge_hidden_sizes[0]))
+        else:
+          layer.append(nn.Linear(self._edge_hidden_sizes[0] + 1, self._edge_hidden_sizes[0]))
+
         for i in range(1, len(self._edge_hidden_sizes)):
             layer.append(nn.ReLU())
             layer.append(nn.Linear(self._edge_hidden_sizes[i - 1], self._edge_hidden_sizes[i]))
@@ -203,6 +213,9 @@ class GraphPropLayer(nn.Module):
 
         if self._node_update_type == 'gru':
             if self._prop_type == 'embedding':
+              if self.use_edge_early:
+                self.GRU = torch.nn.GRU(self._node_state_dim * 2 + self._edge_hidden_sizes[-1], self._node_state_dim)
+              else:
                 self.GRU = torch.nn.GRU(self._node_state_dim * 2, self._node_state_dim)
             elif self._prop_type == 'matching':
                 self.GRU = torch.nn.GRU(self._node_state_dim * 3, self._node_state_dim)
@@ -218,7 +231,7 @@ class GraphPropLayer(nn.Module):
             self.MLP = nn.Sequential(*layer)
 
     def _compute_aggregated_messages(
-            self, node_states, from_idx, to_idx, edge_features=None, mask_from_idx=None):
+            self, node_states, from_idx, to_idx, edge_features=None, mask_from_idx=None, interaction_features=None):
         """Compute aggregated messages for each node.
 
         Args:
@@ -240,7 +253,8 @@ class GraphPropLayer(nn.Module):
             self._message_net,
             aggregation_module=None,
             edge_features=edge_features,
-            mask_from_idx=mask_from_idx)
+            mask_from_idx=mask_from_idx,
+            interaction_features=interaction_features)
 
         # optionally compute message vectors in the reverse direction
         if self._use_reverse_direction:
@@ -251,7 +265,8 @@ class GraphPropLayer(nn.Module):
                 self._reverse_message_net,
                 aggregation_module=None,
                 edge_features=edge_features,
-                mask_from_idx=mask_from_idx)
+                mask_from_idx=mask_from_idx,
+                interaction_features=interaction_features)
 
             aggregated_messages += reverse_aggregated_messages
 
@@ -317,7 +332,8 @@ class GraphPropLayer(nn.Module):
                 to_idx,
                 edge_features=None,
                 node_features=None,
-                mask_from_idx=None):
+                mask_from_idx=None,
+                interaction_features=None):
         """Run one propagation step.
 
         Args:
@@ -334,10 +350,11 @@ class GraphPropLayer(nn.Module):
           node_states: [n_nodes, node_state_dim] float tensor, new node states.
         """
         aggregated_messages = self._compute_aggregated_messages(
-            node_states, from_idx, to_idx, edge_features=edge_features, mask_from_idx=mask_from_idx)
+            node_states, from_idx, to_idx, edge_features=edge_features, mask_from_idx=mask_from_idx, interaction_features=interaction_features)
+        aggregated_interactions = unsorted_segment_sum(interaction_features, to_idx, node_states.shape[0])
 
         return self._compute_node_update(node_states,
-                                         [aggregated_messages],
+                                         [aggregated_messages, aggregated_interactions],
                                          node_features=node_features)
 
 class GraphAggregator(nn.Module):

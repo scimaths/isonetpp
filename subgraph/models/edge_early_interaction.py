@@ -52,13 +52,10 @@ class EdgeEarlyInteraction(torch.nn.Module):
         self.prop_config = self.config['graph_embedding_net'].copy()
         self.prop_config.pop('n_prop_layers',None)
         self.prop_config.pop('share_prop_params',None)
+        self.message_feature_dim = self.prop_config['edge_hidden_sizes'][-1]
+        self.prop_config['use_edge_early'] = True
         self.prop_layer = gmngen.GraphPropLayer(**self.prop_config)
-        
-        self.fc_combine_interaction = torch.nn.Sequential(
-            torch.nn.Linear(self.prop_config['edge_hidden_sizes'][-1] + self.config['encoder']['edge_feature_dim'], self.prop_config['edge_hidden_sizes'][-1] + self.config['encoder']['edge_feature_dim']),
-            torch.nn.ReLU(),
-            torch.nn.Linear(self.prop_config['edge_hidden_sizes'][-1] + self.config['encoder']['edge_feature_dim'], self.config['encoder']['edge_feature_dim'])
-        )
+
         self.fc_transform1 = torch.nn.Linear(2*self.av.filters_3, self.av.transform_dim)
         self.relu1 = torch.nn.ReLU()
         self.fc_transform2 = torch.nn.Linear(self.av.transform_dim, self.av.transform_dim)
@@ -79,13 +76,12 @@ class EdgeEarlyInteraction(torch.nn.Module):
         
         encoded_node_features, encoded_edge_features = self.encoder(node_features, edge_features)
         num_edges, edge_feature_dim = encoded_edge_features.shape
-        message_feature_dim = self.prop_config["edge_hidden_sizes"][-1]
         batch_size = len(batch_data_sizes)
 
         n_time_update_steps = self.config['early_interaction']['n_time_updates']
         n_prop_update_steps = self.config['graph_embedding_net']['n_prop_layers']
 
-        edge_feature_store = torch.zeros(num_edges, message_feature_dim * (n_prop_update_steps + 1), device=node_features.device)
+        edge_feature_store = torch.zeros(num_edges, self.message_feature_dim * (n_prop_update_steps + 1), device=node_features.device)
         updated_edge_feature_store = torch.zeros_like(edge_feature_store)
 
         max_set_size_arange = torch.arange(self.max_set_size, dtype=torch.long, device=device).reshape(1, -1).repeat(batch_size * 2, 1)
@@ -93,25 +89,28 @@ class EdgeEarlyInteraction(torch.nn.Module):
         max_set_size_arange[1:, ] += cumulative_sizes[:-1].unsqueeze(1)
         edge_indices = max_set_size_arange[edge_presence_mask]
 
+        mask_from_idx = None
+
         for time_idx in range(1, n_time_update_steps + 1):
             node_features_enc = torch.clone(encoded_node_features)
             edge_features_enc = torch.clone(encoded_edge_features)
             for prop_idx in range(1, n_prop_update_steps + 1) :
-                nf_idx = message_feature_dim * prop_idx
-                interaction_features = edge_feature_store[:, nf_idx - message_feature_dim : nf_idx]
-                combined_features = self.fc_combine_interaction(torch.cat([edge_features_enc, interaction_features], dim=1))
-
-                node_features_enc = self.prop_layer(node_features_enc, from_idx, to_idx, combined_features)
+                nf_idx = self.message_feature_dim * prop_idx
+                if time_idx == 1:
+                    interaction_features = edge_feature_store[:, nf_idx - self.message_feature_dim : nf_idx]
+                else:
+                    interaction_features = edge_features_enc.repeat(1, self.message_feature_dim)
+                node_features_enc = self.prop_layer(node_features_enc, from_idx, to_idx, edge_features_enc, mask_from_idx=mask_from_idx, interaction_features=interaction_features)
 
                 source_node_enc = node_features_enc[from_idx]
                 dest_node_enc  = node_features_enc[to_idx]
-                forward_edge_input = torch.cat((source_node_enc,dest_node_enc,combined_features),dim=-1)
-                backward_edge_input = torch.cat((dest_node_enc,source_node_enc,combined_features),dim=-1)
+                forward_edge_input = torch.cat((source_node_enc,dest_node_enc,edge_features_enc,interaction_features),dim=-1)
+                backward_edge_input = torch.cat((dest_node_enc,source_node_enc,edge_features_enc,interaction_features),dim=-1)
                 forward_edge_msg = self.prop_layer._message_net(forward_edge_input)
                 backward_edge_msg = self.prop_layer._reverse_message_net(backward_edge_input)
                 messages = forward_edge_msg + backward_edge_msg
-                
-                updated_edge_feature_store[:, nf_idx : nf_idx + message_feature_dim] = torch.clone(messages)
+
+                updated_edge_feature_store[:, nf_idx : nf_idx + self.message_feature_dim] = torch.clone(messages)
 
             edge_feature_store = torch.clone(updated_edge_feature_store)
 
@@ -123,8 +122,8 @@ class EdgeEarlyInteraction(torch.nn.Module):
             stacked_cedge_store_emb = torch.stack([F.pad(x, pad=(0,0,0,self.max_set_size-x.shape[0])) for x in edge_feature_store_corpus])
             
             # Compute transport plan
-            stacked_qedge_final_emb = stacked_qedge_store_emb[:,:,-message_feature_dim:]
-            stacked_cedge_final_emb = stacked_cedge_store_emb[:,:,-message_feature_dim:]
+            stacked_qedge_final_emb = stacked_qedge_store_emb[:,:,-self.message_feature_dim:]
+            stacked_cedge_final_emb = stacked_cedge_store_emb[:,:,-self.message_feature_dim:]
             transformed_qedge_final_emb = self.fc_transform2(self.relu1(self.fc_transform1(stacked_qedge_final_emb)))
             transformed_cedge_final_emb = self.fc_transform2(self.relu1(self.fc_transform1(stacked_cedge_final_emb)))
             
@@ -136,14 +135,19 @@ class EdgeEarlyInteraction(torch.nn.Module):
             sinkhorn_input = torch.matmul(masked_qedge_final_emb, masked_cedge_final_emb.permute(0, 2, 1))
             transport_plan = pytorch_sinkhorn_iters(self.av, sinkhorn_input)
 
+            # Calculate interpretability
+            temp_mask_from_idx = torch.sum(transport_plan * qgraph_mask[:, :, 0].unsqueeze(-1).repeat(1,1,self.max_set_size), dim=1)
+            temp_mask_from_idx = torch.stack((cudavar(self.av, torch.ones(temp_mask_from_idx.shape)), temp_mask_from_idx), dim = 1).view( temp_mask_from_idx.shape[0] * 2, temp_mask_from_idx.shape[1]).flatten()
+            mask_from_idx = torch.cat(torch.split(temp_mask_from_idx, torch.stack((torch.tensor(batch_data_sizes_flat), self.max_set_size - torch.tensor(batch_data_sizes_flat)), dim = 1).view(2 * len(batch_data_sizes_flat)).tolist(), dim=0)[0::2])
+
             # Compute interaction
             qnode_features_from_cnodes = torch.bmm(transport_plan, stacked_cedge_store_emb)
             cnode_features_from_qnodes = torch.bmm(transport_plan.permute(0, 2, 1), stacked_qedge_store_emb)
             interleaved_node_features = torch.cat([
                 qnode_features_from_cnodes.unsqueeze(1),
                 cnode_features_from_qnodes.unsqueeze(1)
-            ], dim=1)[:, :, :, message_feature_dim:].reshape(-1, n_prop_update_steps * message_feature_dim) 
-            edge_feature_store[:, message_feature_dim:] = interleaved_node_features[edge_indices, :]
+            ], dim=1)[:, :, :, self.message_feature_dim:].reshape(-1, n_prop_update_steps * self.message_feature_dim) 
+            edge_feature_store[:, self.message_feature_dim:] = interleaved_node_features[edge_indices, :]
 
         if self.diagnostic_mode:
             return transport_plan
