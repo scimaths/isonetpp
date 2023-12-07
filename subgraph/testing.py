@@ -218,6 +218,11 @@ def get_result(av,model_loc,state_dict):
       model = im.Node_align_Node_loss(av,config,1).to(device)
       test_data.data_type = "gmn"
       val_data.data_type = "gmn"
+    elif model_loc.startswith("edge_early_interaction"):
+      config = load_config(av)
+      model = im.EdgeEarlyInteraction(av,config,1).to(device)
+      test_data.data_type = "gmn"
+      val_data.data_type = "gmn"
     elif model_loc.startswith("node_early_interaction_interpretability"):
       config = load_config(av)
       model = im.NodeEarlyInteractionInterpretability(av,config,1).to(device)
@@ -238,8 +243,8 @@ def get_result(av,model_loc,state_dict):
     model.eval()
     model.load_state_dict(state_dict)
     model.load_state_dict(state_dict)
-    val_result = None#evaluate_embeddings_similarity_map_mrr_mndcg(av,model,val_data)
-    test_result = evaluate_histogram(av,model,test_data,lambd=av.lambd)
+    val_result = evaluate_embeddings_similarity_map_mrr_mndcg(av,model,val_data)
+    test_result = evaluate_embeddings_similarity_map_mrr_mndcg(av,model,test_data)
 
     return val_result, test_result
 
@@ -297,7 +302,8 @@ av = Namespace(   want_cuda                    = True,
 
 task_dict = {} 
 
-task_dict['node_early_interaction_interpretability'] = "Early Interpretability"
+task_dict['edge_early_interaction'] = "Edge Early"
+# task_dict['node_early_interaction_interpretability'] = "Early Interpretability"
 # task_dict['node_early_interaction'] = "Early Interaction"
 # task_dict['node_align_node_loss'] = "Node Align Node Loss"
 # task_dict['isonet'] = "ISONET"
@@ -329,10 +335,11 @@ for model_loc in os.listdir(test_model_dir):
     if dataset not in scores[model].keys():
        scores[model][dataset] = {}
     print("dataset", dataset)
-    t = get_result(av,model_loc,model_state_dict)[1]
-    scores[model][dataset][seed] = t[1]
-    print(t[11])
-    print(scores[model][dataset][seed])
+    t = get_result(av,model_loc,model_state_dict)
+    scores[model][dataset][seed] = t[1][1]
+    print("val", t[0][1])
+    print("test", t[1][1])
+    # print(scores[model][dataset][seed])
     pickle.dump(scores, open('scores.pkl', 'wb'))
 
 print(scores)
