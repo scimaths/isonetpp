@@ -82,10 +82,10 @@ class AddingToQ(torch.nn.Module):
         to_idx += increase_from_idx
 
         # adding new from/to idx
-        new_edges_from_idx = torch.cat([(sum(batch_data_sizes_flat[:2*idx]) + torch.arange(batch_data_sizes[idx][0]).reshape(-1, 1).repeat(1, batch_data_sizes[idx][1] - batch_data_sizes[idx][0]).flatten()) for idx in range(len(batch_data_sizes))])
-        new_edges_to_idx = torch.cat([(sum(batch_data_sizes_flat[:2*idx]) + torch.arange(self.max_set_size)[batch_data_sizes[idx][0]:batch_data_sizes[idx][1]].repeat(batch_data_sizes[idx][0])) for idx in range(len(batch_data_sizes))])
-        from_idx = torch.cat((from_idx, new_edges_from_idx.to(node_features.device)))
-        to_idx = torch.cat((to_idx, new_edges_to_idx.to(node_features.device)))
+        new_edges_from_idx = torch.cat([(sum(batch_data_sizes_flat[:2*idx]) + torch.arange(batch_data_sizes[idx][0]).reshape(-1, 1).repeat(1, batch_data_sizes[idx][1] - batch_data_sizes[idx][0]).flatten()) for idx in range(len(batch_data_sizes))]).to(node_features.device)
+        new_edges_to_idx = torch.cat([(sum(batch_data_sizes_flat[:2*idx]) + torch.arange(self.max_set_size)[batch_data_sizes[idx][0]:batch_data_sizes[idx][1]].repeat(batch_data_sizes[idx][0])) for idx in range(len(batch_data_sizes))]).to(node_features.device)
+        from_idx = torch.cat((from_idx, new_edges_from_idx))
+        to_idx = torch.cat((to_idx, new_edges_to_idx))
         edge_features = torch.ones(edge_features.shape[0] + len(new_edges_from_idx)).reshape(-1, 1).to(node_features.device)
         edge_counts_updated = [edge_counts[idx] + (((batch_data_sizes[idx//2][1] - batch_data_sizes[idx//2][0]) * batch_data_sizes[idx//2][0]) if idx % 2 == 0 else 0) for idx in range(len(edge_counts))]
 
@@ -143,22 +143,18 @@ class AddingToQ(torch.nn.Module):
             corpus_to_idx -= offset.to(node_features.device)
             corpus_from_special = layout_transport_plan[:, corpus_from_idx]
             corpus_to_special = layout_transport_plan[:, corpus_to_idx]
-
-
-
-
-            # obtain the offsets for each of the edge vertices above
-            # (15 .. 15 45 .. 45 75 .. 75)
-            offsets = (torch.arange(2 * len(batch_data_sizes))[1::2] * self.max_edge_size).reshape(-1, 1).repeat(1, self.max_edge_size).flatten()
-            # (15) * edges_1 (45) * edges_2
-            offsets = torch.cat(torch.split(offsets, torch.stack((torch.tensor(edge_counts[1::2]), self.max_edge_size - torch.tensor(edge_counts[1::2])), dim=1).flatten().tolist())[::2], dim=0)
-            offsets = offsets.to(corpus_to_idx.device)
-            # subtract offset
-            corpus_to_idx -= offsets
-            corpus_from_idx -= offsets
-            print(transport_plan.shape)
-            print(corpus_to_idx.shape)
-
+            corpus_from_special = torch.split(corpus_from_special, edge_counts_updated[1::2], dim=1)
+            corpus_from_special = torch.stack([F.pad(x, pad=(0,self.max_edge_size-x.shape[1])) \
+                                            for x in corpus_from_special]).reshape(-1, self.max_edge_size)
+            corpus_to_special = torch.split(corpus_to_special, edge_counts_updated[1::2], dim=1)
+            corpus_to_special = torch.stack([F.pad(x, pad=(0,self.max_edge_size-x.shape[1])) \
+                                            for x in corpus_to_special]).reshape(-1, self.max_edge_size)
+            
+            offset = torch.cat([torch.tensor(sum(batch_data_sizes_flat_updated[:2*idx])).repeat(edge_counts_updated[2*idx] - edge_counts[2*idx]) for idx in range(len(batch_data_sizes))])
+            new_edges_from_idx_temp = new_edges_from_idx - offset.to(node_features.device)
+            new_edges_to_idx_temp = new_edges_to_idx - offset.to(node_features.device)
+            mask_from_idx[-sum(num_new_edges):] = torch.sum(corpus_from_special[new_edges_from_idx_temp, :] * corpus_to_special[new_edges_to_idx_temp, :], dim=-1)
+        
         if self.diagnostic_mode:
             return transport_plan
 
