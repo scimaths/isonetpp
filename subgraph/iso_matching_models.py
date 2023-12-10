@@ -208,6 +208,7 @@ if __name__ == "__main__":
   config['encoder'] ['node_hidden_sizes'] = [10]
   config['encoder'] ['node_feature_dim'] = 1
   config['encoder'] ['edge_feature_dim'] = 1
+  config['encoder'] ['edge_hidden_sizes'] = [20]
   config['aggregator'] ['node_hidden_sizes'] = [10]
   config['aggregator'] ['graph_transform_sizes'] = [10]
   config['aggregator'] ['input_size'] = [10]

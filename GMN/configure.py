@@ -33,6 +33,9 @@ def get_default_config():
     graph_matching_net_config['prop_type'] = 'matching'  # other: euclidean, cosine
     return dict(
         fringe_isonet=fringe_isonet_config,
+        edge_early_interaction=dict(
+            hidden_dim=30
+        ),
         encoder=dict(
             node_hidden_sizes=[node_state_dim],
             node_feature_dim=1,

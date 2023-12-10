@@ -67,10 +67,11 @@ class GraphEncoder(nn.Module):
             node_outputs = node_features
         else:
             node_outputs = self.MLP1(node_features)
+        
         if edge_features is None or self._edge_hidden_sizes is None:
             edge_outputs = edge_features
         else:
-            edge_outputs = self.MLP2(node_features)
+            edge_outputs = self.MLP2(edge_features)
 
         return node_outputs, edge_outputs
 
@@ -185,7 +186,7 @@ class GraphPropLayer(nn.Module):
 
     def build_model(self):
         layer = []
-        layer.append(nn.Linear(self._edge_hidden_sizes[0] + self.final_edge_encoding_dim, self._edge_hidden_sizes[0]))
+        layer.append(nn.Linear(self._edge_hidden_sizes[0] + 2 * self._node_state_dim, self._edge_hidden_sizes[0]))
         for i in range(1, len(self._edge_hidden_sizes)):
             layer.append(nn.ReLU())
             layer.append(nn.Linear(self._edge_hidden_sizes[i - 1], self._edge_hidden_sizes[i]))
