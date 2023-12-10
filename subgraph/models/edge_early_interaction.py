@@ -13,7 +13,7 @@ class EdgeEarlyInteraction(torch.nn.Module):
         self.build_masking_utility()
         self.build_layers()
         self.diagnostic_mode = False
-    
+
     def build_masking_utility(self):
         self.max_set_size = self.av.MAX_EDGES
         #this mask pattern sets bottom last few rows to 0 based on padding needs
@@ -23,7 +23,6 @@ class EdgeEarlyInteraction(torch.nn.Module):
         self.set_size_to_mask_map = [torch.cat((torch.repeat_interleave(torch.tensor([1,0]),torch.tensor([x,self.max_set_size-x])).repeat(x,1),
                              torch.repeat_interleave(torch.tensor([1,0]),torch.tensor([0,self.max_set_size])).repeat(self.max_set_size-x,1)))
                              for x in range(0,self.max_set_size+1)]
-
 
     def fetch_edge_counts(self,to_idx,from_idx,graph_idx,num_graphs):
         #HACK - since I'm not storing edge sizes of each graph (only storing node sizes)
@@ -56,12 +55,7 @@ class EdgeEarlyInteraction(torch.nn.Module):
         self.prop_config['final_edge_encoding_dim'] = self.final_edge_encoding_dim
         self.message_feature_dim = self.prop_config['edge_hidden_sizes'][-1]
         self.prop_layer = gmngen.GraphPropLayer(**self.prop_config)
-        
-        self.fc_combine_interaction = torch.nn.Sequential(
-            torch.nn.Linear(self.message_feature_dim, self.message_feature_dim),
-            torch.nn.ReLU(),
-            torch.nn.Linear(self.message_feature_dim, self.final_edge_encoding_dim)
-        )
+
         self.fc_transform1 = torch.nn.Linear(2*self.av.filters_3, self.av.transform_dim)
         self.relu1 = torch.nn.ReLU()
         self.fc_transform2 = torch.nn.Linear(self.av.transform_dim, self.av.transform_dim)
@@ -76,10 +70,10 @@ class EdgeEarlyInteraction(torch.nn.Module):
         cumulative_sizes = torch.cumsum(torch.tensor(self.max_set_size, dtype=torch.long, device=device).repeat(len(batch_data_sizes_flat_tensor)), dim=0)
 
         node_features, edge_features, from_idx, to_idx, graph_idx = self.get_graph(batch_data)
-        
+
         edge_counts  = self.fetch_edge_counts(to_idx,from_idx,graph_idx,2*len(batch_data_sizes))
         edge_counts = torch.tensor(edge_counts, device=device, dtype=torch.long)
-        
+
         encoded_node_features, encoded_edge_features = self.encoder(node_features, edge_features)
         num_edges, edge_feature_dim = encoded_edge_features.shape
         batch_size = len(batch_data_sizes)
@@ -111,7 +105,7 @@ class EdgeEarlyInteraction(torch.nn.Module):
                 forward_edge_msg = self.prop_layer._message_net(forward_edge_input)
                 backward_edge_msg = self.prop_layer._reverse_message_net(backward_edge_input)
                 messages = forward_edge_msg + backward_edge_msg
-                
+
                 updated_edge_feature_store[:, nf_idx : nf_idx + self.message_feature_dim] = torch.clone(messages)
 
             edge_feature_store = torch.clone(updated_edge_feature_store)
@@ -122,13 +116,13 @@ class EdgeEarlyInteraction(torch.nn.Module):
 
             stacked_qedge_store_emb = torch.stack([F.pad(x, pad=(0,0,0,self.max_set_size-x.shape[0])) for x in edge_feature_store_query])
             stacked_cedge_store_emb = torch.stack([F.pad(x, pad=(0,0,0,self.max_set_size-x.shape[0])) for x in edge_feature_store_corpus])
-            
+
             # Compute transport plan
             stacked_qedge_final_emb = stacked_qedge_store_emb[:,:,-self.message_feature_dim:]
             stacked_cedge_final_emb = stacked_cedge_store_emb[:,:,-self.message_feature_dim:]
             transformed_qedge_final_emb = self.fc_transform2(self.relu1(self.fc_transform1(stacked_qedge_final_emb)))
             transformed_cedge_final_emb = self.fc_transform2(self.relu1(self.fc_transform1(stacked_cedge_final_emb)))
-            
+
             qgraph_mask = cudavar(self.av, torch.stack([self.graph_size_to_mask_map[i] for i in qgraph_sizes]))
             cgraph_mask = cudavar(self.av, torch.stack([self.graph_size_to_mask_map[i] for i in cgraph_sizes]))
             masked_qedge_final_emb = torch.mul(qgraph_mask,transformed_qedge_final_emb)
@@ -153,5 +147,5 @@ class EdgeEarlyInteraction(torch.nn.Module):
             stacked_qedge_final_emb - transport_plan@stacked_cedge_final_emb,
             cudavar(self.av,torch.tensor([0]))),
            dim=(1,2))
-        
+
         return scores

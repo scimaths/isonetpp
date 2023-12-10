@@ -223,6 +223,11 @@ def get_result(av,model_loc,state_dict):
       model = im.EdgeEarlyInteraction(av,config,1).to(device)
       test_data.data_type = "gmn"
       val_data.data_type = "gmn"
+    elif model_loc.startswith("adding_to_q"):
+      config = load_config(av)
+      model = im.AddingToQ(av,config,1).to(device)
+      test_data.data_type = "gmn"
+      val_data.data_type = "gmn"
     elif model_loc.startswith("node_early_interaction_interpretability"):
       config = load_config(av)
       model = im.NodeEarlyInteractionInterpretability(av,config,1).to(device)
@@ -302,7 +307,8 @@ av = Namespace(   want_cuda                    = True,
 
 task_dict = {} 
 
-task_dict['edge_early_interaction'] = "Edge Early"
+task_dict['adding_to_q'] = "Addng To Q"
+# task_dict['edge_early_interaction'] = "Edge Early"
 # task_dict['node_early_interaction_interpretability'] = "Early Interpretability"
 # task_dict['node_early_interaction'] = "Early Interaction"
 # task_dict['node_align_node_loss'] = "Node Align Node Loss"
