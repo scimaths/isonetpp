@@ -116,7 +116,7 @@ class EdgeEarlyInteraction(torch.nn.Module):
             edge_features_enc = torch.clone(encoded_edge_features)
 
             # Initialize [t,0] with edge features
-            # edge_feature_store[:, 0 : self.message_feature_dim] = edge_features_enc
+            edge_feature_store[:, 0 : self.message_feature_dim] = edge_features_enc
 
             # Propagate messages
             for prop_idx in range(1, self.n_prop_update_steps + 1) :
