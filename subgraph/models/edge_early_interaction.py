@@ -116,28 +116,14 @@ class EdgeEarlyInteraction(torch.nn.Module):
             edge_features_enc = torch.clone(encoded_edge_features)
 
             # Initialize [t,0] with edge features
-            edge_feature_store[:, 0 : self.message_feature_dim] = edge_features_enc
+            # edge_feature_store[:, 0 : self.message_feature_dim] = edge_features_enc
 
             # Propagate messages
             for prop_idx in range(1, self.n_prop_update_steps + 1) :
                 nf_idx = self.message_feature_dim * prop_idx
                 interaction_features = edge_feature_store[:, nf_idx - self.message_feature_dim : nf_idx]
 
-                node_features_enc = self.prop_layer(node_features_enc, from_idx, to_idx, interaction_features)
-
-                source_node_enc = node_features_enc[from_idx]
-                dest_node_enc  = node_features_enc[to_idx]
-                
-                # Compute [src, dest] features
-                forward_edge_input = torch.cat([source_node_enc, dest_node_enc, interaction_features], dim=-1)
-                forward_edge_msg = self.prop_layer._message_net(forward_edge_input)
-                
-                # Compute [dest, src] features
-                backward_edge_input = torch.cat([dest_node_enc, source_node_enc, interaction_features], dim=-1)
-                backward_edge_msg = self.prop_layer._reverse_message_net(backward_edge_input)
-
-                # Update edge feature store
-                messages = forward_edge_msg + backward_edge_msg
+                node_features_enc, messages = self.prop_layer(node_features_enc, from_idx, to_idx, interaction_features, return_msg=True)
                 updated_edge_feature_store[:, nf_idx : nf_idx + self.message_feature_dim] = torch.clone(messages)
 
             edge_feature_store = torch.clone(updated_edge_feature_store)

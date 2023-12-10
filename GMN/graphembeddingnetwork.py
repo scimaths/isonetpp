@@ -126,7 +126,7 @@ def graph_prop_once(node_states,
     
     from GMN.segment import unsorted_segment_sum
     tensor = unsorted_segment_sum(messages, to_idx, node_states.shape[0])
-    return tensor
+    return tensor, messages
 
 class GraphPropLayer(nn.Module):
     """Implementation of a graph propagation (message passing) layer."""
@@ -236,7 +236,7 @@ class GraphPropLayer(nn.Module):
             aggregated messages for each node.
         """
 
-        aggregated_messages = graph_prop_once(
+        aggregated_messages, forward_messages = graph_prop_once(
             node_states,
             from_idx,
             to_idx,
@@ -247,7 +247,7 @@ class GraphPropLayer(nn.Module):
 
         # optionally compute message vectors in the reverse direction
         if self._use_reverse_direction:
-            reverse_aggregated_messages = graph_prop_once(
+            reverse_aggregated_messages, backward_messages = graph_prop_once(
                 node_states,
                 to_idx,
                 from_idx,
@@ -257,11 +257,12 @@ class GraphPropLayer(nn.Module):
                 mask_from_idx=mask_from_idx)
 
             aggregated_messages += reverse_aggregated_messages
+            forward_messages += backward_messages
 
         if self._layer_norm:
             aggregated_messages = self.layer_norm1(aggregated_messages)
 
-        return aggregated_messages
+        return aggregated_messages, forward_messages
 
     def _compute_node_update(self,
                              node_states,
@@ -320,7 +321,8 @@ class GraphPropLayer(nn.Module):
                 to_idx,
                 edge_features=None,
                 node_features=None,
-                mask_from_idx=None):
+                mask_from_idx=None,
+                return_msg=False):
         """Run one propagation step.
 
         Args:
@@ -336,12 +338,17 @@ class GraphPropLayer(nn.Module):
         Returns:
           node_states: [n_nodes, node_state_dim] float tensor, new node states.
         """
-        aggregated_messages = self._compute_aggregated_messages(
+        aggregated_messages, messages = self._compute_aggregated_messages(
             node_states, from_idx, to_idx, edge_features=edge_features, mask_from_idx=mask_from_idx)
 
-        return self._compute_node_update(node_states,
-                                         [aggregated_messages],
-                                         node_features=node_features)
+        node_update = self._compute_node_update(node_states,
+                                      [aggregated_messages],
+                                      node_features=node_features)
+
+        if return_msg:
+            return node_update, messages
+        else:
+            return node_update
 
 class GraphAggregator(nn.Module):
     """This module computes graph representations by aggregating from parts."""
