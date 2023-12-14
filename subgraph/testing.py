@@ -250,6 +250,7 @@ def get_result(av,model_loc,state_dict):
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--model_dir", type=str)
+ap.add_argument("--save_file", type=str)
 # ap.add_argument("--seeds", type=int, nargs='+')
 # ap.add_argument("--datasets", type=str, nargs='+')
 # ap.add_argument("--tasks", type=str, nargs='+')
@@ -340,6 +341,6 @@ for model_loc in os.listdir(test_model_dir):
     print("val", t[0][1])
     print("test", t[1][1])
     # print(scores[model][dataset][seed])
-    pickle.dump(scores, open('scores.pkl', 'wb'))
+    pickle.dump(scores, open(f'{ad.save_file}.pkl', 'wb'))
 
 print(scores)
