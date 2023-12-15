@@ -104,7 +104,7 @@ class EdgeEarlyInteraction(torch.nn.Module):
                 interaction_features = edge_feature_store[:, nf_idx - self.message_feature_dim : nf_idx]
                 combined_features = self.fc_combine_interaction(torch.cat([edge_features_enc, interaction_features], dim=1))
 
-                node_features_enc = self.prop_layer(node_features_enc, from_idx, to_idx, combined_features)
+                node_features_enc_out = self.prop_layer(node_features_enc, from_idx, to_idx, combined_features)
 
                 source_node_enc = node_features_enc[from_idx]
                 dest_node_enc  = node_features_enc[to_idx]
@@ -114,6 +114,7 @@ class EdgeEarlyInteraction(torch.nn.Module):
                 backward_edge_msg = self.prop_layer._reverse_message_net(backward_edge_input)
                 messages = forward_edge_msg + backward_edge_msg
                 
+                node_features_enc = node_features_enc_out
                 updated_edge_feature_store[:, nf_idx : nf_idx + self.message_feature_dim] = torch.clone(messages)
 
             edge_feature_store = torch.clone(updated_edge_feature_store)
