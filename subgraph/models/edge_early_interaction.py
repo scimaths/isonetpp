@@ -64,7 +64,7 @@ class EdgeEarlyInteraction(torch.nn.Module):
         self.prop_config = self.config['graph_embedding_net'].copy()
         self.prop_config.pop('n_prop_layers',None)
         self.prop_config.pop('share_prop_params',None)
-        self.final_edge_encoding_dim = self.config['edge_early_interaction']['hidden_dim']
+        self.final_edge_encoding_dim = 30
         self.prop_config['final_edge_encoding_dim'] = self.final_edge_encoding_dim
         self.message_feature_dim = self.prop_config['edge_hidden_sizes'][-1]
         self.prop_layer = gmngen.GraphPropLayer(**self.prop_config)
@@ -115,13 +115,11 @@ class EdgeEarlyInteraction(torch.nn.Module):
             node_features_enc = torch.clone(encoded_node_features)
             edge_features_enc = torch.clone(encoded_edge_features)
 
-            # Initialize [t,0] with edge features
-            edge_feature_store[:, 0 : self.message_feature_dim] = edge_features_enc
-
             # Propagate messages
             for prop_idx in range(1, self.n_prop_update_steps + 1) :
                 nf_idx = self.message_feature_dim * prop_idx
                 interaction_features = edge_feature_store[:, nf_idx - self.message_feature_dim : nf_idx]
+                combined_features = self.fc_combine_interaction(torch.cat([edge_features_enc, interaction_features], dim=1))
 
                 node_features_enc, messages = self.prop_layer(node_features_enc, from_idx, to_idx, interaction_features, return_msg=True)
                 updated_edge_feature_store[:, nf_idx : nf_idx + self.message_feature_dim] = torch.clone(messages)

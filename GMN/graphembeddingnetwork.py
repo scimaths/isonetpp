@@ -186,7 +186,7 @@ class GraphPropLayer(nn.Module):
 
     def build_model(self):
         layer = []
-        layer.append(nn.Linear(self._edge_hidden_sizes[0] + 2 * self._node_state_dim, self._edge_hidden_sizes[0]))
+        layer.append(nn.Linear(self._edge_hidden_sizes[0] + self.final_edge_encoding_dim, self._edge_hidden_sizes[0]))
         for i in range(1, len(self._edge_hidden_sizes)):
             layer.append(nn.ReLU())
             layer.append(nn.Linear(self._edge_hidden_sizes[i - 1], self._edge_hidden_sizes[i]))
