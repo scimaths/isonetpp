@@ -196,7 +196,7 @@ class GraphPropLayer(nn.Module):
         if self._use_reverse_direction:
             if self._reverse_dir_param_different:
                 layer = []
-                layer.append(nn.Linear(self._edge_hidden_sizes[0] + 1, self._edge_hidden_sizes[0]))
+                layer.append(nn.Linear(self._edge_hidden_sizes[0] + self.final_edge_encoding_dim, self._edge_hidden_sizes[0]))
                 for i in range(1, len(self._edge_hidden_sizes)):
                     layer.append(nn.ReLU())
                     layer.append(nn.Linear(self._edge_hidden_sizes[i - 1], self._edge_hidden_sizes[i]))
