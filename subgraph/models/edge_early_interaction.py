@@ -73,10 +73,11 @@ class EdgeEarlyInteraction(torch.nn.Module):
         encoder_config['edge_hidden_sizes'] = [self.message_feature_dim, ]
         self.encoder = gmngen.GraphEncoder(**encoder_config)
         
+        combined_feature_dim = self.message_feature_dim + self.config['encoder']['edge_feature_dim']
         self.fc_combine_interaction = torch.nn.Sequential(
-            torch.nn.Linear(self.message_feature_dim, self.message_feature_dim),
+            torch.nn.Linear(combined_feature_dim, combined_feature_dim),
             torch.nn.ReLU(),
-            torch.nn.Linear(self.message_feature_dim, self.final_edge_encoding_dim)
+            torch.nn.Linear(combined_feature_dim, self.final_edge_encoding_dim)
         )
         self.fc_transform1 = torch.nn.Linear(2*self.av.filters_3, self.av.transform_dim)
         self.relu1 = torch.nn.ReLU()
