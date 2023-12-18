@@ -59,7 +59,7 @@ class EdgeEarlyInteraction(torch.nn.Module):
         self.fc_combine_interaction = torch.nn.Sequential(
             torch.nn.Linear(self.message_feature_dim + self.config['encoder']['edge_feature_dim'], self.message_feature_dim + self.config['encoder']['edge_feature_dim']),
             torch.nn.ReLU(),
-            torch.nn.Linear(self.message_feature_dim + self.config['encoder']['edge_feature_dim'], self.message_feature_dim)
+            torch.nn.Linear(self.message_feature_dim + self.config['encoder']['edge_feature_dim'], 30)
         )
         self.fc_transform1 = torch.nn.Linear(2*self.av.filters_3, self.av.transform_dim)
         self.relu1 = torch.nn.ReLU()

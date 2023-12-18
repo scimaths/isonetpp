@@ -186,7 +186,7 @@ class GraphPropLayer(nn.Module):
     def build_model(self):
         layer = []
         if self.use_early_edge:
-          layer.append(nn.Linear(self._edge_hidden_sizes[0] + self._edge_hidden_sizes[-1], self._edge_hidden_sizes[0]))
+          layer.append(nn.Linear(self._edge_hidden_sizes[0] + 30, self._edge_hidden_sizes[0]))
         else:
           layer.append(nn.Linear(self._edge_hidden_sizes[0] + 1, self._edge_hidden_sizes[0]))
         for i in range(1, len(self._edge_hidden_sizes)):
