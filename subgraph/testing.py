@@ -205,6 +205,7 @@ def evaluate_histogram(av,model,sampler,lambd=1):
 
 def fetch_gmn_data(av):
     data_mode = "test" if av.test_size==25 else "Extra_test_300"
+    print("Test data size -", av.test_size)
     test_data = im.OurMatchingModelSubgraphIsoData(av,mode=data_mode)
     val_data = im.OurMatchingModelSubgraphIsoData(av,mode="val")
     test_data.data_type = "pyg"
@@ -250,6 +251,7 @@ def get_result(av,model_loc,state_dict):
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--model_dir", type=str)
+ap.add_argument("--test_size", type=int)
 # ap.add_argument("--seeds", type=int, nargs='+')
 # ap.add_argument("--datasets", type=str, nargs='+')
 # ap.add_argument("--tasks", type=str, nargs='+')
@@ -326,7 +328,7 @@ for model_loc in os.listdir(test_model_dir):
        scores[model] = {}
     saved = torch.load(os.path.join(test_model_dir, model_loc))
     av = saved['av']
-    av.test_size = 25
+    av.test_size = ad.test_size
     av.prop_separate_params = False
     av.want_cuda = True
     device = "cuda" if av.has_cuda and av.want_cuda else "cpu"
@@ -340,6 +342,6 @@ for model_loc in os.listdir(test_model_dir):
     print("val", t[0][1])
     print("test", t[1][1])
     # print(scores[model][dataset][seed])
-    pickle.dump(scores, open(f'scores_vaibhav_dim_30.pkl', 'wb'))
+    pickle.dump(scores, open(f'scores_vaibhav_dim_30{"_query_300" if ad.test_size == 300 else ""}.pkl', 'wb'))
 
 print(scores)
