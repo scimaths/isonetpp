@@ -340,6 +340,6 @@ for model_loc in os.listdir(test_model_dir):
     print("val", t[0][1])
     print("test", t[1][1])
     # print(scores[model][dataset][seed])
-    pickle.dump(scores, open(f'scores_edge_early.pkl', 'wb'))
+    pickle.dump(scores, open(f'scores_vaibhav_dim_30.pkl', 'wb'))
 
 print(scores)
