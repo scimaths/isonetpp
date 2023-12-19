@@ -242,7 +242,7 @@ class GraphPropLayer(nn.Module):
             self._message_net,
             aggregation_module=None,
             edge_features=edge_features,
-            mask_from_idx=mask_from_idx)
+            mask_from_idx=mask_from_idx if not type(mask_from_idx, list) else mask_from_idx[0])
 
         # optionally compute message vectors in the reverse direction
         if self._use_reverse_direction:
@@ -253,7 +253,7 @@ class GraphPropLayer(nn.Module):
                 self._reverse_message_net,
                 aggregation_module=None,
                 edge_features=edge_features,
-                mask_from_idx=mask_from_idx)
+                mask_from_idx=mask_from_idx if not type(mask_from_idx, list) else mask_from_idx[1])
 
             aggregated_messages += reverse_aggregated_messages
 
