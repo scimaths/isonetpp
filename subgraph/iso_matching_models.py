@@ -47,7 +47,6 @@ def train(av,config):
     val_data.data_type = "gmn"
   elif av.TASK.startswith("node_early_interaction_edge_deletion"):
     logger.info("Loading model node_early_interaction_edge_deletion")  
-    logger.info("Still Building")
     model = NodeEarlyInteractionEdgeDeletion(av,config,1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
@@ -187,7 +186,7 @@ if __name__ == "__main__":
   ap.add_argument("--DATASET_NAME",                   type=str,   default="mutag")
   ap.add_argument("--SEED",                           type=int,   default=0)
   ap.add_argument('--EXPLICIT_SEED',                  type=int,   nargs='?')
-  ap.add_argument('--lambd',                          type=float,   nargs='?')
+  ap.add_argument('--lambd',                          type=float,   default=1, nargs='?')
 
   av = ap.parse_args()
   seeds = [4586, 7366, 7474, 7762, 4929, 3543, 1704, 356, 4891, 3133]

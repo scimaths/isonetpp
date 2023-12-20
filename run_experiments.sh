@@ -12,7 +12,7 @@ else
     TASK=$2
 fi
 
-if [ "$TASK" == "node_early_interaction" ] || [ "$TASK" == "node_early_interaction_interpretability" ] || [ "$TASK" == "edge_early_interaction" ]; then
+if [ "$TASK" == "node_early_interaction" ] || [ "$TASK" == "node_early_interaction_edge_deletion" ] || [ "$TASK" == "edge_early_interaction" ]; then
     if [ -z "$3" ]; then
         echo Give time_updates argument
         exit
@@ -21,6 +21,17 @@ if [ "$TASK" == "node_early_interaction" ] || [ "$TASK" == "node_early_interacti
     fi
 else
     time_updates=0
+fi
+
+if [ "$TASK" == "node_early_interaction_edge_deletion" ]; then
+    if [ -z "$4" ]; then
+        echo Give lambd argument
+        exit
+    else
+        lambd=$4
+    fi
+else
+    lambd=1
 fi
 
 # datasets=('aids')
@@ -40,6 +51,7 @@ for ((idx=0; idx<${#datasets[@]}; idx++)); do
         --filters_3=10 \
         --transform_dim=16 \
         --FEAT_TYPE="One" \
+        --lambd=${lambd} \
         --DATASET_NAME=${dataset} \
         --SEED=${seed} &
         sleep 10s
