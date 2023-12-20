@@ -188,6 +188,7 @@ if __name__ == "__main__":
   ap.add_argument("--SEED",                           type=int,   default=0)
   ap.add_argument('--EXPLICIT_SEED',                  type=int,   nargs='?')
   ap.add_argument('--lambd',                          type=float,   nargs='?')
+  ap.add_argument('--default',                          type=bool,   nargs='?')
 
   av = ap.parse_args()
   seeds = [4586, 7366, 7474, 7762, 4929, 3543, 1704, 356, 4891, 3133]
@@ -227,6 +228,9 @@ if __name__ == "__main__":
   }
   config['node_early_interaction_interpretability'] = {
     'lambd' : av.lambd
+  }
+  config['node_early_interaction_adding'] = {
+    'default' : av.default
   }
   config['graph_embedding_net'] ['n_prop_layers'] = av.GMN_NPROPLAYERS
   config['graph_matching_net'] ['n_prop_layers'] = av.GMN_NPROPLAYERS

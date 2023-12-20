@@ -32,6 +32,7 @@ class NodeEarlyInteractionAdding(torch.nn.Module):
 
     def build_layers(self):
         self.encoder = gmngen.GraphEncoder(**self.config['encoder'])
+        self.default_run = self.config["node_early_interaction_adding"]["default"]
         prop_config = self.config['graph_embedding_net'].copy()
         prop_config.pop('n_prop_layers',None)
         prop_config.pop('share_prop_params',None)
@@ -135,7 +136,7 @@ class NodeEarlyInteractionAdding(torch.nn.Module):
 
 
         #---------------- Defining the MULT_FACTOR to be be multiplied -------------------
-        # The factor is 1 if the nodes are existant; 0 if nodes are added initially
+        # Initially, The factor is 1 if the nodes are existant; 0 if nodes are added
         mult_factor_forward = torch.cat((torch.ones(num_edges_initial, device=device), torch.zeros(sum(num_new_edges), device=device)))
         mult_factor_backward = torch.cat((torch.ones(num_edges_initial, device=device), torch.zeros(sum(num_new_edges), device=device)))
         
@@ -239,11 +240,17 @@ class NodeEarlyInteractionAdding(torch.nn.Module):
             
             intermediate_special_from = special_from[added_from_idx, :]
             intermediate_special_to = special_to[added_to_idx, :]
-            mult_factor_forward[-sum(num_new_edges):] = torch.sum(intermediate_special_from * intermediate_special_to, dim=1)
+            if self.default_run:
+                mult_factor_backward[-sum(num_new_edges):] = torch.sum(intermediate_special_from * intermediate_special_to, dim=1)
+            else:
+                mult_factor_forward[-sum(num_new_edges):] = torch.sum(intermediate_special_from * intermediate_special_to, dim=1)
 
             intermediate_special_from = special_from[added_to_idx, :]
             intermediate_special_to = special_to[added_from_idx, :]
-            mult_factor_backward[-sum(num_new_edges):] = torch.sum(intermediate_special_from * intermediate_special_to, dim=1)
+            if self.default_run:
+                mult_factor_forward[-sum(num_new_edges):] = torch.sum(intermediate_special_from * intermediate_special_to, dim=1)
+            else:
+                mult_factor_backward[-sum(num_new_edges):] = torch.sum(intermediate_special_from * intermediate_special_to, dim=1)
         
 
 
