@@ -92,6 +92,7 @@ def evaluate_embeddings_similarity_map_mrr_mndcg(av,model,sampler):
     
   all_ap, all_rr, all_ndcg, all_hits_20 = [], [], [], []
 
+  collected_all_preds = []
   for q_id in q_graphs:
     dpos = list(filter(lambda x:x[0][0]==q_id,d_pos))
     dneg = list(filter(lambda x:x[0][0]==q_id,d_neg))
@@ -107,6 +108,7 @@ def evaluate_embeddings_similarity_map_mrr_mndcg(av,model,sampler):
         batch_data,batch_data_sizes,_,batch_adj = sampler.fetch_batched_data_by_id(i)
         pred.append( model(batch_data,batch_data_sizes,batch_adj).data)
       all_pred = torch.cat(pred,dim=0) 
+      collected_all_preds.append(all_pred.cpu())
       labels = cudavar(av,torch.cat((torch.ones(npos),torch.zeros(nneg))))
       ap   = average_precision_score(labels.cpu(), all_pred.cpu()) 
       all_ap.append(ap)
@@ -119,7 +121,7 @@ def evaluate_embeddings_similarity_map_mrr_mndcg(av,model,sampler):
       neg_20 = np.where(labels_ranked == 0)[0][min(19, len(labels_ranked == 0) - 1)]
       hits_20 = torch.sum(labels_ranked[:neg_20]) / (torch.sum(labels_ranked))
       all_hits_20.append(hits_20)
-  return ap_score, np.mean(all_ap), np.std(all_ap), rr, np.mean(all_rr), np.std(all_rr), ndcg, np.mean(all_ndcg), np.std(all_ndcg), all_ap, all_rr, np.mean(all_hits_20)
+  return ap_score, np.mean(all_ap), np.std(all_ap), rr, np.mean(all_rr), np.std(all_rr), ndcg, np.mean(all_ndcg), np.std(all_ndcg), all_ap, all_rr, np.mean(all_hits_20), sampler, collected_all_preds
 
 def evaluate_histogram(av,model,sampler,lambd=1):
   model.eval()
@@ -136,7 +138,7 @@ def evaluate_histogram(av,model,sampler,lambd=1):
   norms_tot = []
 
   q_graphs = list(range(len(sampler.query_graphs)))   
-    
+
   for q_id in q_graphs:
     dpos = list(filter(lambda x:x[0][0]==q_id,d_pos))
     dneg = list(filter(lambda x:x[0][0]==q_id,d_neg))
@@ -313,6 +315,7 @@ datasets = ["aids", "mutag", "ptc_fr", "ptc_fm", "ptc_mr", "ptc_mm"]
 test_model_dir = ad.model_dir
 
 scores = {}
+metrics = {}
 for model_loc in os.listdir(test_model_dir):
     found = False
     model = None
@@ -326,9 +329,10 @@ for model_loc in os.listdir(test_model_dir):
     print(f"{model} ({seed}) - {model_loc}")
     if model not in scores.keys():
        scores[model] = {}
+       metrics[model] = {}
     saved = torch.load(os.path.join(test_model_dir, model_loc))
     av = saved['av']
-    av.test_size = ad.test_size
+    av.test_size = 25
     av.prop_separate_params = False
     av.want_cuda = True
     device = "cuda" if av.has_cuda and av.want_cuda else "cpu"
@@ -336,12 +340,15 @@ for model_loc in os.listdir(test_model_dir):
     dataset = av.DATASET_NAME
     if dataset not in scores[model].keys():
        scores[model][dataset] = {}
+       metrics[model][dataset] = {}
     print("dataset", dataset)
     t = get_result(av,model_loc,model_state_dict)
     scores[model][dataset][seed] = t[1][1]
+    metrics[model][dataset][seed] = t
     print("val", t[0][1])
     print("test", t[1][1])
     # print(scores[model][dataset][seed])
     pickle.dump(scores, open(f'scores_vaibhav_dim_30{"_query_300" if ad.test_size == 300 else ""}.pkl', 'wb'))
+    pickle.dump(metrics, open(f'metrics_25.pkl', 'wb'))
 
 print(scores)
