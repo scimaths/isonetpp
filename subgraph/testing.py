@@ -44,7 +44,7 @@ def load_config(av):
     'prop_separate_params': av.prop_separate_params
   }
 
-  config['node_early_interaction_interpretability'] = {
+  config['node_early_interaction_edge_deletion'] = {
     'lambd' : av.lambd
   }
   
@@ -226,9 +226,9 @@ def get_result(av,model_loc,state_dict):
       model = im.EdgeEarlyInteraction(av,config,1).to(device)
       test_data.data_type = "gmn"
       val_data.data_type = "gmn"
-    elif model_loc.startswith("node_early_interaction_interpretability"):
+    elif model_loc.startswith("node_early_interaction_edge_deletion"):
       config = load_config(av)
-      model = im.NodeEarlyInteractionInterpretability(av,config,1).to(device)
+      model = im.NodeEarlyInteractionEdgeDeletion(av,config,1).to(device)
       test_data.data_type = "gmn"
       val_data.data_type = "gmn"
     elif model_loc.startswith("isonet"):
@@ -307,7 +307,7 @@ av = Namespace(   want_cuda                    = True,
 task_dict = {} 
 
 task_dict['edge_early_interaction'] = "Edge Early"
-# task_dict['node_early_interaction_interpretability'] = "Early Interpretability"
+# task_dict['node_early_interaction_edge_deletion'] = "Node Early + Delete Edge"
 # task_dict['node_early_interaction'] = "Early Interaction"
 # task_dict['node_align_node_loss'] = "Node Align Node Loss"
 # task_dict['isonet'] = "ISONET"

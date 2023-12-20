@@ -29,7 +29,7 @@ from subgraph.models.node_align_node_loss import Node_align_Node_loss
 from subgraph.models.node_align_edge_loss import Node_align_Edge_loss
 from subgraph.models.hungarian_node_align import Hungarian_Node_align_Node_loss
 from subgraph.models.fringed_node_align_node_loss import Fringed_node_align_Node_loss
-from subgraph.models.node_early_interaction_interpretability import NodeEarlyInteractionInterpretability
+from subgraph.models.node_early_interaction_edge_deletion import NodeEarlyInteractionEdgeDeletion
 from subgraph.models.gmn_embed import GMN_embed, GMN_embed_hinge, GMN_embed_with_ColBERT_scores, GMN_embed_with_MLP_and_ColBERT_scores, GMN_embed_maxsim_dot, GMN_embed_maxsim_dot_corrected
 
 from subgraph.eval_utils import evaluate_embeddings_similarity, pairwise_ranking_loss_similarity
@@ -45,10 +45,10 @@ def train(av,config):
     model = Node_align_Node_loss(av,config,1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
-  elif av.TASK.startswith("node_early_interaction_interpretability"):
-    logger.info("Loading model node_early_interaction_interpretability")  
+  elif av.TASK.startswith("node_early_interaction_edge_deletion"):
+    logger.info("Loading model node_early_interaction_edge_deletion")  
     logger.info("Still Building")
-    model = NodeEarlyInteractionInterpretability(av,config,1).to(device)
+    model = NodeEarlyInteractionEdgeDeletion(av,config,1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
   elif av.TASK.startswith("node_early_interaction"):
@@ -225,7 +225,7 @@ if __name__ == "__main__":
     'time_update_idx': av.time_update_idx,
     'prop_separate_params': av.prop_separate_params
   }
-  config['node_early_interaction_interpretability'] = {
+  config['node_early_interaction_edge_deletion'] = {
     'lambd' : av.lambd
   }
   config['graph_embedding_net'] ['n_prop_layers'] = av.GMN_NPROPLAYERS

@@ -4,16 +4,16 @@ from subgraph.utils import cudavar
 from subgraph.models.utils import pytorch_sinkhorn_iters
 import GMN.graphembeddingnetwork as gmngen
 
-class NodeEarlyInteractionInterpretability(torch.nn.Module):
+class NodeEarlyInteractionEdgeDeletion(torch.nn.Module):
     def __init__(self, av, config, input_dim):
-        super(NodeEarlyInteractionInterpretability, self).__init__()
+        super(NodeEarlyInteractionEdgeDeletion, self).__init__()
         self.av = av
         self.config = config
         self.input_dim = input_dim
         self.build_masking_utility()
         self.build_layers()
         self.diagnostic_mode = True
-        self.lambd = self.config["node_early_interaction_interpretability"]["lambd"]
+        self.lambd = self.config["node_early_interaction_edge_deletion"]["lambd"]
     
     def build_masking_utility(self):
         self.max_set_size = max(self.av.MAX_QUERY_SUBGRAPH_SIZE,self.av.MAX_CORPUS_SUBGRAPH_SIZE)
