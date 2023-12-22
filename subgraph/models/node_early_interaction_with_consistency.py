@@ -10,9 +10,9 @@ def batched_kron(a, b):
     siz0 = res.shape[:-4]
     return res.reshape(siz0 + siz1)
 
-class NodeEdgeEarlyInteraction(torch.nn.Module):
+class NodeEarlyInteractionWithConsistency(torch.nn.Module):
     def __init__(self, av, config, input_dim):
-        super(NodeEdgeEarlyInteraction, self).__init__()
+        super(NodeEarlyInteractionWithConsistency, self).__init__()
         self.av = av
         self.config = config
         self.input_dim = input_dim

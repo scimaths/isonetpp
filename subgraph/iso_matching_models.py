@@ -22,7 +22,7 @@ from subgraph.models.graphsim import GraphSim
 from subgraph.models.neuromatch import NeuroMatch
 from subgraph.models.node_early_interaction import NodeEarlyInteraction
 from subgraph.models.edge_early_interaction import EdgeEarlyInteraction
-from subgraph.models.node_edge_early_interaction import NodeEdgeEarlyInteraction
+from subgraph.models.node_early_interaction_with_consistency import NodeEarlyInteractionWithConsistency
 from subgraph.models.adding_to_q import AddingToQ
 from subgraph.models.isonet import ISONET, ISONET_Sym
 from subgraph.models.gmn_match import GMN_match, GMN_match_hinge
@@ -59,11 +59,11 @@ def train(av,config):
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
   elif av.TASK.startswith("node_edge_early_interaction"):
-    logger.info("Loading model NodeEdgeEarlyInteraction")
+    logger.info("Loading model NodeEarlyInteractionWithConsistency")
     logger.info("This model implements early interaction for nodes")
     av.MAX_EDGES = max(max([g.number_of_edges() for g in train_data.query_graphs]),\
                    max([g.number_of_edges() for g in train_data.corpus_graphs]))
-    model = NodeEdgeEarlyInteraction(av, config, 1).to(device)
+    model = NodeEarlyInteractionWithConsistency(av, config, 1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
   elif av.TASK.startswith("adding_to_q"):
