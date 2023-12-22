@@ -23,6 +23,7 @@ from subgraph.models.neuromatch import NeuroMatch
 from subgraph.models.node_early_interaction import NodeEarlyInteraction
 from subgraph.models.edge_early_interaction import EdgeEarlyInteraction
 from subgraph.models.node_early_interaction_adding import NodeEarlyInteractionAdding
+from subgraph.models.node_early_interaction_adding_test import NodeEarlyInteractionAddingTest
 from subgraph.models.isonet import ISONET, ISONET_Sym
 from subgraph.models.gmn_match import GMN_match, GMN_match_hinge
 from subgraph.models.node_align_node_loss import Node_align_Node_loss
@@ -51,7 +52,15 @@ def train(av,config):
     model = NodeEarlyInteractionInterpretability(av,config,1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
-  elif av.TASK.startswith("node_early_interaction"):
+  elif av.TASK.startswith("node_early_interaction_adding_test"):
+    logger.info("Loading model NodeEarlyInteractionAdding")
+    logger.info("This model implements adding to query")
+    av.MAX_EDGES = max(max([g.number_of_edges() for g in train_data.query_graphs]),\
+                   max([g.number_of_edges() for g in train_data.corpus_graphs]))
+    model = NodeEarlyInteractionAddingTest(av, config, 1).to(device)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"
+  elif av.TASK.startswith("node_early_interaction_adding"):
     logger.info("Loading model NodeEarlyInteractionAdding")
     logger.info("This model implements adding to query")
     av.MAX_EDGES = max(max([g.number_of_edges() for g in train_data.query_graphs]),\
@@ -188,7 +197,6 @@ if __name__ == "__main__":
   ap.add_argument("--SEED",                           type=int,   default=0)
   ap.add_argument('--EXPLICIT_SEED',                  type=int,   nargs='?')
   ap.add_argument('--lambd',                          type=float,   nargs='?')
-  ap.add_argument('--default',                          type=bool,   nargs='?')
 
   av = ap.parse_args()
   seeds = [4586, 7366, 7474, 7762, 4929, 3543, 1704, 356, 4891, 3133]
@@ -228,9 +236,6 @@ if __name__ == "__main__":
   }
   config['node_early_interaction_interpretability'] = {
     'lambd' : av.lambd
-  }
-  config['node_early_interaction_adding'] = {
-    'default' : av.default
   }
   config['graph_embedding_net'] ['n_prop_layers'] = av.GMN_NPROPLAYERS
   config['graph_matching_net'] ['n_prop_layers'] = av.GMN_NPROPLAYERS

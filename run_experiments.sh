@@ -12,14 +12,7 @@ else
     TASK=$2
 fi
 
-if [ -z "$4" ]; then
-    echo Give TASK argument
-    exit
-else
-    DEF=$4
-fi
-
-if [ "$TASK" == "node_early_interaction" ] || [ "$TASK" == "node_early_interaction_interpretability" ] || [ "$TASK" == "edge_early_interaction" ] || [ "$TASK" == "node_early_interaction_adding" ]; then
+if [ "$TASK" == "node_early_interaction" ] || [ "$TASK" == "node_early_interaction_interpretability" ] || [ "$TASK" == "edge_early_interaction" ] || [ "$TASK" == "node_early_interaction_adding" ] || [ "$TASK" == "node_early_interaction_adding_test" ]; then
     if [ -z "$3" ]; then
         echo Give time_updates argument
         exit
@@ -30,13 +23,13 @@ else
     time_updates=0
 fi
 
-# datasets=('aids')
-datasets=('aids' 'mutag' 'ptc_fr' 'ptc_fm' 'ptc_mr' 'ptc_mm')
+datasets=('aids')
+# datasets=('aids' 'mutag' 'ptc_fr' 'ptc_fm' 'ptc_mr' 'ptc_mm')
 
 for ((idx=0; idx<${#datasets[@]}; idx++)); do
     dataset="${datasets[$idx]}"
-    for seed in 0 1 2 3 4; do
-        CUDA_LAUNCH_BLOCKING=1 CUDA_VISIBLE_DEVICES=$(((seed + (idx * 5) ) % 3 + 2)) python -m subgraph.iso_matching_models \
+    for seed in 0; do
+        CUDA_LAUNCH_BLOCKING=1 CUDA_VISIBLE_DEVICES=$(((seed + (idx * 5) ) % 3)) python -m subgraph.iso_matching_models \
         --experiment_group=${experiment_group} \
         --TASK=${TASK} \
         --time_updates=${time_updates} \
@@ -48,8 +41,7 @@ for ((idx=0; idx<${#datasets[@]}; idx++)); do
         --transform_dim=16 \
         --FEAT_TYPE="One" \
         --DATASET_NAME=${dataset} \
-        --SEED=${seed} \
-        --default=${DEF} &
+        --SEED=${seed} &
         sleep 10s
     done
 done
