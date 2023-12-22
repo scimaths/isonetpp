@@ -32,7 +32,6 @@ class NodeEarlyInteractionAdding(torch.nn.Module):
 
     def build_layers(self):
         self.encoder = gmngen.GraphEncoder(**self.config['encoder'])
-        self.default_run = self.config["node_early_interaction_adding"]["default"]
         prop_config = self.config['graph_embedding_net'].copy()
         prop_config.pop('n_prop_layers',None)
         prop_config.pop('share_prop_params',None)
@@ -137,8 +136,7 @@ class NodeEarlyInteractionAdding(torch.nn.Module):
 
         #---------------- Defining the MULT_FACTOR to be be multiplied -------------------
         # Initially, The factor is 1 if the nodes are existant; 0 if nodes are added
-        mult_factor_forward = torch.cat((torch.ones(num_edges_initial, device=device), torch.zeros(sum(num_new_edges), device=device)))
-        mult_factor_backward = torch.cat((torch.ones(num_edges_initial, device=device), torch.zeros(sum(num_new_edges), device=device)))
+        mult_factor = torch.cat((torch.ones(num_edges_initial, device=device), torch.zeros(sum(num_new_edges), device=device)))
         
         # Obtaining the node indices of edges in corpus to index in transport plan (need a offset of max set size)
         corpus_from_idx = torch.cat(torch.split(from_idx[:num_edges_initial], edge_counts_initial)[1::2])
@@ -182,7 +180,7 @@ class NodeEarlyInteractionAdding(torch.nn.Module):
                 interaction_features = node_feature_store[:, nf_idx - node_feature_dim : nf_idx]
                 
                 combined_features = self.fc_combine_interaction(torch.cat([node_features_enc, interaction_features], dim=1))
-                node_features_enc = self.prop_layer(combined_features, from_idx, to_idx, edge_features_enc, mask_from_idx=[mult_factor_forward, mult_factor_backward])
+                node_features_enc = self.prop_layer(combined_features, from_idx, to_idx, edge_features_enc, mask_from_idx=mult_factor)
                 updated_node_feature_store[:, nf_idx : nf_idx + node_feature_dim] = torch.clone(node_features_enc)
 
             node_feature_store = torch.clone(updated_node_feature_store)
@@ -240,17 +238,11 @@ class NodeEarlyInteractionAdding(torch.nn.Module):
             
             intermediate_special_from = special_from[added_from_idx, :]
             intermediate_special_to = special_to[added_to_idx, :]
-            if self.default_run:
-                mult_factor_backward[-sum(num_new_edges):] = torch.sum(intermediate_special_from * intermediate_special_to, dim=1)
-            else:
-                mult_factor_forward[-sum(num_new_edges):] = torch.sum(intermediate_special_from * intermediate_special_to, dim=1)
+            mult_factor[-sum(num_new_edges):] = torch.sum(intermediate_special_from * intermediate_special_to, dim=1)
 
             intermediate_special_from = special_from[added_to_idx, :]
             intermediate_special_to = special_to[added_from_idx, :]
-            if self.default_run:
-                mult_factor_forward[-sum(num_new_edges):] = torch.sum(intermediate_special_from * intermediate_special_to, dim=1)
-            else:
-                mult_factor_backward[-sum(num_new_edges):] = torch.sum(intermediate_special_from * intermediate_special_to, dim=1)
+            mult_factor[-sum(num_new_edges):] += torch.sum(intermediate_special_from * intermediate_special_to, dim=1)
         
 
 
