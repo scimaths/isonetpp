@@ -226,6 +226,11 @@ def get_result(av,model_loc,state_dict):
       model = im.EdgeEarlyInteraction(av,config,1).to(device)
       test_data.data_type = "gmn"
       val_data.data_type = "gmn"
+    elif model_loc.startswith("node_edge_early_interaction"):
+      config = load_config(av)
+      model = im.NodeEdgeEarlyInteraction(av,config,1).to(device)
+      test_data.data_type = "gmn"
+      val_data.data_type = "gmn"
     elif model_loc.startswith("node_early_interaction_interpretability"):
       config = load_config(av)
       model = im.NodeEarlyInteractionInterpretability(av,config,1).to(device)
@@ -253,7 +258,8 @@ def get_result(av,model_loc,state_dict):
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--model_dir", type=str)
-ap.add_argument("--test_size", type=int)
+ap.add_argument("--save_loc", type=str)
+ap.add_argument("--test_size", type=int, default=25)
 # ap.add_argument("--seeds", type=int, nargs='+')
 # ap.add_argument("--datasets", type=str, nargs='+')
 # ap.add_argument("--tasks", type=str, nargs='+')
@@ -306,7 +312,8 @@ av = Namespace(   want_cuda                    = True,
 
 task_dict = {} 
 
-task_dict['edge_early_interaction'] = "Edge Early"
+task_dict['node_edge_early_interaction'] = "Node Early + Consistency"
+# task_dict['edge_early_interaction'] = "Edge Early"
 # task_dict['node_early_interaction_interpretability'] = "Early Interpretability"
 # task_dict['node_early_interaction'] = "Early Interaction"
 # task_dict['node_align_node_loss'] = "Node Align Node Loss"
@@ -320,13 +327,13 @@ for model_loc in os.listdir(test_model_dir):
     found = False
     model = None
     for task in task_dict.keys():
+       print(model_loc, task)
        if model_loc.startswith(task):
           model = task
           break
     if model is None:
        continue
     seed = int(model_loc.split("_")[-3])
-    print(f"{model} ({seed}) - {model_loc}")
     if model not in scores.keys():
        scores[model] = {}
        metrics[model] = {}
@@ -348,7 +355,7 @@ for model_loc in os.listdir(test_model_dir):
     print("val", t[0][1])
     print("test", t[1][1])
     # print(scores[model][dataset][seed])
-    pickle.dump(scores, open(f'scores_vaibhav_dim_30{"_query_300" if ad.test_size == 300 else ""}.pkl', 'wb'))
-    pickle.dump(metrics, open(f'metrics_25.pkl', 'wb'))
+    pickle.dump(scores, open(f'scores_{ad.save_loc}_{ad.test_size}.pkl', 'wb'))
+    pickle.dump(metrics, open(f'metrics_{ad.save_loc}_{ad.test_size}.pkl', 'wb'))
 
 print(scores)
