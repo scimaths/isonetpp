@@ -40,7 +40,7 @@ datasets=('aids' 'mutag' 'ptc_fr' 'ptc_fm' 'ptc_mr' 'ptc_mm')
 for ((idx=0; idx<${#datasets[@]}; idx++)); do
     dataset="${datasets[$idx]}"
     for seed in 0 1 2 3 4; do
-        CUDA_VISIBLE_DEVICES=$(((idx * 6 + seed) % 4)) python -m subgraph.iso_matching_models \
+        CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=$(((idx * 6 + seed) % 4)) python -m subgraph.iso_matching_models \
         --experiment_group=${experiment_group} \
         --TASK=${TASK} \
         --time_updates=${time_updates} \
