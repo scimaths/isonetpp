@@ -116,12 +116,9 @@ def graph_prop_once(node_states,
     messages = message_net(edge_inputs)
     # (N_edges, 2*dimension)
 
-    # m(u,v) (sum(p(u,u'))) -> to_idx
-    # u -> if padding node in corpus, node will not be updated it will remain 0
-    # m(u,v) (sum(p(v,v'))) -> from_idx
-    # u -> i dont want update of u to depend on information from v
     if mask_from_idx is not None:
-        messages *= mask_from_idx[from_idx][:, None]
+        messages *= mask_from_idx[:, None]
+        
     
     from GMN.segment import unsorted_segment_sum
     tensor = unsorted_segment_sum(messages, to_idx, node_states.shape[0])

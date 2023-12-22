@@ -22,6 +22,7 @@ from subgraph.models.graphsim import GraphSim
 from subgraph.models.neuromatch import NeuroMatch
 from subgraph.models.node_early_interaction import NodeEarlyInteraction
 from subgraph.models.edge_early_interaction import EdgeEarlyInteraction
+from subgraph.models.edge_early_interaction_delete import EdgeEarlyInteractionDelete
 from subgraph.models.isonet import ISONET, ISONET_Sym
 from subgraph.models.gmn_match import GMN_match, GMN_match_hinge
 from subgraph.models.node_align_node_loss import Node_align_Node_loss
@@ -54,6 +55,14 @@ def train(av,config):
     logger.info("Loading model NodeEarlyInteraction")
     logger.info("This model implements early interaction for nodes")
     model = NodeEarlyInteraction(av, config, 1).to(device)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"
+  elif av.TASK.startswith("edge_early_interaction_delete"):
+    logger.info("Loading model EdgeEarlyInteractionDelete")
+    logger.info("This model implements early interaction for edges delete")
+    av.MAX_EDGES = max(max([g.number_of_edges() for g in train_data.query_graphs]),\
+                   max([g.number_of_edges() for g in train_data.corpus_graphs]))
+    model = EdgeEarlyInteractionDelete(av, config, 1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
   elif av.TASK.startswith("edge_early_interaction"):
@@ -217,6 +226,9 @@ if __name__ == "__main__":
     'prop_separate_params': av.prop_separate_params
   }
   config['node_early_interaction_interpretability'] = {
+    'lambd' : av.lambd
+  }
+  config['edge_early_interaction_delete'] = {
     'lambd' : av.lambd
   }
   config['graph_embedding_net'] ['n_prop_layers'] = av.GMN_NPROPLAYERS
