@@ -4,9 +4,9 @@ from subgraph.utils import cudavar
 from subgraph.models.utils import pytorch_sinkhorn_iters
 import GMN.graphembeddingnetwork as gmngen
 
-class EdgeEarlyInteraction(torch.nn.Module):
+class EdgeEarlyInteractionDelete(torch.nn.Module):
     def __init__(self, av, config, input_dim):
-        super(EdgeEarlyInteraction, self).__init__()
+        super(EdgeEarlyInteractionDelete, self).__init__()
         self.av = av
         self.config = config
         self.input_dim = input_dim
@@ -96,6 +96,8 @@ class EdgeEarlyInteraction(torch.nn.Module):
         max_set_size_arange[1:, ] += cumulative_sizes[:-1].unsqueeze(1)
         edge_indices = max_set_size_arange[edge_presence_mask]
 
+        mask_from_idx = None
+
         for time_idx in range(1, n_time_update_steps + 1):
             node_features_enc = torch.clone(encoded_node_features)
             edge_features_enc = torch.clone(encoded_edge_features)
@@ -104,7 +106,7 @@ class EdgeEarlyInteraction(torch.nn.Module):
                 interaction_features = edge_feature_store[:, nf_idx - self.message_feature_dim : nf_idx]
                 combined_features = self.fc_combine_interaction(torch.cat([edge_features_enc, interaction_features], dim=1))
 
-                node_features_enc = self.prop_layer(node_features_enc, from_idx, to_idx, combined_features)
+                node_features_enc = self.prop_layer(node_features_enc, from_idx, to_idx, combined_features, mask_from_idx=mask_from_idx)
 
                 source_node_enc = node_features_enc[from_idx]
                 dest_node_enc  = node_features_enc[to_idx]
@@ -124,13 +126,13 @@ class EdgeEarlyInteraction(torch.nn.Module):
 
             stacked_qedge_store_emb = torch.stack([F.pad(x, pad=(0,0,0,self.max_set_size-x.shape[0])) for x in edge_feature_store_query])
             stacked_cedge_store_emb = torch.stack([F.pad(x, pad=(0,0,0,self.max_set_size-x.shape[0])) for x in edge_feature_store_corpus])
-            
+
             # Compute transport plan
             stacked_qedge_final_emb = stacked_qedge_store_emb[:,:,-self.message_feature_dim:]
             stacked_cedge_final_emb = stacked_cedge_store_emb[:,:,-self.message_feature_dim:]
             transformed_qedge_final_emb = self.fc_transform2(self.relu1(self.fc_transform1(stacked_qedge_final_emb)))
             transformed_cedge_final_emb = self.fc_transform2(self.relu1(self.fc_transform1(stacked_cedge_final_emb)))
-            
+
             qgraph_mask = cudavar(self.av, torch.stack([self.graph_size_to_mask_map[i] for i in qgraph_sizes]))
             cgraph_mask = cudavar(self.av, torch.stack([self.graph_size_to_mask_map[i] for i in cgraph_sizes]))
             masked_qedge_final_emb = torch.mul(qgraph_mask,transformed_qedge_final_emb)
@@ -138,6 +140,11 @@ class EdgeEarlyInteraction(torch.nn.Module):
 
             sinkhorn_input = torch.matmul(masked_qedge_final_emb, masked_cedge_final_emb.permute(0, 2, 1))
             transport_plan = pytorch_sinkhorn_iters(self.av, sinkhorn_input)
+
+            # Calculate interpretability
+            temp_mask_from_idx = torch.sum(transport_plan * qgraph_mask[:, :, :self.max_set_size], dim=1)
+            temp_mask_from_idx = torch.stack((torch.ones(temp_mask_from_idx.shape, device=device), torch.ones(temp_mask_from_idx.shape, device=device) * self.lambd + (1 - self.lambd) * temp_mask_from_idx), dim = 1).view( temp_mask_from_idx.shape[0] * 2, temp_mask_from_idx.shape[1]).flatten()
+            mask_from_idx = torch.cat(torch.split(temp_mask_from_idx, torch.stack((torch.tensor(batch_data_sizes_flat), self.max_set_size - torch.tensor(batch_data_sizes_flat)), dim = 1).view(2 * len(batch_data_sizes_flat)).tolist(), dim=0)[0::2])
 
             # Compute interaction
             qnode_features_from_cnodes = torch.bmm(transport_plan, stacked_cedge_store_emb)
