@@ -3,9 +3,9 @@ import torch.nn.functional as F
 from subgraph.models.utils import pytorch_sinkhorn_iters
 import GMN.graphembeddingnetwork as gmngen
 
-class NodeEdgeEarlyInteractionWithConsistency(torch.nn.Module):
+class NodeEdgeEarlyInteractionWithConsistencyAndTwoSinkhorns(torch.nn.Module):
     def __init__(self, av, config, input_dim):
-        super(NodeEdgeEarlyInteractionWithConsistency, self).__init__()
+        super(NodeEdgeEarlyInteractionWithConsistencyAndTwoSinkhorns, self).__init__()
         self.av = av
         self.config = config
         self.input_dim = input_dim
@@ -255,27 +255,20 @@ class NodeEdgeEarlyInteractionWithConsistency(torch.nn.Module):
                                     for x in to_node_map_scores_cross])
             stacked_all_node_map_scores_cross = torch.mul(stacked_from_node_map_scores_cross, stacked_to_node_map_scores_cross)
 
-            edge_transport_plan = torch.cat((
-                torch.cat((stacked_all_node_map_scores_straight, stacked_all_node_map_scores_cross),dim=-1),
-                torch.cat((stacked_all_node_map_scores_cross, stacked_all_node_map_scores_straight),dim=-1)
-            ), dim=-2)
+            edge_transport_plan = pytorch_sinkhorn_iters(
+                self.av,
+                stacked_all_node_map_scores_straight + stacked_all_node_map_scores_cross
+            )
 
-            doubled_stacked_qedge_emb = stacked_qedge_store_emb.repeat(1,2,1)
-            doubled_stacked_cedge_emb = stacked_cedge_store_emb.repeat(1,2,1)
+            stacked_qedge_emb_final = stacked_qedge_store_emb[:,:,-self.message_feature_dim:]
+            stacked_cedge_emb_final = stacked_cedge_store_emb[:,:,-self.message_feature_dim:]
 
-            doubled_stacked_qedge_emb_final = doubled_stacked_qedge_emb[:,:,-self.message_feature_dim:]
-            doubled_stacked_cedge_emb_final = doubled_stacked_cedge_emb[:,:,-self.message_feature_dim:]
-
-            qedge_double_features_from_cedges = torch.bmm(edge_transport_plan, doubled_stacked_cedge_emb)
-            cedge_double_features_from_qedges = torch.bmm(edge_transport_plan.permute(0, 2, 1), doubled_stacked_qedge_emb)
-            interleaved_edge_double_features = torch.cat([
-                qedge_double_features_from_cedges.unsqueeze(1),
-                cedge_double_features_from_qedges.unsqueeze(1)
-            ], dim=1)[:, :, :, self.message_feature_dim:]
-            interleaved_edge_features = self.fc_combine_double_edge_encoding(interleaved_edge_double_features.reshape(
-                batch_size, 2, 2, self.max_edge_set_size, n_prop_update_steps, self.message_feature_dim
-            ).permute(0, 1, 3, 4, 2, 5).reshape(batch_size, 2, self.max_edge_set_size, n_prop_update_steps, 2 * self.message_feature_dim))
-            interleaved_edge_features = interleaved_edge_features.reshape(-1, n_prop_update_steps * self.message_feature_dim)
+            qedge_features_from_cedges = torch.bmm(edge_transport_plan, stacked_cedge_store_emb)
+            cedge_features_from_qedges = torch.bmm(edge_transport_plan.permute(0, 2, 1), stacked_qedge_store_emb)
+            interleaved_edge_features = torch.cat([
+                qedge_features_from_cedges.unsqueeze(1),
+                cedge_features_from_qedges.unsqueeze(1)
+            ], dim=1)[:, :, :, self.message_feature_dim:].reshape(-1, n_prop_update_steps * self.message_feature_dim)
             edge_feature_store[:, self.message_feature_dim:] = interleaved_edge_features[edge_indices, :]
 
         if self.diagnostic_mode:
@@ -288,7 +281,7 @@ class NodeEdgeEarlyInteractionWithConsistency(torch.nn.Module):
         ), dim=(1,2))
 
         consistency_regularizer = -torch.sum(torch.maximum(
-            doubled_stacked_qedge_emb_final - edge_transport_plan@doubled_stacked_cedge_emb_final,
+            stacked_qedge_emb_final - edge_transport_plan@stacked_cedge_emb_final,
             torch.tensor([0], device=self.device)
         ), dim=(1,2))
         

@@ -12,7 +12,7 @@ else
     TASK=$2
 fi
 
-if [ "$TASK" == "node_early_interaction" ] || [ "$TASK" == "node_early_interaction_interpretability" ] || [ "$TASK" == "edge_early_interaction" ] || [ "$TASK" == "node_edge_early_interaction_with_consistency" ]; then
+if [ "$TASK" == "node_early_interaction" ] || [ "$TASK" == "node_early_interaction_interpretability" ] || [ "$TASK" == "edge_early_interaction" ] || [ "$TASK" == "node_edge_early_interaction_with_consistency" ] || [ "$TASK" == "node_edge_early_interaction_with_consistency_and_two_sinkhorns" ]; then
     if [ -z "$3" ]; then
         echo Give time_updates argument
         exit
@@ -23,7 +23,7 @@ else
     time_updates=0
 fi
 
-if [ "$TASK" == "node_edge_early_interaction_with_consistency" ]; then
+if [ "$TASK" == "node_edge_early_interaction_with_consistency" ] || [ "$TASK" == "node_edge_early_interaction_with_consistency_and_two_sinkhorns" ]; then
     if [ -z "$4" ]; then
         echo Give consistency_lambda argument
         exit
