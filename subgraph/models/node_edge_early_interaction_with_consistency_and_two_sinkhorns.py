@@ -96,13 +96,6 @@ class NodeEdgeEarlyInteractionWithConsistencyAndTwoSinkhorns(torch.nn.Module):
             torch.nn.Linear(self.av.transform_dim, self.av.transform_dim)
         )
 
-        double_encoding_size = self.message_feature_dim * 2
-        self.fc_combine_double_edge_encoding = torch.nn.Sequential(
-            torch.nn.Linear(double_encoding_size, double_encoding_size),
-            torch.nn.ReLU(),
-            torch.nn.Linear(double_encoding_size, self.message_feature_dim)
-        )
-
     def forward(self, batch_data, batch_data_sizes, batch_adj):
         qgraph_sizes, cgraph_sizes = zip(*batch_data_sizes)
         qgraph_sizes = torch.tensor(qgraph_sizes, device=self.device)
