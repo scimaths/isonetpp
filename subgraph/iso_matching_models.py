@@ -27,6 +27,7 @@ from subgraph.models.edge_early_interaction import EdgeEarlyInteraction
 from subgraph.models.node_edge_early_interaction_with_consistency import NodeEdgeEarlyInteractionWithConsistency
 from subgraph.models.node_edge_early_interaction_with_consistency_and_two_sinkhorns import NodeEdgeEarlyInteractionWithConsistencyAndTwoSinkhorns
 from subgraph.models.adding_to_q import AddingToQ
+from subgraph.models.velugoti_39 import OurMatchingModelVar39_GMN_encoding_NodePerm_SinkhornParamBig_HingeScore_EdgePermConsistency
 from subgraph.models.isonet import ISONET, ISONET_Sym
 from subgraph.models.gmn_match import GMN_match, GMN_match_hinge
 from subgraph.models.node_align_node_loss import Node_align_Node_loss
@@ -99,6 +100,16 @@ def train(av,config):
     model = ISONET(av,config,1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
+  elif av.TASK.startswith("velugoti_39"):
+    logger.info("Loading model OurMatchingModelVar39_GMN_encoding_NodePerm_SinkhornParamBig_HingeScore_EdgePermConsistency")
+    logger.info("This uses GMN encoder followed by parameterized sinkhorn with LRL and similarity computation using hinge scoring (H_q, PH_c) .We're taking edge perm from node perm kronecker product and the checking edge consistency with edge embeddings")
+    #One more hack. 
+    av.MAX_EDGES = max(max([g.number_of_edges() for g in train_data.query_graphs]),\
+                   max([g.number_of_edges() for g in train_data.corpus_graphs]))
+    model = OurMatchingModelVar39_GMN_encoding_NodePerm_SinkhornParamBig_HingeScore_EdgePermConsistency(av,config,1).to(device)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"
+    av.store_epoch_info = False
   else:
     logger.info("ALERT!! CHECK FOR ERROR")  
 
@@ -202,16 +213,11 @@ if __name__ == "__main__":
   ap.add_argument("--CONV",                           type=str,   default="GCN",help="GCN/GAT/GIN/SAGE")
   ap.add_argument("--DIR_PATH",                       type=str,   default=".",help="path/to/datasets")
   ap.add_argument("--DATASET_NAME",                   type=str,   default="mutag")
-  # ap.add_argument("--SEED",                           type=int,   default=0)
-  # ap.add_argument('--EXPLICIT_SEED',                  type=int,   nargs='?')
   ap.add_argument('--lambd',                          type=float, default=1.0, nargs='?')
   ap.add_argument('--consistency_lambda',             type=float, default=1.0, nargs='?')
 
   av = ap.parse_args()
   seeds = [4586, 7366, 7474, 7762, 4929, 3543, 1704, 356, 4891, 3133]
-  # av.SEED = seeds[av.SEED]
-  # if av.EXPLICIT_SEED is not None:
-  #    av.SEED = av.EXPLICIT_SEED
   av.SEED = {
     'aids': 7474,
     'mutag': 7474,
