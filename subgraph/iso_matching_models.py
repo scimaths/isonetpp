@@ -9,6 +9,7 @@ from common import logger, set_log
 from GMN.configure import get_default_config
 from subgraph.utils import save_initial_model
 
+os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
 torch.backends.cuda.matmul.allow_tf32 = False
 torch.backends.cudnn.allow_tf32 = False
 torch.use_deterministic_algorithms(True)
@@ -201,16 +202,24 @@ if __name__ == "__main__":
   ap.add_argument("--CONV",                           type=str,   default="GCN",help="GCN/GAT/GIN/SAGE")
   ap.add_argument("--DIR_PATH",                       type=str,   default=".",help="path/to/datasets")
   ap.add_argument("--DATASET_NAME",                   type=str,   default="mutag")
-  ap.add_argument("--SEED",                           type=int,   default=0)
-  ap.add_argument('--EXPLICIT_SEED',                  type=int,   nargs='?')
-  ap.add_argument('--lambd',                          type=float,   nargs='?')
+  # ap.add_argument("--SEED",                           type=int,   default=0)
+  # ap.add_argument('--EXPLICIT_SEED',                  type=int,   nargs='?')
+  ap.add_argument('--lambd',                          type=float, default=1.0, nargs='?')
   ap.add_argument('--consistency_lambda',             type=float, default=1.0, nargs='?')
 
   av = ap.parse_args()
   seeds = [4586, 7366, 7474, 7762, 4929, 3543, 1704, 356, 4891, 3133]
-  av.SEED = seeds[av.SEED]
-  if av.EXPLICIT_SEED is not None:
-     av.SEED = av.EXPLICIT_SEED
+  # av.SEED = seeds[av.SEED]
+  # if av.EXPLICIT_SEED is not None:
+  #    av.SEED = av.EXPLICIT_SEED
+  av.SEED = {
+    'aids': 7474,
+    'mutag': 7474,
+    'ptc_fm': 4929,
+    'ptc_fr': 7366,
+    'ptc_mm': 7762,
+    'ptc_mr': 7366
+  }[av.DATASET_NAME]
   av.time_key = str(datetime.now()).replace(' ', '_')
   
   exp_name = f"{av.TASK}_{av.DATASET_NAME}_margin_{av.MARGIN}_seed_{av.SEED}_time_{av.time_key}_lambd_{av.lambd}"

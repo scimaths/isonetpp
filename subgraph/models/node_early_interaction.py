@@ -12,7 +12,7 @@ class NodeEarlyInteraction(torch.nn.Module):
         self.input_dim = input_dim
         self.build_masking_utility()
         self.build_layers()
-        self.diagnostic_mode = True
+        self.diagnostic_mode = False
     
     def build_masking_utility(self):
         self.max_set_size = max(self.av.MAX_QUERY_SUBGRAPH_SIZE,self.av.MAX_CORPUS_SUBGRAPH_SIZE)

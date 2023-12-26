@@ -3,7 +3,6 @@ import torch
 import pickle
 import argparse
 import numpy as np
-import pandas as pd
 from subgraph.utils import cudavar
 from subgraph import iso_matching_models as im
 from GMN.configure import get_default_config
@@ -303,11 +302,11 @@ av = Namespace(   want_cuda                    = True,
 
 task_dict = {} 
 
-task_dict['edge_early_interaction'] = "Edge Early"
+task_dict['edge_early_interaction'] = "Edge Early Interaction"
 # task_dict['node_early_interaction_interpretability'] = "Early Interpretability"
-# task_dict['node_early_interaction'] = "Early Interaction"
-# task_dict['node_align_node_loss'] = "Node Align Node Loss"
-# task_dict['isonet'] = "ISONET"
+task_dict['node_early_interaction'] = "Node Early Interaction"
+task_dict['node_align_node_loss'] = "Node Align Node Loss"
+task_dict['isonet'] = "ISONET"
 datasets = ["aids", "mutag", "ptc_fr", "ptc_fm", "ptc_mr", "ptc_mm"]
 test_model_dir = ad.model_dir
 
