@@ -19,7 +19,10 @@ def evaluate_embeddings_similarity(av,model,sampler=True):
   for i in range(n_batches):
     #ignoring target values here since not needed for AP ranking score 
     batch_data,batch_data_sizes,_,batch_adj = sampler.fetch_batched_data_by_id(i)
-    pred.append(model(batch_data,batch_data_sizes,batch_adj).data)
+    if av.output_type == 1:
+        pred.append( model(batch_data,batch_data_sizes,batch_adj).data)
+    elif av.output_type == 2:
+        pred.append( model(batch_data,batch_data_sizes,batch_adj)[2].data)
 
   all_pred = torch.cat(pred,dim=0) 
   labels = cudavar(av,torch.cat((torch.ones(npos),torch.zeros(nneg))))
@@ -40,7 +43,10 @@ def evaluate_embeddings_similarity(av,model,sampler=True):
       pred = []  
       for i in range(n_batches):
         batch_data,batch_data_sizes,_,batch_adj = sampler.fetch_batched_data_by_id(i)
-        pred.append( model(batch_data,batch_data_sizes,batch_adj).data)
+        if av.output_type == 1:
+            pred.append( model(batch_data,batch_data_sizes,batch_adj).data)
+        elif av.output_type == 2:
+            pred.append( model(batch_data,batch_data_sizes,batch_adj)[2].data)
       all_pred = torch.cat(pred,dim=0) 
       labels = cudavar(av,torch.cat((torch.ones(npos),torch.zeros(nneg))))
       ap   = average_precision_score(labels.cpu(), all_pred.cpu()) 

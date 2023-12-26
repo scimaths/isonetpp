@@ -1,0 +1,42 @@
+Command line
+/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/subgraph/iso_matching_models.py
+--experiment_group=vel_39_0.7
+--TASK=velugoti_39
+--NOISE_FACTOR=0
+--MARGIN=0.5
+--filters_1=10
+--filters_2=10
+--filters_3=10
+--transform_dim=16
+--IPLUS_LAMBDA=0.7
+--output_type=2
+--no_of_query_subgraphs=300
+--MIN_QUERY_SUBGRAPH_SIZE=5
+--MAX_QUERY_SUBGRAPH_SIZE=15
+--MIN_CORPUS_SUBGRAPH_SIZE=16
+--MAX_CORPUS_SUBGRAPH_SIZE=20
+--FEAT_TYPE=One
+--DIR_PATH=velugoti_dataset
+--DATASET_NAME=ptc_mm
+fringe_isonet= {'masking_for_msg_passing_count': 4}
+encoder= {'node_hidden_sizes': [10], 'node_feature_dim': 1, 'edge_hidden_sizes': None, 'edge_feature_dim': 1}
+aggregator= {'node_hidden_sizes': [10], 'graph_transform_sizes': [10], 'input_size': [10], 'gated': True, 'aggregation_type': 'sum'}
+graph_embedding_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'embedding'}
+graph_matching_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'matching', 'similarity': 'dotproduct'}
+model_type= embedding
+data= {'problem': 'graph_edit_distance', 'dataset_params': {'n_nodes_range': [20, 20], 'p_edge_range': [0.2, 0.2], 'n_changes_positive': 1, 'n_changes_negative': 2, 'validation_dataset_size': 1000}}
+training= {'batch_size': 128, 'learning_rate': 0.0001, 'mode': 'pair', 'loss': 'margin', 'margin': 0.5, 'graph_vec_regularizer_weight': 1e-06, 'clip_value': 10.0, 'n_training_steps': 500000, 'print_after': 100, 'eval_after': 10}
+evaluation= {'batch_size': 128}
+seed= 7762
+early_interaction= {'n_time_updates': 3, 'time_update_idx': 'k_t', 'prop_separate_params': None}
+node_early_interaction_interpretability= {'lambd': 1.0}
+loading train query graphs from velugoti_dataset/Datasets/splits/train/train_ptc_mm240k_query_subgraphs.pkl
+loading train relationships from velugoti_dataset/Datasets/splits/train/train_ptc_mm240k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from velugoti_dataset/Datasets/splits/ptc_mm240k_corpus_subgraphs.pkl
+loading val query graphs from velugoti_dataset/Datasets/splits/val/val_ptc_mm240k_query_subgraphs.pkl
+loading val relationships from velugoti_dataset/Datasets/splits/val/val_ptc_mm240k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from velugoti_dataset/Datasets/splits/ptc_mm240k_corpus_subgraphs.pkl
+Loading model OurMatchingModelVar39_GMN_encoding_NodePerm_SinkhornParamBig_HingeScore_EdgePermConsistency
+This uses GMN encoder followed by parameterized sinkhorn with LRL and similarity computation using hinge scoring (H_q, PH_c) .We're taking edge perm from node perm kronecker product and the checking edge consistency with edge embeddings
+saving initial model to velugoti_dataset/vel_39_0.7/initialModels/velugoti_39_ptc_mm_7762_2023-12-27_00:48:40.409246
+no. of params in model: 2479

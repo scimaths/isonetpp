@@ -32,25 +32,25 @@ class OurMatchingModelSubgraphIsoData(object):
 
     #LOAD query graphs in data split
     if self.mode == "Extra_test_300":
-        fp = self.av.DIR_PATH + "/Datasets/splits/Extra_test_300/test_" +self.av.DATASET_NAME +"_80k_query_subgraphs.pkl"
+        fp = self.av.DIR_PATH + "/Datasets/splits/Extra_test_300/test_" +self.av.DATASET_NAME +"_240k_query_subgraphs.pkl"
     else:
         fp = self.av.DIR_PATH + "/Datasets/splits/" + self.mode + "/" + self.mode + "_" +\
-                self.av.DATASET_NAME +"80k_query_subgraphs.pkl"
+                self.av.DATASET_NAME +"240k_query_subgraphs.pkl"
 
     self.query_graphs = pickle.load(open(fp,"rb"))
     logger.info("loading %s query graphs from %s", self.mode, fp)
 
     #LOAD iso relaitonships of query graphs wrt corpus graphs
     if self.mode == "Extra_test_300":
-        fp = self.av.DIR_PATH + "/Datasets/splits/Extra_test_300/test_" +self.av.DATASET_NAME + "_80k_rel_nx_is_subgraph_iso.pkl"
+        fp = self.av.DIR_PATH + "/Datasets/splits/Extra_test_300/test_" +self.av.DATASET_NAME + "_240k_rel_nx_is_subgraph_iso.pkl"
     else:
         fp = self.av.DIR_PATH + "/Datasets/splits/" + self.mode + "/" + self.mode + "_" +\
-                self.av.DATASET_NAME + "80k_rel_nx_is_subgraph_iso.pkl"
+                self.av.DATASET_NAME + "240k_rel_nx_is_subgraph_iso.pkl"
     self.rels = pickle.load(open(fp,"rb"))
     logger.info("loading %s relationships from %s", self.mode, fp)
 
     #LOAD all corpus graphs
-    fp = self.av.DIR_PATH + "/Datasets/splits/" + self.av.DATASET_NAME +"80k_corpus_subgraphs.pkl"
+    fp = self.av.DIR_PATH + "/Datasets/splits/" + self.av.DATASET_NAME +"240k_corpus_subgraphs.pkl"
     self.corpus_graphs = pickle.load(open(fp,"rb"))
     logger.info("loading corpus graphs from %s", fp)
     assert(list(range(len(self.query_graphs))) == list(self.rels.keys()))
