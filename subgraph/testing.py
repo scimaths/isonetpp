@@ -257,6 +257,7 @@ def get_result(av,model_loc,state_dict):
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--model_dir", type=str)
+ap.add_argument("--save_loc", type=str)
 ap.add_argument("--lambd", type=float)
 # ap.add_argument("--seeds", type=int, nargs='+')
 # ap.add_argument("--datasets", type=str, nargs='+')
@@ -311,7 +312,6 @@ av = Namespace(   want_cuda                    = True,
 task_dict = {} 
 
 task_dict['edge_early_interaction_delete'] = "Edge Early Delete"
-# task_dict['edge_early_interaction'] = "Edge Early"
 # task_dict['node_early_interaction_interpretability'] = "Early Interpretability"
 # task_dict['node_early_interaction'] = "Early Interaction"
 # task_dict['node_align_node_loss'] = "Node Align Node Loss"
@@ -346,10 +346,9 @@ for model_loc in os.listdir(test_model_dir):
     print("dataset", dataset)
     t = get_result(av,model_loc,model_state_dict)
     scores[model][dataset][seed] = t[1][1]
-    print("val map", t[0][1])
-    print("test map", t[1][1])
-    print("test hits", t[1][-1])
+    print("val", t[0][1])
+    print("test", t[1][1])
     # print(scores[model][dataset][seed])
-    pickle.dump(scores, open('scores.pkl', 'wb'))
+    pickle.dump(scores, open(f'{ad.save_loc}.pkl', 'wb'))
 
 print(scores)
