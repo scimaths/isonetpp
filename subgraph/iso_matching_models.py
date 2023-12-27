@@ -27,6 +27,7 @@ from subgraph.models.edge_early_interaction import EdgeEarlyInteraction
 from subgraph.models.node_edge_early_interaction_with_consistency import NodeEdgeEarlyInteractionWithConsistency
 from subgraph.models.node_edge_early_interaction_with_consistency_and_two_sinkhorns import NodeEdgeEarlyInteractionWithConsistencyAndTwoSinkhorns
 from subgraph.models.adding_to_q import AddingToQ
+from subgraph.models.velugoti_39 import OurMatchingModelVar39_GMN_encoding_NodePerm_SinkhornParamBig_HingeScore_EdgePermConsistency
 from subgraph.models.isonet import ISONET, ISONET_Sym
 from subgraph.models.gmn_match import GMN_match, GMN_match_hinge
 from subgraph.models.node_align_node_loss import Node_align_Node_loss
@@ -97,6 +98,14 @@ def train(av,config):
     av.MAX_EDGES = max(max([g.number_of_edges() for g in train_data.query_graphs]),\
                    max([g.number_of_edges() for g in train_data.corpus_graphs]))
     model = ISONET(av,config,1).to(device)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"
+  elif av.TASK.startswith("velugoti_39"):
+    logger.info("Loading model OurMatchingModelVar39_GMN_encoding_NodePerm_SinkhornParamBig_HingeScore_EdgePermConsistency")  
+    #One more hack. 
+    av.MAX_EDGES = max(max([g.number_of_edges() for g in train_data.query_graphs]),\
+                   max([g.number_of_edges() for g in train_data.corpus_graphs]))
+    model = OurMatchingModelVar39_GMN_encoding_NodePerm_SinkhornParamBig_HingeScore_EdgePermConsistency(av,config,1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
   else:
@@ -204,6 +213,11 @@ if __name__ == "__main__":
   ap.add_argument("--DATASET_NAME",                   type=str,   default="mutag")
   ap.add_argument('--lambd',                          type=float, default=1.0, nargs='?')
   ap.add_argument('--consistency_lambda',             type=float, default=1.0, nargs='?')
+ 
+  #---------------------- Arguments for sai code ------------------------------------
+  ap.add_argument("--transport_node_type",            type=str,   default="soft")
+  ap.add_argument("--transport_edge_type",            type=str,   default="sinkhorn")
+
 
   av = ap.parse_args()
   seeds = [4586, 7366, 7474, 7762, 4929, 3543, 1704, 356, 4891, 3133]
@@ -211,6 +225,7 @@ if __name__ == "__main__":
     'node_early_interaction': {'aids': 7474, 'mutag': 7474, 'ptc_fm': 4929, 'ptc_fr': 7366, 'ptc_mm': 7762, 'ptc_mr': 7366},
     'edge_early_interaction': {'aids': 7474, 'mutag': 7474, 'ptc_fm': 4929, 'ptc_fr': 7366, 'ptc_mm': 7762, 'ptc_mr': 7366},
     'isonet': {'aids': 7762, 'mutag': 4586, 'ptc_fm': 7366, 'ptc_fr': 7474, 'ptc_mm': 7366, 'ptc_mr': 7366},
+    'velugoti_39': {'aids': 7762, 'mutag': 4586, 'ptc_fm': 7366, 'ptc_fr': 7474, 'ptc_mm': 7366, 'ptc_mr': 7366},
     'node_align_node_loss': {'aids': 7762, 'mutag': 4586, 'ptc_fm': 4586, 'ptc_fr': 4929, 'ptc_mm': 7762, 'ptc_mr': 4929},
   }
   seed_accessor = av.TASK if av.TASK in best_seed_dict else 'node_early_interaction'

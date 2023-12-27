@@ -23,7 +23,7 @@ else
     time_updates=0
 fi
 
-if [ "$TASK" == "node_edge_early_interaction_with_consistency" ] || [ "$TASK" == "node_edge_early_interaction_with_consistency_and_two_sinkhorns" ]; then
+if [ "$TASK" == "node_edge_early_interaction_with_consistency" ] || [ "$TASK" == "node_edge_early_interaction_with_consistency_and_two_sinkhorns" ] || [ "$TASK" == "velugoti_39" ]; then
     if [ -z "$4" ]; then
         echo Give consistency_lambda argument
         exit
@@ -39,8 +39,7 @@ datasets=('aids' 'mutag' 'ptc_fr' 'ptc_fm' 'ptc_mr' 'ptc_mm')
 
 for ((idx=0; idx<${#datasets[@]}; idx++)); do
     dataset="${datasets[$idx]}"
-    for seed in 0 1 2 3 4; do
-        CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=$(((idx * 6 + seed) % 3 + 2)) python -m subgraph.iso_matching_models \
+        CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=$((idx % 2)) python -m subgraph.iso_matching_models \
         --experiment_group=${experiment_group} \
         --TASK=${TASK} \
         --time_updates=${time_updates} \
@@ -52,8 +51,7 @@ for ((idx=0; idx<${#datasets[@]}; idx++)); do
         --transform_dim=16 \
         --FEAT_TYPE="One" \
         --DATASET_NAME=${dataset} \
-        --consistency_lambda=${consistency_lambda} \
-        --SEED=${seed} &
+        --consistency_lambda=${consistency_lambda} &
         sleep 10s
     done
 done
