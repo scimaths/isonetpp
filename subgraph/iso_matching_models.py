@@ -100,7 +100,7 @@ def train(av,config):
     model = ISONET(av,config,1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
-  elif av.TASK.startswith("velugoti_39"):
+  elif av.TASK.startswith("nanl_consistency"):
     logger.info("Loading model OurMatchingModelVar39_GMN_encoding_NodePerm_SinkhornParamBig_HingeScore_EdgePermConsistency")
     logger.info("This uses GMN encoder followed by parameterized sinkhorn with LRL and similarity computation using hinge scoring (H_q, PH_c) .We're taking edge perm from node perm kronecker product and the checking edge consistency with edge embeddings")
     #One more hack. 
@@ -229,8 +229,9 @@ if __name__ == "__main__":
   seeds = [4586, 7366, 7474, 7762, 4929, 3543, 1704, 356, 4891, 3133]
   best_seed_dict = {
     'node_early_interaction': {'aids': 7474, 'mutag': 7474, 'ptc_fm': 4929, 'ptc_fr': 7366, 'ptc_mm': 7762, 'ptc_mr': 7366},
-    'edge_early_interaction': {'aids': 4586, 'mutag': 4586, 'ptc_fm': 7366, 'ptc_fr': 7366, 'ptc_mm': 4929, 'ptc_mr': 7762},
+    'edge_early_interaction': {'aids': 7474, 'mutag': 7474, 'ptc_fm': 4929, 'ptc_fr': 7366, 'ptc_mm': 7762, 'ptc_mr': 7366},
     'isonet': {'aids': 7762, 'mutag': 4586, 'ptc_fm': 7366, 'ptc_fr': 7474, 'ptc_mm': 7366, 'ptc_mr': 7366},
+    'nanl_consistency': {'aids': 7762, 'mutag': 4586, 'ptc_fm': 7366, 'ptc_fr': 7474, 'ptc_mm': 7366, 'ptc_mr': 7366},
     'node_align_node_loss': {'aids': 7762, 'mutag': 4586, 'ptc_fm': 4586, 'ptc_fr': 4929, 'ptc_mm': 7762, 'ptc_mr': 4929},
   }
   seed_accessor = av.TASK if av.TASK in best_seed_dict else 'node_early_interaction'
