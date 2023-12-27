@@ -133,62 +133,11 @@ def train(av,config):
     start_time = time.time()
     n_batches = train_data.create_stratified_batches()
     epoch_loss = 0
-    epoch_consistency_loss_straight = 0
-    epoch_consistency_loss_cross = 0
-    epoch_total_consistency_loss = 0
-    epoch_consistency_loss2 = 0
-    epoch_consistency_loss3 = 0
-    epoch_consistency_loss_straight_pos = 0
-    epoch_consistency_loss_cross_pos = 0
-    epoch_total_consistency_loss_pos = 0
-    epoch_consistency_loss2_pos = 0
-    epoch_consistency_loss3_pos = 0
-    epoch_consistency_loss_straight_neg = 0
-    epoch_consistency_loss_cross_neg = 0
-    epoch_total_consistency_loss_neg = 0
-    epoch_consistency_loss2_neg = 0
-    epoch_consistency_loss3_neg = 0
     start_time = time.time()
     for i in range(n_batches):
       batch_data,batch_data_sizes,target,batch_adj = train_data.fetch_batched_data_by_id(i)
       optimizer.zero_grad()
-      if av.output_type == 1:
-          prediction = model(batch_data,batch_data_sizes,batch_adj)
-      elif av.output_type == 2:
-          outputs = model(batch_data,batch_data_sizes,batch_adj)
-          prediction = outputs[2]
-          consistency_loss_straight = torch.sum(outputs[0])/outputs[0].shape[0]
-          consistency_loss_cross = torch.sum(outputs[1])/outputs[1].shape[0]
-          total_consistency_loss = consistency_loss_straight + consistency_loss_cross
-          consistency_loss2 = torch.sum(outputs[3])/outputs[3].shape[0]
-          consistency_loss3 = torch.sum(outputs[4])/outputs[4].shape[0]
-          epoch_consistency_loss_straight += consistency_loss_straight.item()
-          epoch_consistency_loss_cross += consistency_loss_cross.item()
-          epoch_total_consistency_loss += total_consistency_loss.item()
-          epoch_consistency_loss2 += consistency_loss2.item()
-          epoch_consistency_loss3 += consistency_loss3.item()
-        
-          consistency_loss_straight_pos = torch.sum(outputs[0][target==1])/outputs[0][target==1].shape[0]
-          consistency_loss_cross_pos = torch.sum(outputs[1][target==1])/outputs[1][target==1].shape[0]
-          total_consistency_loss_pos = consistency_loss_straight_pos + consistency_loss_cross_pos
-          consistency_loss2_pos = torch.sum(outputs[3][target==1])/outputs[3][target==1].shape[0]
-          consistency_loss3_pos = torch.sum(outputs[4][target==1])/outputs[4][target==1].shape[0]
-          epoch_consistency_loss_straight_pos += consistency_loss_straight_pos.item()
-          epoch_consistency_loss_cross_pos += consistency_loss_cross_pos.item()
-          epoch_total_consistency_loss_pos += total_consistency_loss_pos.item()
-          epoch_consistency_loss2_pos += consistency_loss2_pos.item()
-          epoch_consistency_loss3_pos += consistency_loss3_pos.item()
-        
-          consistency_loss_straight_neg = torch.sum(outputs[0][target==0])/outputs[0][target==0].shape[0]
-          consistency_loss_cross_neg = torch.sum(outputs[1][target==0])/outputs[1][target==0].shape[0]
-          total_consistency_loss_neg = consistency_loss_straight_neg + consistency_loss_cross_neg
-          consistency_loss2_neg = torch.sum(outputs[3][target==0])/outputs[3][target==0].shape[0]
-          consistency_loss3_neg = torch.sum(outputs[4][target==0])/outputs[4][target==0].shape[0]
-          epoch_consistency_loss_straight_neg += consistency_loss_straight_neg.item()
-          epoch_consistency_loss_cross_neg += consistency_loss_cross_neg.item()
-          epoch_total_consistency_loss_neg += total_consistency_loss_neg.item()
-          epoch_consistency_loss2_neg += consistency_loss2_neg.item()
-          epoch_consistency_loss3_neg += consistency_loss3_neg.item()
+      prediction = model(batch_data,batch_data_sizes,batch_adj)
       #Pairwise ranking loss
       predPos = prediction[target>0.5]
       predNeg = prediction[target<0.5]
@@ -199,14 +148,6 @@ def train(av,config):
       epoch_loss = epoch_loss + losses.item()
 
     logger.info("Run: %d train loss: %f Time: %.2f",run,epoch_loss,time.time()-start_time)
-    if av.output_type == 2:
-        #logger.info("Run: %d train consistency_loss_straight: %f, consistency_loss_cross: %f, total_consistency_loss: %f",run,epoch_consistency_loss_straight/n_batches, epoch_consistency_loss_cross/n_batches, epoch_total_consistency_loss/n_batches)
-        logger.info("Run: %d train consistency_loss2: %f, consistency_loss3: %f",run,epoch_consistency_loss2/n_batches, epoch_consistency_loss3/n_batches)
-        #logger.info("Run: %d train consistency_loss_straight_pos: %f, consistency_loss_cross_pos: %f, total_consistency_loss_pos: %f",run,epoch_consistency_loss_straight_pos/n_batches, epoch_consistency_loss_cross_pos/n_batches, epoch_total_consistency_loss_pos/n_batches)
-        logger.info("Run: %d train consistency_loss2_pos: %f, consistency_loss3_pos: %f",run,epoch_consistency_loss2_pos/n_batches, epoch_consistency_loss3_pos/n_batches)
-        #logger.info("Run: %d train consistency_loss_straight_neg: %f, consistency_loss_cross_neg: %f, total_consistency_loss_neg: %f",run,epoch_consistency_loss_straight_neg/n_batches, epoch_consistency_loss_cross_neg/n_batches, epoch_total_consistency_loss_neg/n_batches)
-        logger.info("Run: %d train consistency_loss2_neg: %f, consistency_loss3_neg: %f",run,epoch_consistency_loss2_neg/n_batches, epoch_consistency_loss3_neg/n_batches)
-    
     start_time = time.time()
     ap_score, map_score = evaluate_embeddings_similarity(av,model,val_data)
     logger.info("Run: %d VAL ap_score: %.6f map_score: %.6f Time: %.2f", run, ap_score,map_score, time.time()-start_time)
@@ -275,7 +216,6 @@ if __name__ == "__main__":
   ap.add_argument('--lambd',                          type=float, default=1.0, nargs='?')
   ap.add_argument('--consistency_lambda',             type=float, default=1.0, nargs='?')
   ap.add_argument("--IPLUS_LAMBDA",                   type=float, default=1)
-  ap.add_argument("--output_type",                    type=int, default=1)
   ap.add_argument("--no_of_query_subgraphs",          type=int,   default=100)
   ap.add_argument("--no_of_corpus_subgraphs",         type=int,   default=800)
   ap.add_argument("--scores",                         nargs="+", default=["node_align", "kronecker_edge_align"])

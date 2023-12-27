@@ -224,34 +224,7 @@ cudavar(self.av,torch.tensor([0]))),dim=(1,2)))
             elif score == "kronecker_edge_align":
                 final_score += scores_kronecker_edge_align
                 
-        
-        consistency_loss = torch.mul((1-stacked_all_node_map_scores), transport_plan_edge)+\
-                                         torch.mul(stacked_all_node_map_scores, (1-transport_plan_edge))
-        consistency_loss = torch.sum(consistency_loss, dim=(1,2))
-        
-        
-
-        consistency_loss1 = torch.mul((1-stacked_all_node_map_scores1), transport_plan_edge)+\
-                                         torch.mul(stacked_all_node_map_scores1, (1-transport_plan_edge))
-        consistency_loss1 = torch.sum(consistency_loss1, dim=(1,2))
-        
-        
-        
-        consistency_loss2 = torch.mul((1-stacked_all_node_map_scores\
-                                       -stacked_all_node_map_scores1+torch.mul(stacked_all_node_map_scores,\
-                                        stacked_all_node_map_scores1)), transport_plan_edge)
-        
-        consistency_loss2 = consistency_loss2 + torch.mul((1-transport_plan_edge), stacked_all_node_map_scores)
-        consistency_loss2 = consistency_loss2 + torch.mul((1-transport_plan_edge), stacked_all_node_map_scores1)
-        consistency_loss2 = torch.sum(consistency_loss2, dim=(1,2))
-        
-        
-        
-        consistency_loss3 = torch.maximum(stacked_all_node_map_scores, stacked_all_node_map_scores1)
-        consistency_loss3 = torch.sum(torch.abs(transport_plan_edge - consistency_loss3), dim=(1,2))
-        
-        
-        return (consistency_loss, consistency_loss1, final_score, consistency_loss2, consistency_loss3)
+        return final_score
         
         #return scores_node_align + (cudavar(self.av,torch.tensor(self.av.IPLUS_LAMBDA)) * \
         #                            regularizer_consistency)
