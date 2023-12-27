@@ -209,7 +209,7 @@ if __name__ == "__main__":
   seeds = [4586, 7366, 7474, 7762, 4929, 3543, 1704, 356, 4891, 3133]
   best_seed_dict = {
     'node_early_interaction': {'aids': 7474, 'mutag': 7474, 'ptc_fm': 4929, 'ptc_fr': 7366, 'ptc_mm': 7762, 'ptc_mr': 7366},
-    'edge_early_interaction': {'aids': 4586, 'mutag': 4586, 'ptc_fm': 7366, 'ptc_fr': 7366, 'ptc_mm': 4929, 'ptc_mr': 7762},
+    'edge_early_interaction': {'aids': 7474, 'mutag': 7474, 'ptc_fm': 4929, 'ptc_fr': 7366, 'ptc_mm': 7762, 'ptc_mr': 7366},
     'isonet': {'aids': 7762, 'mutag': 4586, 'ptc_fm': 7366, 'ptc_fr': 7474, 'ptc_mm': 7366, 'ptc_mr': 7366},
     'node_align_node_loss': {'aids': 7762, 'mutag': 4586, 'ptc_fm': 4586, 'ptc_fr': 4929, 'ptc_mm': 7762, 'ptc_mr': 4929},
   }
