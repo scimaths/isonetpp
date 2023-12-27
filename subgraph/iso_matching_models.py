@@ -202,24 +202,19 @@ if __name__ == "__main__":
   ap.add_argument("--CONV",                           type=str,   default="GCN",help="GCN/GAT/GIN/SAGE")
   ap.add_argument("--DIR_PATH",                       type=str,   default=".",help="path/to/datasets")
   ap.add_argument("--DATASET_NAME",                   type=str,   default="mutag")
-  # ap.add_argument("--SEED",                           type=int,   default=0)
-  # ap.add_argument('--EXPLICIT_SEED',                  type=int,   nargs='?')
   ap.add_argument('--lambd',                          type=float, default=1.0, nargs='?')
   ap.add_argument('--consistency_lambda',             type=float, default=1.0, nargs='?')
 
   av = ap.parse_args()
   seeds = [4586, 7366, 7474, 7762, 4929, 3543, 1704, 356, 4891, 3133]
-  # av.SEED = seeds[av.SEED]
-  # if av.EXPLICIT_SEED is not None:
-  #    av.SEED = av.EXPLICIT_SEED
-  av.SEED = {
-    'aids': 7474,
-    'mutag': 7474,
-    'ptc_fm': 4929,
-    'ptc_fr': 7366,
-    'ptc_mm': 7762,
-    'ptc_mr': 7366
-  }[av.DATASET_NAME]
+  best_seed_dict = {
+    'node_early_interaction': {'aids': 7474, 'mutag': 7474, 'ptc_fm': 4929, 'ptc_fr': 7366, 'ptc_mm': 7762, 'ptc_mr': 7366},
+    'edge_early_interaction': {'aids': 4586, 'mutag': 4586, 'ptc_fm': 7366, 'ptc_fr': 7366, 'ptc_mm': 4929, 'ptc_mr': 7762},
+    'isonet': {'aids': 7762, 'mutag': 4586, 'ptc_fm': 7366, 'ptc_fr': 7474, 'ptc_mm': 7366, 'ptc_mr': 7366},
+    'node_align_node_loss': {'aids': 7762, 'mutag': 4586, 'ptc_fm': 4586, 'ptc_fr': 4929, 'ptc_mm': 7762, 'ptc_mr': 4929},
+  }
+  seed_accessor = av.TASK if av.TASK in best_seed_dict else 'node_early_interaction'
+  av.SEED = best_seed_dict[seed_accessor][av.DATASET_NAME]
   av.time_key = str(datetime.now()).replace(' ', '_')
   
   exp_name = f"{av.TASK}_{av.DATASET_NAME}_margin_{av.MARGIN}_seed_{av.SEED}_time_{av.time_key}_lambd_{av.lambd}"

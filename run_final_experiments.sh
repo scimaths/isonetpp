@@ -19,26 +19,18 @@ else
     TASK=$3
 fi
 
-if [[ $TASK == *interaction* ]]; then
-    if [ -z "$4" ]; then
-        echo Give time_updates argument
-        exit
-    else
-        time_updates=$4
-    fi
+if [ -z "$4" ]; then
+    echo Give time_updates argument
+    exit
 else
-    time_updates=0
+    time_updates=$4
 fi
 
-if [[ $TASK == *consistency* ]]; then
-    if [ -z "$5" ]; then
-        echo Give consistency_lambda argument
-        exit
-    else
-        consistency_lambda=$5
-    fi
+if [ -z "$5" ]; then
+    echo Give consistency_lambda argument
+    exit
 else
-    consistency_lambda=0
+    consistency_lambda=$5
 fi
 
 # datasets=('aids')
