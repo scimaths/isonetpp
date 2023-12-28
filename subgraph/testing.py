@@ -237,6 +237,11 @@ def get_result(av,model_loc,state_dict):
       model = im.NodeEarlyInteraction(av,config,1).to(device)
       test_data.data_type = "gmn"
       val_data.data_type = "gmn"
+    elif model_loc.startswith("velugoti_39"):
+      config = load_config(av)
+      model = im.OurMatchingModelVar39_GMN_encoding_NodePerm_SinkhornParamBig_HingeScore_EdgePermConsistency(av,config,1).to(device)
+      test_data.data_type = "gmn"
+      val_data.data_type = "gmn"
     else:
       print("ALERT!! CHECK FOR ERROR")  
     model.eval()
@@ -250,6 +255,7 @@ def get_result(av,model_loc,state_dict):
 ap = argparse.ArgumentParser()
 ap.add_argument("--model_dir", type=str)
 ap.add_argument("--save_loc", type=str)
+ap.add_argument("--consistency_lambda", type=float)
 # ap.add_argument("--seeds", type=int, nargs='+')
 # ap.add_argument("--datasets", type=str, nargs='+')
 # ap.add_argument("--tasks", type=str, nargs='+')
@@ -296,17 +302,20 @@ av = Namespace(   want_cuda                    = True,
                   TASK                       = "",
                   test_size                  = 300,
                   SEED                       = 0,
-                  lambd                      = 1,
+                  consistency_lambda         = ad.consistency_lambda,
+                  transport_node_type        = "soft",
+                  transport_edge_type        = "sinkhorn",
               )
 
 
 task_dict = {} 
 
-task_dict['edge_early_interaction'] = "Edge Early Interaction"
+# task_dict['edge_early_interaction'] = "Edge Early Interaction"
 # task_dict['node_early_interaction_interpretability'] = "Early Interpretability"
-task_dict['node_early_interaction'] = "Node Early Interaction"
-task_dict['node_align_node_loss'] = "Node Align Node Loss"
-task_dict['isonet'] = "ISONET"
+# task_dict['node_early_interaction'] = "Node Early Interaction"
+# task_dict['node_align_node_loss'] = "Node Align Node Loss"
+# task_dict['isonet'] = "ISONET"
+task_dict['velugoti_39'] = "Velugoti_39"
 datasets = ["aids", "mutag", "ptc_fr", "ptc_fm", "ptc_mr", "ptc_mm"]
 test_model_dir = ad.model_dir
 
@@ -339,6 +348,7 @@ for model_loc in os.listdir(test_model_dir):
     scores[model][dataset][seed] = t[1][1]
     print("val", t[0][1])
     print("test", t[1][1])
+    print("test hits", t[1][-1])
     # print(scores[model][dataset][seed])
     pickle.dump(scores, open(f'{ad.save_loc}.pkl', 'wb'))
 

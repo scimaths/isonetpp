@@ -39,19 +39,18 @@ datasets=('aids' 'mutag' 'ptc_fr' 'ptc_fm' 'ptc_mr' 'ptc_mm')
 
 for ((idx=0; idx<${#datasets[@]}; idx++)); do
     dataset="${datasets[$idx]}"
-        CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=$((idx % 2)) python -m subgraph.iso_matching_models \
-        --experiment_group=${experiment_group} \
-        --TASK=${TASK} \
-        --time_updates=${time_updates} \
-        --NOISE_FACTOR=0 \
-        --MARGIN=0.5 \
-        --filters_1=10 \
-        --filters_2=10 \
-        --filters_3=10 \
-        --transform_dim=16 \
-        --FEAT_TYPE="One" \
-        --DATASET_NAME=${dataset} \
-        --consistency_lambda=${consistency_lambda} &
-        sleep 10s
-    done
+    CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=$((idx % 2)) python -m subgraph.iso_matching_models \
+    --experiment_group=${experiment_group} \
+    --TASK=${TASK} \
+    --time_updates=${time_updates} \
+    --NOISE_FACTOR=0 \
+    --MARGIN=0.5 \
+    --filters_1=10 \
+    --filters_2=10 \
+    --filters_3=10 \
+    --transform_dim=16 \
+    --FEAT_TYPE="One" \
+    --DATASET_NAME=${dataset} \
+    --consistency_lambda=${consistency_lambda} &
+    sleep 10s
 done
