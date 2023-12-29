@@ -225,7 +225,10 @@ if __name__ == "__main__":
     'node_early_interaction': {'aids': 7474, 'mutag': 7474, 'ptc_fm': 4929, 'ptc_fr': 7366, 'ptc_mm': 7762, 'ptc_mr': 7366},
     'edge_early_interaction': {'aids': 7474, 'mutag': 7474, 'ptc_fm': 4929, 'ptc_fr': 7366, 'ptc_mm': 7762, 'ptc_mr': 7366},
     'isonet': {'aids': 7762, 'mutag': 4586, 'ptc_fm': 7366, 'ptc_fr': 7474, 'ptc_mm': 7366, 'ptc_mr': 7366},
-    'velugoti_39': {'aids': 7762, 'mutag': 4586, 'ptc_fm': 7366, 'ptc_fr': 7474, 'ptc_mm': 7366, 'ptc_mr': 7366},
+    # ------------------ with ISONET best seeds -----------------------------
+    # 'velugoti_39': {'aids': 7762, 'mutag': 4586, 'ptc_fm': 7366, 'ptc_fr': 7474, 'ptc_mm': 7366, 'ptc_mr': 7366},
+    # ------------------ with NANL best seeds -----------------------------
+    'velugoti_39': {'aids': 7762, 'mutag': 4586, 'ptc_fm': 4586, 'ptc_fr': 4929, 'ptc_mm': 7762, 'ptc_mr': 4929},
     'node_align_node_loss': {'aids': 7762, 'mutag': 4586, 'ptc_fm': 4586, 'ptc_fr': 4929, 'ptc_mm': 7762, 'ptc_mr': 4929},
   }
   seed_accessor = av.TASK if av.TASK in best_seed_dict else 'node_early_interaction'

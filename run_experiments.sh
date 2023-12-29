@@ -12,26 +12,18 @@ else
     TASK=$2
 fi
 
-if [ "$TASK" == "node_early_interaction" ] || [ "$TASK" == "node_early_interaction_interpretability" ] || [ "$TASK" == "edge_early_interaction" ] || [ "$TASK" == "node_edge_early_interaction_with_consistency" ] || [ "$TASK" == "node_edge_early_interaction_with_consistency_and_two_sinkhorns" ]; then
-    if [ -z "$3" ]; then
-        echo Give time_updates argument
-        exit
-    else
-        time_updates=$3
-    fi
+if [ -z "$3" ]; then
+    echo Give time_updates argument
+    exit
 else
-    time_updates=0
+    time_updates=$3
 fi
 
-if [ "$TASK" == "node_edge_early_interaction_with_consistency" ] || [ "$TASK" == "node_edge_early_interaction_with_consistency_and_two_sinkhorns" ] || [ "$TASK" == "velugoti_39" ]; then
-    if [ -z "$4" ]; then
-        echo Give consistency_lambda argument
-        exit
-    else
-        consistency_lambda=$4
-    fi
+if [ -z "$4" ]; then
+    echo Give consistency_lambda argument
+    exit
 else
-    consistency_lambda=0
+    consistency_lambda=$4
 fi
 
 # datasets=('aids')
@@ -39,7 +31,7 @@ datasets=('aids' 'mutag' 'ptc_fr' 'ptc_fm' 'ptc_mr' 'ptc_mm')
 
 for ((idx=0; idx<${#datasets[@]}; idx++)); do
     dataset="${datasets[$idx]}"
-    CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=$((idx % 2)) python -m subgraph.iso_matching_models \
+    CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=$(((idx % 2) + 3)) python -m subgraph.iso_matching_models \
     --experiment_group=${experiment_group} \
     --TASK=${TASK} \
     --time_updates=${time_updates} \
