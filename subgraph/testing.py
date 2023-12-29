@@ -232,7 +232,7 @@ def get_result(av,model_loc,state_dict):
       model = im.ISONET(av,config,1).to(device)
       test_data.data_type = "gmn"
       val_data.data_type = "gmn"
-    elif model_loc.startswith("velugoti_39"):
+    elif model_loc.startswith("nanl_consistency"):
       config = load_config(av)
       model = im.OurMatchingModelVar39_GMN_encoding_NodePerm_SinkhornParamBig_HingeScore_EdgePermConsistency(av,config,1).to(device)
       test_data.data_type = "gmn"
@@ -255,69 +255,17 @@ def get_result(av,model_loc,state_dict):
 ap = argparse.ArgumentParser()
 ap.add_argument("--model_dir", type=str)
 ap.add_argument("--save_loc", type=str)
-ap.add_argument("--consistency_lambda", type=str)
 # ap.add_argument("--seeds", type=int, nargs='+')
 # ap.add_argument("--datasets", type=str, nargs='+')
 # ap.add_argument("--tasks", type=str, nargs='+')
 ad = ap.parse_args()
-
-av = Namespace(   want_cuda                    = True,
-                  has_cuda                   = torch.cuda.is_available(),
-                  use_pairnorm               = False,
-                  is_sig                     = False,
-                  n_layers                   = 3,
-                  conv_type                  = 'SAGE',
-                  method_type                = 'order',
-                  skip                       = 'learnable',
-                  MIN_QUERY_SUBGRAPH_SIZE    = 5,
-                  MAX_QUERY_SUBGRAPH_SIZE    = 10,
-                  MIN_CORPUS_SUBGRAPH_SIZE   = 11,
-                  MAX_CORPUS_SUBGRAPH_SIZE   = 15,
-                  DIR_PATH                   =".",
-                  DATASET_NAME               = "ptc_fr",
-                  RUN_TILL_ES                = True,
-                  ES                         = 50,
-                  transform_dim              = 16,
-                  GMN_NPROPLAYERS            = 5,
-                  FEAT_TYPE                  = "One",
-                  filters_1                  = 10,
-                  filters_2                  = 10,
-                  filters_3                  = 10,
-                  time_updates               = 3,
-                  time_update_idx            = "k_t",
-                  neuromatch_hidden_dim      = 10,
-                  post_mp_dim                = 64,
-                  bottle_neck_neurons        = 10,
-                  tensor_neurons             = 10,               
-                  dropout                    = 0,
-                  bins                       = 16,
-                  histogram                  = False,
-                  WEIGHT_DECAY               =5*10**-4,
-                  BATCH_SIZE                 =128,
-                  LEARNING_RATE              =0.001,
-                  CONV                       = "GCN",
-                  MARGIN                     = 0.1,
-                  NOISE_FACTOR               = 0,
-                  NUM_RUNS                   = 2,
-                  TASK                       = "",
-                  test_size                  = 300,
-                  SEED                       = 0,
-                  lambd                      = 1,
-                  IPLUS_LAMBDA               = ad.consistency_lambda,
-                  transport_node_type        = "soft",
-                  transport_edge_type        = "sinkhorn",
-                  scores                     = ["node_align", "kronecker_edge_align"]
-              )
-
-
 task_dict = {} 
 
-# task_dict['edge_early_interaction'] = "Edge Early Interaction"
-# task_dict['node_early_interaction_interpretability'] = "Early Interpretability"
-# task_dict['node_early_interaction'] = "Node Early Interaction"
-# task_dict['node_align_node_loss'] = "Node Align Node Loss"
-# task_dict['isonet'] = "ISONET"
-task_dict['velugoti_39'] = "Velugoti 39"
+task_dict['edge_early_interaction'] = "Edge Early Interaction"
+task_dict['node_early_interaction'] = "Node Early Interaction"
+task_dict['node_align_node_loss'] = "Node Align Node Loss"
+task_dict['isonet'] = "ISONET"
+task_dict['nanl_consistency'] = "NANL+Consistency"
 datasets = ["aids", "mutag", "ptc_fr", "ptc_fm", "ptc_mr", "ptc_mm"]
 test_model_dir = ad.model_dir
 
