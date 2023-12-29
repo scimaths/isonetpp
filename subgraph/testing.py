@@ -217,6 +217,16 @@ def get_result(av,model_loc,state_dict):
       model = im.Node_align_Node_loss(av,config,1).to(device)
       test_data.data_type = "gmn"
       val_data.data_type = "gmn"
+    elif model_loc.startswith("node_edge_early_interaction_with_consistency_and_two_sinkhorns"):
+      config = load_config(av)
+      model = im.NodeEdgeEarlyInteractionWithConsistencyAndTwoSinkhorns(av,config,1).to(device)
+      test_data.data_type = "gmn"
+      val_data.data_type = "gmn"
+    elif model_loc.startswith("node_edge_early_interaction_with_consistency"):
+      config = load_config(av)
+      model = im.NodeEdgeEarlyInteractionWithConsistency(av,config,1).to(device)
+      test_data.data_type = "gmn"
+      val_data.data_type = "gmn"
     elif model_loc.startswith("edge_early_interaction"):
       config = load_config(av)
       model = im.EdgeEarlyInteraction(av,config,1).to(device)
@@ -302,12 +312,14 @@ av = Namespace(   want_cuda                    = True,
 
 task_dict = {} 
 
+task_dict['node_edge_early_interaction_with_consistency'] = "Node + Edge Early Interaction + Consistency"
 task_dict['edge_early_interaction'] = "Edge Early Interaction"
 # task_dict['node_early_interaction_interpretability'] = "Early Interpretability"
 task_dict['node_early_interaction'] = "Node Early Interaction"
 task_dict['node_align_node_loss'] = "Node Align Node Loss"
 task_dict['isonet'] = "ISONET"
 datasets = ["aids", "mutag", "ptc_fr", "ptc_fm", "ptc_mr", "ptc_mm"]
+# datasets = ["aids", "mutag", "ptc_fr", "ptc_fm", "ptc_mm"]
 test_model_dir = ad.model_dir
 
 scores = {}
