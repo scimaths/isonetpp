@@ -3,6 +3,8 @@ import torch
 import pickle
 import argparse
 import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
 from subgraph.utils import cudavar
 from subgraph import iso_matching_models as im
 from GMN.configure import get_default_config
@@ -62,98 +64,44 @@ def load_config(av):
     
   return config
 
-def evaluate_embeddings_similarity_map_mrr_mndcg(av,model,sampler):
-  model.eval()
-  d_pos = sampler.list_pos
-  d_neg = sampler.list_neg
 
-  d = d_pos + d_neg
-  npos = len(d_pos)
-  nneg = len(d_neg)
-
-  pred = []
-
-  n_batches = sampler.create_batches(d)
-  for i in range(n_batches):
-    #ignoring target values here since not needed for AP ranking score 
-    batch_data,batch_data_sizes,_,batch_adj = sampler.fetch_batched_data_by_id(i)
-    pred.append( model(batch_data,batch_data_sizes,batch_adj).data)
-
-  all_pred = torch.cat(pred,dim=0) 
-  labels = cudavar(av,torch.cat((torch.ones(npos),torch.zeros(nneg))))
-  ap_score = average_precision_score(labels.cpu(), all_pred.cpu())
-  so = np.argsort(all_pred.cpu()).tolist()[::-1]
-  labels_rearranged = labels.cpu()[so]
-  rr = 1/(labels_rearranged.tolist().index(1)+1)
-  ndcg = ndcg_score([labels.cpu().tolist()],[all_pred.cpu().tolist()])
-
-  q_graphs = list(range(len(sampler.query_graphs)))   
-    
-  all_ap, all_rr, all_ndcg, all_hits_20 = [], [], [], []
-
-  for q_id in q_graphs:
-    dpos = list(filter(lambda x:x[0][0]==q_id,d_pos))
-    dneg = list(filter(lambda x:x[0][0]==q_id,d_neg))
-    npos = len(dpos)
-    nneg = len(dneg)
-    d = dpos+dneg
-    if npos>0 and nneg>0:    
-      #Damn
-      n_batches = sampler.create_batches(d) 
-      pred = []  
-      for i in range(n_batches):
-        #ignoring known ged values here since not needed for AP ranking score 
-        batch_data,batch_data_sizes,_,batch_adj = sampler.fetch_batched_data_by_id(i)
-        pred.append( model(batch_data,batch_data_sizes,batch_adj).data)
-      all_pred = torch.cat(pred,dim=0) 
-      labels = cudavar(av,torch.cat((torch.ones(npos),torch.zeros(nneg))))
-      ap   = average_precision_score(labels.cpu(), all_pred.cpu()) 
-      all_ap.append(ap)
-      so = np.argsort(all_pred.cpu()).tolist()[::-1]
-      labels_rearranged = labels.cpu()[so]
-      all_rr.append(1/(labels_rearranged.tolist().index(1)+1))
-      all_ndcg.append(ndcg_score([labels.cpu().tolist()],[all_pred.cpu().tolist()]))
-      ranking = np.argsort(-all_pred.cpu()).tolist()
-      labels_ranked = labels.cpu()[ranking]
-      neg_20 = np.where(labels_ranked == 0)[0][min(19, len(labels_ranked == 0) - 1)]
-      hits_20 = torch.sum(labels_ranked[:neg_20]) / (torch.sum(labels_ranked))
-      all_hits_20.append(hits_20)
-  return ap_score, np.mean(all_ap), np.std(all_ap), rr, np.mean(all_rr), np.std(all_rr), ndcg, np.mean(all_ndcg), np.std(all_ndcg), all_ap, all_rr, np.mean(all_hits_20)
-
-def evaluate_histogram(av,model,sampler,lambd=1):
-  model.eval()
-  d_pos = sampler.list_pos
-  d_neg = sampler.list_neg
-
-  d = d_pos + d_neg
-  npos = len(d_pos)
-  nneg = len(d_neg)
-
+def evaluate_improvement(av,model,sampler,lambd=1):
   import networkx as nx
   import networkx.algorithms.isomorphism as iso
   
+  model.eval()
+
+  d_pos = sampler.list_pos
+  d_neg = sampler.list_neg
+  q_graphs = list(range(len(sampler.query_graphs)))   
+
   norms_tot = []
 
-  q_graphs = list(range(len(sampler.query_graphs)))   
-    
   for q_id in q_graphs:
     dpos = list(filter(lambda x:x[0][0]==q_id,d_pos))
     dneg = list(filter(lambda x:x[0][0]==q_id,d_neg))
     npos = len(dpos)
     nneg = len(dneg)
     d = dpos+dneg
+
     if npos>0 and nneg>0:
+
       n_batches = sampler.create_batches(d) 
       norms = []
+
       for i in range(n_batches): 
+
         batch_data,batch_data_sizes,_,batch_adj = sampler.fetch_batched_data_by_id(i)
-        transport_plans = model(batch_data,batch_data_sizes,batch_adj).data
         batch_data_sizes_flat = [item for sublist in batch_data_sizes for item in sublist]
         bef = 0
         af = batch_data_sizes_flat[0]
+        
+        transport_plans = model(batch_data,batch_data_sizes,batch_adj).data
+
         for j in range(0, transport_plans.shape[0]):
+
           Query = nx.Graph()
-          
+
           index = np.logical_and(batch_data.from_idx >= bef, batch_data.from_idx < af)
           query_from = batch_data.from_idx[index]
 
@@ -162,11 +110,12 @@ def evaluate_histogram(av,model,sampler,lambd=1):
 
           query_edges = [(query_from[k] - bef, query_to[k] - bef) for k in range(len(query_from))]
           Query.add_edges_from(query_edges)
-          # print("query nodes", Query.number_of_nodes(), "original", batch_data_sizes_flat[j*2])
+          
 
           bef += batch_data_sizes_flat[j*2]
           af += batch_data_sizes_flat[j*2+1]
 
+          
           Corpus = nx.Graph()
 
           corpus_from = batch_data.from_idx[np.logical_and(batch_data.from_idx >= bef, batch_data.from_idx < af)]
@@ -174,32 +123,43 @@ def evaluate_histogram(av,model,sampler,lambd=1):
           
           corpus_edges = [(corpus_from[k] - bef, corpus_to[k] - bef) for k in range(len(corpus_from))]
           Corpus.add_edges_from(corpus_edges)
-          # print("corpus nodes", Corpus.number_of_nodes(), "original", batch_data_sizes_flat[j*2 + 1])
-
+          
+          
           bef += batch_data_sizes_flat[j*2 + 1]
           if j*2 + 2 < len(batch_data_sizes_flat):
             af += batch_data_sizes_flat[j*2+2]
-          
+
+
+          norm = 0
           GM = iso.GraphMatcher(Corpus,Query)
-          norm = torch.inf
-          for mapping in GM.subgraph_isomorphisms_iter():
-            p_hat = torch.zeros(batch_data_sizes_flat[j*2], batch_data_sizes_flat[j*2+1]).to(transport_plans.device)
-            for key in mapping.keys():
-              p_hat[mapping[key]][key] = 1
-            norm = min(norm, torch.sum(torch.abs(transport_plans[j][:batch_data_sizes_flat[j*2], :batch_data_sizes_flat[j*2+1]] - p_hat)))
-          norms.append(norm)
+
+          norms_per = []
+          for k in range(0, transport_plans.shape[1]):
+            for mapping in GM.subgraph_isomorphisms_iter():
+              p_hat = torch.zeros(batch_data_sizes_flat[j*2], batch_data_sizes_flat[j*2+1]).to(transport_plans.device)
+              for key in mapping.keys():
+                p_hat[mapping[key]][key] = 1
+              norm = max(norm, torch.sum(transport_plans[j][k][:batch_data_sizes_flat[j*2], :batch_data_sizes_flat[j*2+1]] * p_hat))
+            norms_per.append(norm)
+          norms.append(norms_per)
       norms_tot.extend(norms[:npos])
-  values_np = np.array([x.cpu() for x in norms_tot])
-  import pickle
-  import matplotlib.pyplot as plt
-  pickle.dump(values_np, open(f'lambda_{lambd}_source_mask', 'wb'))
-  plt.figure(figsize=(8, 6))
-  plt.hist(values_np, bins=20, color='skyblue', edgecolor='black')  # Adjust the number of bins as needed
-  plt.xlabel('Norm(P - P_hat)')
+  values_np = np.array([[y.cpu() for y in x] for x in norms_tot])
+
+  for time in range(values_np.shape[1]):
+    pickle.dump(values_np[:,time], open(f'histogram_dumps/model_{av.model_loc}_time_{time}', 'wb'))
+    sns.histplot(values_np[:,time], bins=40, kde=True, label=f'time = {time}', palette='pastel')
+
+  # Adding labels and title
+  plt.xlabel('NORM(P * P_hat)')
   plt.ylabel('Frequency')
-  plt.title(f'Histogram for lambda={lambd} Source Masking : Aids (Seed 4586)')
+  plt.title(f'Histogram : {av.model_loc}')
+  
+  # Show legend
+  plt.legend()
   plt.grid(True)
-  plt.savefig(f'lambda_{lambd}_source_mask_aids_4586.png')
+  plt.savefig(f'histogram_plots/{av.model_loc}.png')
+  plt.clf()
+  
   return norms_tot
 
 def fetch_gmn_data(av):
@@ -212,12 +172,7 @@ def fetch_gmn_data(av):
 
 def get_result(av,model_loc,state_dict):
     val_data, test_data = fetch_gmn_data(av)
-    if model_loc.startswith("node_align_node_loss"):
-      config = load_config(av)
-      model = im.Node_align_Node_loss(av,config,1).to(device)
-      test_data.data_type = "gmn"
-      val_data.data_type = "gmn"
-    elif model_loc.startswith("node_edge_early_interaction_with_consistency_and_two_sinkhorns"):
+    if model_loc.startswith("node_edge_early_interaction_with_consistency_and_two_sinkhorns"):
       config = load_config(av)
       model = im.NodeEdgeEarlyInteractionWithConsistencyAndTwoSinkhorns(av,config,1).to(device)
       test_data.data_type = "gmn"
@@ -227,19 +182,9 @@ def get_result(av,model_loc,state_dict):
       model = im.NodeEdgeEarlyInteractionWithConsistency(av,config,1).to(device)
       test_data.data_type = "gmn"
       val_data.data_type = "gmn"
-    elif model_loc.startswith("edge_early_interaction"):
-      config = load_config(av)
-      model = im.EdgeEarlyInteraction(av,config,1).to(device)
-      test_data.data_type = "gmn"
-      val_data.data_type = "gmn"
     elif model_loc.startswith("node_early_interaction_interpretability"):
       config = load_config(av)
       model = im.NodeEarlyInteractionInterpretability(av,config,1).to(device)
-      test_data.data_type = "gmn"
-      val_data.data_type = "gmn"
-    elif model_loc.startswith("isonet"):
-      config = load_config(av)
-      model = im.ISONET(av,config,1).to(device)
       test_data.data_type = "gmn"
       val_data.data_type = "gmn"
     elif model_loc.startswith("node_early_interaction"):
@@ -251,18 +196,10 @@ def get_result(av,model_loc,state_dict):
       print("ALERT!! CHECK FOR ERROR")  
     model.eval()
     model.load_state_dict(state_dict)
-    model.load_state_dict(state_dict)
-    val_result = evaluate_embeddings_similarity_map_mrr_mndcg(av,model,val_data)
-    test_result = evaluate_embeddings_similarity_map_mrr_mndcg(av,model,test_data)
-
-    return val_result, test_result
+    evaluate_improvement(av,model,test_data)
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--model_dir", type=str)
-ap.add_argument("--save_loc", type=str)
-# ap.add_argument("--seeds", type=int, nargs='+')
-# ap.add_argument("--datasets", type=str, nargs='+')
-# ap.add_argument("--tasks", type=str, nargs='+')
 ad = ap.parse_args()
 
 av = Namespace(   want_cuda                    = True,
@@ -278,7 +215,7 @@ av = Namespace(   want_cuda                    = True,
                   MIN_CORPUS_SUBGRAPH_SIZE   = 11,
                   MAX_CORPUS_SUBGRAPH_SIZE   = 15,
                   DIR_PATH                   =".",
-                  DATASET_NAME               = "ptc_fr",
+                  DATASET_NAME               = "",
                   RUN_TILL_ES                = True,
                   ES                         = 50,
                   transform_dim              = 16,
@@ -310,48 +247,14 @@ av = Namespace(   want_cuda                    = True,
               )
 
 
-task_dict = {} 
-
-task_dict['node_edge_early_interaction_with_consistency'] = "Node + Edge Early Interaction + Consistency"
-task_dict['edge_early_interaction'] = "Edge Early Interaction"
-# task_dict['node_early_interaction_interpretability'] = "Early Interpretability"
-task_dict['node_early_interaction'] = "Node Early Interaction"
-task_dict['node_align_node_loss'] = "Node Align Node Loss"
-task_dict['isonet'] = "ISONET"
-datasets = ["aids", "mutag", "ptc_fr", "ptc_fm", "ptc_mr", "ptc_mm"]
-# datasets = ["aids", "mutag", "ptc_fr", "ptc_fm", "ptc_mm"]
 test_model_dir = ad.model_dir
-
-scores = {}
 for model_loc in os.listdir(test_model_dir):
-    found = False
-    model = None
-    for task in task_dict.keys():
-       if model_loc.startswith(task):
-          model = task
-          break
-    if model is None:
-       continue
-    seed = int(model_loc.split("_")[-3])
-    print(f"{model} ({seed}) - {model_loc}")
-    if model not in scores.keys():
-       scores[model] = {}
     saved = torch.load(os.path.join(test_model_dir, model_loc))
+    device = "cuda" if av.has_cuda and av.want_cuda else "cpu"
     av = saved['av']
     av.test_size = 25
     av.prop_separate_params = False
     av.want_cuda = True
-    device = "cuda" if av.has_cuda and av.want_cuda else "cpu"
+    av.model_loc = model_loc
     model_state_dict = saved['model_state_dict']
-    dataset = av.DATASET_NAME
-    if dataset not in scores[model].keys():
-       scores[model][dataset] = {}
-    print("dataset", dataset)
-    t = get_result(av,model_loc,model_state_dict)
-    scores[model][dataset][seed] = t[1][1]
-    print("val", t[0][1])
-    print("test", t[1][1])
-    # print(scores[model][dataset][seed])
-    pickle.dump(scores, open(f'{ad.save_loc}.pkl', 'wb'))
-
-print(scores)
+    get_result(av,model_loc,model_state_dict)
