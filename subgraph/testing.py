@@ -3,7 +3,8 @@ import torch
 import pickle
 import argparse
 import numpy as np
-import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 from subgraph.utils import cudavar
 from subgraph import iso_matching_models as im
 from GMN.configure import get_default_config
@@ -117,6 +118,103 @@ def evaluate_embeddings_similarity_map_mrr_mndcg(av,model,sampler):
       all_hits_20.append(hits_20)
   return ap_score, np.mean(all_ap), np.std(all_ap), rr, np.mean(all_rr), np.std(all_rr), ndcg, np.mean(all_ndcg), np.std(all_ndcg), all_ap, all_rr, np.mean(all_hits_20)
 
+def evaluate_improvement(av,model,sampler,lambd=1):
+  import networkx as nx
+  import networkx.algorithms.isomorphism as iso
+  
+  model.eval()
+
+  d_pos = sampler.list_pos
+  d_neg = sampler.list_neg
+  q_graphs = list(range(len(sampler.query_graphs)))   
+
+  norms_tot = []
+
+  for q_id in q_graphs:
+    dpos = list(filter(lambda x:x[0][0]==q_id,d_pos))
+    dneg = list(filter(lambda x:x[0][0]==q_id,d_neg))
+    npos = len(dpos)
+    nneg = len(dneg)
+    d = dpos+dneg
+
+    if npos>0 and nneg>0:
+
+      n_batches = sampler.create_batches(d) 
+      norms = []
+
+      for i in range(n_batches): 
+
+        batch_data,batch_data_sizes,_,batch_adj = sampler.fetch_batched_data_by_id(i)
+        batch_data_sizes_flat = [item for sublist in batch_data_sizes for item in sublist]
+        bef = 0
+        af = batch_data_sizes_flat[0]
+        
+        transport_plans = model(batch_data,batch_data_sizes,batch_adj).data
+
+        for j in range(0, transport_plans.shape[0]):
+
+          Query = nx.Graph()
+
+          index = np.logical_and(batch_data.from_idx >= bef, batch_data.from_idx < af)
+          query_from = batch_data.from_idx[index]
+
+          index = np.logical_and(batch_data.to_idx >= bef, batch_data.to_idx < af)
+          query_to = batch_data.to_idx[index]
+
+          query_edges = [(query_from[k] - bef, query_to[k] - bef) for k in range(len(query_from))]
+          Query.add_edges_from(query_edges)
+          
+
+          bef += batch_data_sizes_flat[j*2]
+          af += batch_data_sizes_flat[j*2+1]
+
+          
+          Corpus = nx.Graph()
+
+          corpus_from = batch_data.from_idx[np.logical_and(batch_data.from_idx >= bef, batch_data.from_idx < af)]
+          corpus_to = batch_data.to_idx[np.logical_and(batch_data.to_idx >= bef, batch_data.to_idx < af)]
+          
+          corpus_edges = [(corpus_from[k] - bef, corpus_to[k] - bef) for k in range(len(corpus_from))]
+          Corpus.add_edges_from(corpus_edges)
+          
+          
+          bef += batch_data_sizes_flat[j*2 + 1]
+          if j*2 + 2 < len(batch_data_sizes_flat):
+            af += batch_data_sizes_flat[j*2+2]
+
+
+          norm = 0
+          GM = iso.GraphMatcher(Corpus,Query)
+
+          norms_per = []
+          for k in range(0, transport_plans.shape[1]):
+            for mapping in GM.subgraph_isomorphisms_iter():
+              p_hat = torch.zeros(batch_data_sizes_flat[j*2], batch_data_sizes_flat[j*2+1]).to(transport_plans.device)
+              for key in mapping.keys():
+                p_hat[mapping[key]][key] = 1
+              norm = max(norm, torch.sum(transport_plans[j][k][:batch_data_sizes_flat[j*2], :batch_data_sizes_flat[j*2+1]] * p_hat))
+            norms_per.append(norm)
+          norms.append(norms_per)
+      norms_tot.extend(norms[:npos])
+  values_np = np.array([[y.cpu() for y in x] for x in norms_tot])
+
+  color_aray = ['skyblue', 'salmon', 'peach']
+  for time in range(values_np.shape[1]):
+    pickle.dump(values_np[:,time], open(f'lambda_{lambd}_time_{time}_edge_delete', 'wb'))
+    sns.histplot(values_np[:,time], bins=40, kde=True, label=f'time = {time}', palette='pastel')
+
+  # Adding labels and title
+  plt.xlabel('NORM(P * P_hat)')
+  plt.ylabel('Frequency')
+  plt.title(f'Histogram : PTC_FM')
+  
+  # Show legend
+  plt.legend()
+  plt.grid(True)
+  plt.savefig(f'ptc_fm.png')
+  
+  return norms_tot
+
 def fetch_gmn_data(av):
     data_mode = "test" if av.test_size==25 else "Extra_test_300"
     test_data = im.OurMatchingModelSubgraphIsoData(av,mode=data_mode)
@@ -146,9 +244,9 @@ def get_result(av,model_loc,state_dict):
       print("ALERT!! CHECK FOR ERROR")  
     model.eval()
     model.load_state_dict(state_dict)
-    model.load_state_dict(state_dict)
-    val_result = evaluate_embeddings_similarity_map_mrr_mndcg(av,model,val_data)
-    test_result = evaluate_embeddings_similarity_map_mrr_mndcg(av,model,test_data)
+    # val_result = evaluate_embeddings_similarity_map_mrr_mndcg(av,model,val_data)
+    # test_result = evaluate_embeddings_similarity_map_mrr_mndcg(av,model,test_data)
+    test_result = evaluate_improvement(av,model,test_data)
 
     return val_result, test_result
 
@@ -208,7 +306,8 @@ task_dict = {}
 task_dict['node_early_interaction'] = "Early Interaction"
 # task_dict['node_align_node_loss'] = "Node Align Node Loss"
 # task_dict['isonet'] = "ISONET"
-datasets = ["aids", "mutag", "ptc_fr", "ptc_fm", "ptc_mr", "ptc_mm"]
+datasets = ["ptc_mr"]
+# datasets = ["aids", "mutag", "ptc_fr", "ptc_fm", "ptc_mr", "ptc_mm"]
 test_model_dir = ad.model_dir
 
 scores = {}
