@@ -28,7 +28,7 @@ datasets=('aids')
 
 for ((idx=0; idx<${#datasets[@]}; idx++)); do
     dataset="${datasets[$idx]}"
-    for seed in 0; do
+    for seed in 0 1 2 3 4; do
         CUDA_VISIBLE_DEVICES=$(((idx * 6 + seed) % 4)) python -m subgraph.iso_matching_models \
         --experiment_group=${experiment_group} \
         --TASK=${TASK} \

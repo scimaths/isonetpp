@@ -140,7 +140,7 @@ class GraphPropLayer(nn.Module):
                  reverse_dir_param_different=True,
                  layer_norm=False,
                  prop_type='embedding',
-                 use_early_edge=False,
+                 final_edge_encoding_dim=1,
                  name='graph-net'):
         """Constructor.
 
@@ -165,7 +165,7 @@ class GraphPropLayer(nn.Module):
 
         self._node_state_dim = node_state_dim
         self._edge_hidden_sizes = edge_hidden_sizes[:]
-        self.use_early_edge = use_early_edge
+        self.final_edge_encoding_dim = final_edge_encoding_dim
 
         # output size is node_state_dim
         self._node_hidden_sizes = node_hidden_sizes[:] + [node_state_dim]
@@ -185,10 +185,7 @@ class GraphPropLayer(nn.Module):
 
     def build_model(self):
         layer = []
-        if self.use_early_edge:
-          layer.append(nn.Linear(self._edge_hidden_sizes[0] + 30, self._edge_hidden_sizes[0]))
-        else:
-          layer.append(nn.Linear(self._edge_hidden_sizes[0] + 1, self._edge_hidden_sizes[0]))
+        layer.append(nn.Linear(self._edge_hidden_sizes[0] + self.final_edge_encoding_dim, self._edge_hidden_sizes[0]))
         for i in range(1, len(self._edge_hidden_sizes)):
             layer.append(nn.ReLU())
             layer.append(nn.Linear(self._edge_hidden_sizes[i - 1], self._edge_hidden_sizes[i]))
