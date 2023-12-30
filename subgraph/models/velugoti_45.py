@@ -64,8 +64,6 @@ class OurMatchingModelVar45_GMN_encoding_NodeAndEdgePerm_SinkhornParamBig_HingeS
         self.edge_relu1 = torch.nn.ReLU()
         self.edge_fc_transform2 = torch.nn.Linear(self.av.transform_dim, self.av.transform_dim)
 
-        self.score_aggr_ff = torch.nn.Linear(2, 1)
-
 
     def get_graph(self, batch):
         graph = batch
@@ -192,9 +190,9 @@ class OurMatchingModelVar45_GMN_encoding_NodeAndEdgePerm_SinkhornParamBig_HingeS
             elif self.align_mode == "node_align":
                 return transport_plan_node
         
-        scores_edge_align = cudavar(self.av,torch.tensor(self.av.IPLUS_LAMBDA)) * (-torch.sum(torch.maximum(stacked_qedge_emb - transport_plan_edge@stacked_cedge_emb,\
+        scores_edge_align = -torch.sum(torch.maximum(stacked_qedge_emb - transport_plan_edge@stacked_cedge_emb,\
               cudavar(self.av,torch.tensor([0]))),\
-           dim=(1,2)))
+           dim=(1,2))
 
         final_score = scores_edge_align
 
@@ -209,4 +207,5 @@ class OurMatchingModelVar45_GMN_encoding_NodeAndEdgePerm_SinkhornParamBig_HingeS
         consistency_loss3 = torch.abs(transport_plan_edge - consistency_loss3)
         consistency_loss3 = torch.sum(consistency_loss3, dim=(1,2))
 
-        return (final_score, consistency_loss2, consistency_loss3)
+        return final_score
+        # return (final_score, consistency_loss2, consistency_loss3)
