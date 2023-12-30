@@ -162,6 +162,132 @@ def evaluate_improvement(av,model,sampler,lambd=1):
   
   return norms_tot
 
+def fetch_edge_counts(to_idx,from_idx,graph_idx,num_graphs):
+        #HACK - since I'm not storing edge sizes of each graph (only storing node sizes)
+        #and no. of nodes is not equal to no. of edges
+        #so a hack to obtain no of edges in each graph from available info
+        from GMN.segment import unsorted_segment_sum
+        tt = unsorted_segment_sum(torch.ones(len(to_idx)), to_idx, len(graph_idx))
+        tt1 = unsorted_segment_sum(torch.ones(len(from_idx)), from_idx, len(graph_idx))
+        edge_counts = unsorted_segment_sum(tt, graph_idx, num_graphs)
+        edge_counts1 = unsorted_segment_sum(tt1, graph_idx, num_graphs)
+        assert(edge_counts == edge_counts1).all()
+        assert(sum(edge_counts)== len(to_idx))
+        return list(map(int,edge_counts.tolist()))
+
+def get_graph( batch):
+        graph = batch
+        from_idx = torch.from_numpy(graph.from_idx).long()
+        to_idx = torch.from_numpy(graph.to_idx).long()
+        graph_idx = torch.from_numpy(graph.graph_idx).long()
+        return from_idx, to_idx, graph_idx
+
+def evaluate_improvement_edges(av,model,sampler,lambd=1):
+  import networkx as nx
+  import networkx.algorithms.isomorphism as iso
+  
+  model.eval()
+
+  d_pos = sampler.list_pos
+  d_neg = sampler.list_neg
+  q_graphs = list(range(len(sampler.query_graphs)))   
+
+  norms_tot = []
+
+  for q_id in q_graphs:
+    dpos = list(filter(lambda x:x[0][0]==q_id,d_pos))
+    dneg = list(filter(lambda x:x[0][0]==q_id,d_neg))
+    npos = len(dpos)
+    nneg = len(dneg)
+    d = dpos+dneg
+
+    if npos>0 and nneg>0:
+
+      n_batches = sampler.create_batches(d) 
+      norms = []
+
+      for i in range(n_batches): 
+
+        batch_data,batch_data_sizes,_,batch_adj = sampler.fetch_batched_data_by_id(i)
+        _, _, from_idx, to_idx, graph_idx = get_graph(batch_data)
+
+        edge_counts  = fetch_edge_counts(to_idx,from_idx,graph_idx,2*len(batch_data_sizes))
+        batch_data_sizes_flat = [item for sublist in batch_data_sizes for item in sublist]
+        bef = 0
+        af = batch_data_sizes_flat[0]
+        
+        transport_plans = model(batch_data,batch_data_sizes,batch_adj).data
+
+        for j in range(0, transport_plans.shape[0]):
+
+          Query = nx.Graph()
+
+          index = np.logical_and(batch_data.from_idx >= bef, batch_data.from_idx < af)
+          query_from = batch_data.from_idx[index]
+
+          index = np.logical_and(batch_data.to_idx >= bef, batch_data.to_idx < af)
+          query_to = batch_data.to_idx[index]
+
+          query_edges = [(query_from[k] - bef, query_to[k] - bef) for k in range(len(query_from))]
+          Query.add_edges_from(query_edges)
+          
+
+          bef += batch_data_sizes_flat[j*2]
+          af += batch_data_sizes_flat[j*2+1]
+
+          
+          Corpus = nx.Graph()
+
+          corpus_from = batch_data.from_idx[np.logical_and(batch_data.from_idx >= bef, batch_data.from_idx < af)]
+          corpus_to = batch_data.to_idx[np.logical_and(batch_data.to_idx >= bef, batch_data.to_idx < af)]
+          
+          corpus_edges = [(corpus_from[k] - bef, corpus_to[k] - bef) for k in range(len(corpus_from))]
+          Corpus.add_edges_from(corpus_edges)
+          
+          
+          bef += batch_data_sizes_flat[j*2 + 1]
+          if j*2 + 2 < len(batch_data_sizes_flat):
+            af += batch_data_sizes_flat[j*2+2]
+
+          edges_query = [(query_from[idx], query_to[idx]) for idx in range(len(query_from))]
+          edges_corpus = [(corpus_from[idx], corpus_to[idx]) for idx in range(len(corpus_from))]
+          edges_corpus_to_idx = {edges_corpus[idx]: idx for idx in range(len(edges_corpus))}
+
+          norm = 0
+          GM = iso.GraphMatcher(Corpus,Query)
+
+          norms_per = []
+          for k in range(0, transport_plans.shape[1]):
+            for mapping in GM.subgraph_isomorphisms_iter():
+              reverse_mapping = {mapping[key]: key for key in mapping}
+              s_hat = torch.zeros(edge_counts[j*2], edge_counts[j*2+1]).to(transport_plans.device)
+              for edge_idx in range(len(edges_query)):
+                corpus_edge = (reverse_mapping[edges_query[edge_idx][0]], reverse_mapping[edges_query[edge_idx][1]])
+                if corpus_edge in edges_corpus_to_idx:
+                  s_hat[edge_idx][edges_corpus_to_idx[corpus_edge]] = 1
+              norm = max(norm, torch.sum(transport_plans[j][k][:edge_counts[j*2], :edge_counts[j*2+1]] * s_hat))
+            norms_per.append(norm)
+          norms.append(norms_per)
+      norms_tot.extend(norms[:npos])
+  values_np = np.array([[y.cpu() for y in x] for x in norms_tot])
+
+  for time in range(values_np.shape[1]):
+    pickle.dump(values_np[:,time], open(f'histogram_dumps/model_{av.model_loc}_time_{time}', 'wb'))
+    sns.histplot(values_np[:,time], bins=40, kde=True, label=f'time = {time}', palette='pastel')
+
+  # Adding labels and title
+  plt.xlabel('NORM(P * P_hat)')
+  plt.ylabel('Frequency')
+  plt.title(f'Histogram : {av.model_loc}')
+  
+  # Show legend
+  plt.legend()
+  plt.grid(True)
+  plt.savefig(f'histogram_plots/{av.model_loc}.png')
+  plt.clf()
+  
+  return norms_tot
+
 def fetch_gmn_data(av):
     data_mode = "test" if av.test_size==25 else "Extra_test_300"
     test_data = im.OurMatchingModelSubgraphIsoData(av,mode=data_mode)
