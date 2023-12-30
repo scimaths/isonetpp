@@ -209,7 +209,7 @@ def evaluate_improvement_edges(av,model,sampler,lambd=1):
       for i in range(n_batches): 
 
         batch_data,batch_data_sizes,_,batch_adj = sampler.fetch_batched_data_by_id(i)
-        _, _, from_idx, to_idx, graph_idx = get_graph(batch_data)
+        from_idx, to_idx, graph_idx = get_graph(batch_data)
 
         edge_counts  = fetch_edge_counts(to_idx,from_idx,graph_idx,2*len(batch_data_sizes))
         batch_data_sizes_flat = [item for sublist in batch_data_sizes for item in sublist]
@@ -249,9 +249,7 @@ def evaluate_improvement_edges(av,model,sampler,lambd=1):
           if j*2 + 2 < len(batch_data_sizes_flat):
             af += batch_data_sizes_flat[j*2+2]
 
-          edges_query = [(query_from[idx], query_to[idx]) for idx in range(len(query_from))]
-          edges_corpus = [(corpus_from[idx], corpus_to[idx]) for idx in range(len(corpus_from))]
-          edges_corpus_to_idx = {edges_corpus[idx]: idx for idx in range(len(edges_corpus))}
+          edges_corpus_to_idx = {corpus_edges[idx]: idx for idx in range(len(corpus_edges))}
 
           norm = 0
           GM = iso.GraphMatcher(Corpus,Query)
@@ -261,10 +259,13 @@ def evaluate_improvement_edges(av,model,sampler,lambd=1):
             for mapping in GM.subgraph_isomorphisms_iter():
               reverse_mapping = {mapping[key]: key for key in mapping}
               s_hat = torch.zeros(edge_counts[j*2], edge_counts[j*2+1]).to(transport_plans.device)
-              for edge_idx in range(len(edges_query)):
-                corpus_edge = (reverse_mapping[edges_query[edge_idx][0]], reverse_mapping[edges_query[edge_idx][1]])
-                if corpus_edge in edges_corpus_to_idx:
-                  s_hat[edge_idx][edges_corpus_to_idx[corpus_edge]] = 1
+              for edge_idx in range(len(query_edges)):
+                corpus_edge_1 = (reverse_mapping[query_edges[edge_idx][0]], reverse_mapping[query_edges[edge_idx][1]])
+                corpus_edge_2 = (reverse_mapping[query_edges[edge_idx][1]], reverse_mapping[query_edges[edge_idx][0]])
+                if corpus_edge_1 in edges_corpus_to_idx:
+                  s_hat[edge_idx][edges_corpus_to_idx[corpus_edge_1]] = 1
+                if corpus_edge_2 in edges_corpus_to_idx:
+                  s_hat[edge_idx][edges_corpus_to_idx[corpus_edge_2]] = 1
               norm = max(norm, torch.sum(transport_plans[j][k][:edge_counts[j*2], :edge_counts[j*2+1]] * s_hat))
             norms_per.append(norm)
           norms.append(norms_per)
@@ -318,11 +319,16 @@ def get_result(av,model_loc,state_dict):
       model = im.NodeEarlyInteraction(av,config,1).to(device)
       test_data.data_type = "gmn"
       val_data.data_type = "gmn"
+    elif model_loc.startswith("edge_early_interaction"):
+      config = load_config(av)
+      model = im.EdgeEarlyInteraction(av,config,1).to(device)
+      test_data.data_type = "gmn"
+      val_data.data_type = "gmn"
     else:
       print("ALERT!! CHECK FOR ERROR")  
     model.eval()
     model.load_state_dict(state_dict)
-    evaluate_improvement(av,model,test_data)
+    evaluate_improvement_edges(av,model,test_data)
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--model_dir", type=str)
