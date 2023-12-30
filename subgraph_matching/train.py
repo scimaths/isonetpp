@@ -2,16 +2,19 @@ import os
 import time
 import torch
 from utils.parser import Parser
+import utils.early_stopping as es
 from utils.experiment import Experiment
 from utils.tooling import seed_everything
-import utils.early_stopping as es
-from subgraph_matching.model_handler import get_model
+from utils.eval import pairwise_ranking_loss
+from subgraph_matching.test import evaluate_model
+from subgraph_matching.dataset import get_datasets
+from subgraph_matching.model_handler import get_model, get_data_type_for_model
 
 torch.backends.cuda.matmul.allow_tf32 = False
 torch.backends.cudnn.allow_tf32 = False
 
 def train_model(
-    model: torch.nn.Module, datasets, experiment: Experiment, early_stopping: EarlyStopping,
+    model: torch.nn.Module, datasets, experiment: Experiment, early_stopping: es.EarlyStopping,
     max_epochs, margin, weight_decay, learning_rate, device
 ):
     model.to(device)
@@ -80,6 +83,11 @@ if __name__ == "__main__":
     early_stopping = es.EarlyStopping(**early_stopping_config)
     
     model = get_model(model_name=args.model, config=args.model_config_path)
+
+    dataset_config = parser.get_dataset_config()
+    data_type = get_data_type_for_model(args.model)
+    datasets = get_datasets(dataset_config, experiment, data_type)
+
     trained_model = train_model(
         model,
         datasets,

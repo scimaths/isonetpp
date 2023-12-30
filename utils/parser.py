@@ -21,11 +21,8 @@ class Parser:
 
         dataset_group = self.parser.add_argument_group("dataset")
         dataset_group.add_argument("--dataset_name", type=str, choices=["aids", "mutag", "ptc_fm", "ptc_fr", "ptc_mm", "ptc_mr"], help="Name of dataset for experiment")
-        dataset_group.add_argument("--dataset_type", type=str, choices=["small", "large"], default="small", help="Size of dataset for experiment - small v/s large")
-        dataset_group.add_argument("--feat_type", type=str, 
-            choices=["One", "Onehot", "Onehot1", "Adjrow", "Adjrow1", "AdjOnehot"], 
-            default="One", help="Size of dataset for experiment - small v/s large"
-        )
+        dataset_group.add_argument("--dataset_size", type=str, choices=["small", "large"], default="small", help="Size of dataset for experiment - small v/s large")
+        dataset_group.add_argument("--dataset_path", type=str, default=".", help="Relative path where datasets are stored")
 
         optimization_group = self.parser.add_argument_group("optimization")
         optimization_group.add_argument("--margin", type=float, default="0.5", help="Margin for hinging paired loss")
@@ -46,14 +43,13 @@ class Parser:
             model = self.args.model,
             home_dir = self.args.experiment_dir,
             dataset = f"{self.args.dataset_name}_{self.args.dataset_size}",
-            seed = self.args.seed
+            seed = self.args.seed,
         )
 
     def get_optimization_config(self):
         return ReadOnlyConfig(
             margin = self.args.margin,
             max_epochs = self.args.max_epochs,
-            batch_size = self.args.batch_size,
             learning_rate = self.args.learning_rate,
             weight_decay = self.args.weight_decay,
         )
@@ -61,11 +57,13 @@ class Parser:
     def get_early_stopping_config(self):
         return ReadOnlyConfig(
             patience = self.args.patience,
-            tolerance = self.args.tolerance
+            tolerance = self.args.tolerance,
         )
 
     def get_dataset_config(self):
         return ReadOnlyConfig(
             dataset_name = self.args.dataset_name,
-            dataset_type = self.args.dataset_type
+            dataset_size = self.args.dataset_size,
+            dataset_base_path = self.args.dataset_path,
+            batch_size = self.args.batch_size,
         )
