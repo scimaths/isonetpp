@@ -12,7 +12,7 @@ from subgraph.utils import save_initial_model
 torch.backends.cuda.matmul.allow_tf32 = False
 torch.backends.cudnn.allow_tf32 = False
 
-from subgraph.earlystopping import EarlyStoppingModule
+from utils.earlystopping import EarlyStoppingModule
 from subgraph.dataset import OurMatchingModelSubgraphIsoData
 
 # Import models

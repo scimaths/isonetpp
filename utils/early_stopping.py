@@ -12,7 +12,7 @@ class EarlyStopping:
     def diff(self, current_scores):
         return sum([current_score - best_score for current_score, best_score in zip(current_scores, self.best_scores)])
     
-    def check(self, current_scores, epoch):
+    def check(self, current_scores):
         verdict = None
         if self.best_scores is None:
             self.best_scores = current_scores

@@ -7,7 +7,7 @@ import pandas as pd
 from subgraph.utils import cudavar
 from subgraph import iso_matching_models as im
 from GMN.configure import get_default_config
-from subgraph.earlystopping import EarlyStoppingModule
+from utils.earlystopping import EarlyStoppingModule
 from sklearn.metrics import average_precision_score, ndcg_score
 
 class Namespace:
