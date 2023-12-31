@@ -28,6 +28,7 @@ from subgraph.models.node_edge_early_interaction_with_consistency import NodeEdg
 from subgraph.models.node_edge_early_interaction_with_consistency_and_two_sinkhorns import NodeEdgeEarlyInteractionWithConsistencyAndTwoSinkhorns
 from subgraph.models.adding_to_q import AddingToQ
 from subgraph.models.velugoti_39 import OurMatchingModelVar39_GMN_encoding_NodePerm_SinkhornParamBig_HingeScore_EdgePermConsistency
+from subgraph.models.velugoti_45 import OurMatchingModelVar45_GMN_encoding_NodeAndEdgePerm_SinkhornParamBig_HingeScore
 from subgraph.models.isonet import ISONET, ISONET_Sym
 from subgraph.models.gmn_match import GMN_match, GMN_match_hinge
 from subgraph.models.node_align_node_loss import Node_align_Node_loss
@@ -36,6 +37,7 @@ from subgraph.models.hungarian_node_align import Hungarian_Node_align_Node_loss
 from subgraph.models.fringed_node_align_node_loss import Fringed_node_align_Node_loss
 from subgraph.models.node_early_interaction_interpretability import NodeEarlyInteractionInterpretability
 from subgraph.models.gmn_embed import GMN_embed, GMN_embed_hinge, GMN_embed_with_ColBERT_scores, GMN_embed_with_MLP_and_ColBERT_scores, GMN_embed_maxsim_dot, GMN_embed_maxsim_dot_corrected
+from subgraph.models.node_early_interaction_with_consistency import NodeEarlyInteractionWithConsistency
 
 from subgraph.eval_utils import evaluate_embeddings_similarity, pairwise_ranking_loss_similarity
 
@@ -48,6 +50,13 @@ def train(av,config):
     logger.info("Loading model NodeAlignNodeLoss")  
     logger.info("This uses GMN encoder followed by parameterized sinkhorn with LRL and similarity computation using hinge scoring (H_q, PH_c)")  
     model = Node_align_Node_loss(av,config,1).to(device)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"
+  elif av.TASK.startswith("node_early_interaction_with_consistency"):
+    logger.info("Loading model node_early_interaction_with_consistency")
+    av.MAX_EDGES = max(max([g.number_of_edges() for g in train_data.query_graphs]),\
+                       max([g.number_of_edges() for g in train_data.corpus_graphs]))
+    model = NodeEarlyInteractionWithConsistency(av,config,1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
   elif av.TASK.startswith("node_edge_early_interaction_with_consistency_and_two_sinkhorns"):
