@@ -12,7 +12,6 @@ from subgraph.utils import save_initial_model
 os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
 torch.backends.cuda.matmul.allow_tf32 = False
 torch.backends.cudnn.allow_tf32 = False
-torch.use_deterministic_algorithms(True)
 
 from subgraph.earlystopping import EarlyStoppingModule
 from subgraph.dataset import OurMatchingModelSubgraphIsoData

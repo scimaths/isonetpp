@@ -14,7 +14,7 @@ class ISONET(torch.nn.Module):
         self.input_dim = input_dim
         self.build_masking_utility()
         self.build_layers()
-        self.diagnostic_mode = False
+        self.diagnostic_mode = True
         
     def build_masking_utility(self):
         self.max_set_size = self.av.MAX_EDGES
@@ -118,7 +118,7 @@ class ISONET(torch.nn.Module):
         transport_plan = pytorch_sinkhorn_iters(self.av,sinkhorn_input)
  
         if self.diagnostic_mode:
-            return transport_plan
+            return transport_plan.unsqueeze(1)
 
         scores = -torch.sum(torch.maximum(stacked_qedge_emb - transport_plan@stacked_cedge_emb,\
               cudavar(self.av,torch.tensor([0]))),\

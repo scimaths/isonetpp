@@ -12,7 +12,7 @@ class NodeEarlyInteraction(torch.nn.Module):
         self.input_dim = input_dim
         self.build_masking_utility()
         self.build_layers()
-        self.diagnostic_mode = False
+        self.diagnostic_mode = True
     
     def build_masking_utility(self):
         self.max_set_size = max(self.av.MAX_QUERY_SUBGRAPH_SIZE,self.av.MAX_CORPUS_SUBGRAPH_SIZE)
@@ -72,6 +72,7 @@ class NodeEarlyInteraction(torch.nn.Module):
         node_presence_mask = max_set_size_arange < batch_data_sizes_flat_tensor.unsqueeze(1)
         max_set_size_arange[1:, ] += cumulative_sizes[:-1].unsqueeze(1)
         node_indices = max_set_size_arange[node_presence_mask]
+        transport_plans = []
 
         for time_idx in range(1, n_time_update_steps + 1):
             node_features_enc = torch.clone(encoded_node_features)
@@ -112,6 +113,7 @@ class NodeEarlyInteraction(torch.nn.Module):
 
             sinkhorn_input = torch.matmul(masked_qnode_final_emb, masked_cnode_final_emb.permute(0, 2, 1))
             transport_plan = pytorch_sinkhorn_iters(self.av, sinkhorn_input)
+            transport_plans.append(transport_plan)
 
             # Compute interaction
             qnode_features_from_cnodes = torch.bmm(transport_plan, stacked_cnode_store_emb)
@@ -123,7 +125,8 @@ class NodeEarlyInteraction(torch.nn.Module):
             node_feature_store[:, node_feature_dim:] = interleaved_node_features[node_indices, :]
 
         if self.diagnostic_mode:
-            return transport_plan
+            transport_plans = torch.stack(transport_plans,dim=1)
+            return transport_plans
 
         scores = -torch.sum(torch.maximum(
             stacked_qnode_final_emb - transport_plan@stacked_cnode_final_emb,
