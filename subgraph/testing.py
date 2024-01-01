@@ -217,6 +217,11 @@ def get_result(av,model_loc,state_dict):
       model = im.Node_align_Node_loss(av,config,1).to(device)
       test_data.data_type = "gmn"
       val_data.data_type = "gmn"
+    elif model_loc.startswith("node_early_interaction_with_consistency"):
+      config = load_config(av)
+      model = im.NodeEarlyInteractionWithConsistency(av,config,1).to(device)
+      test_data.data_type = "gmn"
+      val_data.data_type = "gmn"
     elif model_loc.startswith("edge_early_interaction"):
       config = load_config(av)
       model = im.EdgeEarlyInteraction(av,config,1).to(device)
