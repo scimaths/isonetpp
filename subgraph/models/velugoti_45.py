@@ -185,16 +185,11 @@ class OurMatchingModelVar45_GMN_encoding_NodeAndEdgePerm_SinkhornParamBig_HingeS
 
 
         if self.diagnostic_mode:
-            if self.align_mode == "edge_align":
-                return transport_plan_edge
-            elif self.align_mode == "node_align":
-                return transport_plan_node
-        
-        scores_edge_align = -torch.sum(torch.maximum(stacked_qedge_emb - transport_plan_edge@stacked_cedge_emb,\
+            return transport_plan_node
+
+        final_score = -torch.sum(torch.maximum(stacked_qedge_emb - transport_plan_edge@stacked_cedge_emb,\
               cudavar(self.av,torch.tensor([0]))),\
            dim=(1,2))
-
-        final_score = scores_edge_align
 
         consistency_loss2 = torch.mul((1-stacked_all_node_map_scores\
                                        -stacked_all_node_map_scores1+torch.mul(stacked_all_node_map_scores,\
@@ -207,5 +202,4 @@ class OurMatchingModelVar45_GMN_encoding_NodeAndEdgePerm_SinkhornParamBig_HingeS
         consistency_loss3 = torch.abs(transport_plan_edge - consistency_loss3)
         consistency_loss3 = torch.sum(consistency_loss3, dim=(1,2))
 
-        return final_score
-        # return (final_score, consistency_loss2, consistency_loss3)
+        return (final_score, consistency_loss2, consistency_loss3)
