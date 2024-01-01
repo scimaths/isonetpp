@@ -37,7 +37,7 @@ if [ -z "$6" ]; then
     echo Give loss_type argument
     exit
 else
-    loss_lambda=$6
+    loss_type=$6
 fi
 
 # datasets=('aids')
@@ -45,7 +45,7 @@ datasets=('aids' 'mutag' 'ptc_fr' 'ptc_fm' 'ptc_mr' 'ptc_mm')
 
 for ((idx=0; idx<${#datasets[@]}; idx++)); do
     dataset="${datasets[$idx]}"
-    CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=$((idx % 4)) python -m subgraph.iso_matching_models \
+    CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=$((idx)) python -m subgraph.iso_matching_models \
     --experiment_group=${experiment_group} \
     --TASK=${TASK} \
     --time_updates=${time_updates} \
