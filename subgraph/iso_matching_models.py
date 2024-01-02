@@ -170,10 +170,10 @@ def train(av,config):
           losses = pairwise_ranking_loss_similarity(predPos.unsqueeze(1),predNeg.unsqueeze(1), av.MARGIN)
       elif av.loss_type == 3:
           losses = pairwise_ranking_loss_similarity(predPos.unsqueeze(1),predNeg.unsqueeze(1), av.MARGIN) + \
-                    (av.loss_lambda * consistency_loss2.item())
+                    (av.loss_lambda * consistency_loss2)
       elif av.loss_type == 4:
           losses = pairwise_ranking_loss_similarity(predPos.unsqueeze(1),predNeg.unsqueeze(1), av.MARGIN) + \
-                    (av.loss_lambda * consistency_loss3.item())
+                    (av.loss_lambda * consistency_loss3)
       #losses = torch.nn.functional.mse_loss(target, prediction,reduction="sum")
       losses.backward()
       optimizer.step()

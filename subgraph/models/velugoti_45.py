@@ -75,8 +75,6 @@ class OurMatchingModelVar45_GMN_encoding_NodeAndEdgePerm_SinkhornParamBig_HingeS
         return node_features, edge_features, from_idx, to_idx, graph_idx
 
     def forward(self, batch_data,batch_data_sizes,batch_adj):
-        """
-        """
         a,b = zip(*batch_data_sizes)
         qgraph_sizes = cudavar(self.av,torch.tensor(a))
         cgraph_sizes = cudavar(self.av,torch.tensor(b))
@@ -184,13 +182,17 @@ class OurMatchingModelVar45_GMN_encoding_NodeAndEdgePerm_SinkhornParamBig_HingeS
         stacked_all_node_map_scores1 = torch.mul(stacked_from_node_map_scores1,stacked_to_node_map_scores1)
 
 
-        if self.diagnostic_mode:
-            return transport_plan_node
-
-        final_score = -torch.sum(torch.maximum(stacked_qedge_emb - transport_plan_edge@stacked_cedge_emb,\
-              cudavar(self.av,torch.tensor([0]))),\
+        #STEP5: Final score calculation
+        scores_node_align = -torch.sum(torch.maximum(stacked_qnode_emb - transport_plan_node@stacked_cnode_emb,\
+             cudavar(self.av,torch.tensor([0]))),\
            dim=(1,2))
+        scores_kronecker_edge_align = cudavar(self.av,torch.tensor(self.av.consistency_lambda)) * (-torch.sum(torch.maximum(stacked_qedge_emb - transport_plan_edge@stacked_cedge_emb,\
+cudavar(self.av,torch.tensor([0]))),dim=(1,2)))
+        final_score = scores_node_align
+        final_score += scores_kronecker_edge_align
 
+
+        #STEP6: Consistency score calculation to be used in training
         consistency_loss2 = torch.mul((1-stacked_all_node_map_scores\
                                        -stacked_all_node_map_scores1+torch.mul(stacked_all_node_map_scores,\
                                         stacked_all_node_map_scores1)), transport_plan_edge)
