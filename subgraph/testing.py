@@ -275,7 +275,7 @@ datasets = ["aids", "mutag", "ptc_fr", "ptc_fm", "ptc_mr", "ptc_mm"]
 test_model_dir = ad.model_dir
 
 scores = {}
-for model_loc in os.listdir(test_model_dir):
+for model_loc in sorted(os.listdir(test_model_dir)):
     found = False
     model = None
     for task in task_dict.keys():
