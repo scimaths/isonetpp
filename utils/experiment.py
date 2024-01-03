@@ -21,7 +21,7 @@ INITIAL_MODELS_DIR = "initial_models"
 TRAINED_MODELS_DIR = "trained_models"
 
 class Experiment:
-    def __init__(self, config: ReadOnlyConfig):
+    def __init__(self, config: ReadOnlyConfig, device):
         self.experiment_id = config.experiment_id
         self.model = config.model
         self.dataset = config.dataset
@@ -29,6 +29,7 @@ class Experiment:
         self.home_dir = config.home_dir
         time_now = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
         self.experiment_time = time_now
+        self.device = device
         
         # Setup directory structure (if required), logging
         logpath = self.get_unique_path(subdir=LOG_DIR, suffix='txt')
@@ -38,8 +39,8 @@ class Experiment:
 
         if not os.path.isdir(os.path.join(self.home_dir, self.experiment_id)):
             os.mkdir(os.path.join(self.home_dir, self.experiment_id))
-            for subdir in [LOG_DIR, INITIAL_MODELS_DIR, TRAINED_MODELS_DIR, CONFIG_DIR]:
-                os.mkdir(os.path.join(self.home_dir, self.experiment_id, subdir), exist_ok=True)
+        for subdir in [LOG_DIR, INITIAL_MODELS_DIR, TRAINED_MODELS_DIR, CONFIG_DIR]:
+            os.makedirs(os.path.join(self.home_dir, self.experiment_id, subdir), exist_ok=True)
             
         self.logger = setup_logging(logpath)
         self.logger.info(f"Experiment {self.experiment_id} for model: '{self.model}', dataset: '{self.dataset}', seed: {self.seed} started at time: {time_now}")
@@ -47,14 +48,14 @@ class Experiment:
         # Dump config
         config_path = self.get_unique_path(subdir=CONFIG_DIR, suffix='json')
         with open(config_path, 'w') as config_file:
-            config_file.write(config.as_json())
+            config_file.write(config.toJSON())
 
     def get_unique_path(self, subdir, suffix):
-        file_name = f"{self.model}_{self.dataset}_{self.seed}.{suffix}"
+        file_name = f"{self.model}_{self.dataset}_seed_{self.seed}.{suffix}"
         return os.path.join(self.home_dir, self.experiment_id, subdir, file_name)
 
-    def log(self, log_string):
-        self.logger.info(log_string)
+    def log(self, log_string, *args):
+        self.logger.info(log_string % args)
     
     def best_model_path(self):
         return self.get_unique_path(subdir=TRAINED_MODELS_DIR, suffix='pth')

@@ -70,23 +70,23 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.reproducible:
-        torch.use_deterministic_algorithms(True)
         os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
+        torch.use_deterministic_algorithms(True)
     seed_everything(args.seed)
 
     device = 'cuda' if args.use_cuda else 'cpu'
 
     experiment_config = parser.get_experiment_config()
-    experiment = Experiment(config=experiment_config)
+    experiment = Experiment(config=experiment_config, device=device)
 
     early_stopping_config = parser.get_early_stopping_config()
     early_stopping = es.EarlyStopping(**early_stopping_config)
     
-    model = get_model(model_name=args.model, config=args.model_config_path)
-
     dataset_config = parser.get_dataset_config()
     data_type = get_data_type_for_model(args.model)
     datasets = get_datasets(dataset_config, experiment, data_type)
+
+    model = get_model(model_name=args.model, config_path=args.model_config_path, max_set_size=datasets['train'].max_set_size, device=device)
 
     trained_model = train_model(
         model,

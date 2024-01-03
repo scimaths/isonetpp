@@ -9,7 +9,7 @@ class Parser:
 
         experiment_group = self.parser.add_argument_group("experiment_details")
         experiment_group.add_argument("--experiment_id", type=str, required=True, help="Label for the experiment, must be unique")
-        experiment_group.add_argument("--model", type=str, choices=get_model_names(), required=True, help="Model name, should be implemented in models/")
+        experiment_group.add_argument("--model", type=str, required=True, choices=get_model_names(), help="Model name, should be implemented in models/")
         experiment_group.add_argument("--experiment_dir", type=str, required=True, help="Home directory to save the experiment artifacts")
         experiment_group.add_argument("--use_cuda", type=bool, default=True, help="Use CUDA for this experiment?")
         experiment_group.add_argument("--reproducible", type=bool, default=True, help="Should reproducibility be ensured?")
@@ -20,8 +20,8 @@ class Parser:
         early_stopping_group.add_argument("--patience", type=int, default=50, help="Maximum number of epochs with no improvements")
 
         dataset_group = self.parser.add_argument_group("dataset")
-        dataset_group.add_argument("--dataset_name", type=str, choices=["aids", "mutag", "ptc_fm", "ptc_fr", "ptc_mm", "ptc_mr"], help="Name of dataset for experiment")
-        dataset_group.add_argument("--dataset_size", type=str, choices=["small", "large"], default="small", help="Size of dataset for experiment - small v/s large")
+        dataset_group.add_argument("--dataset_name", type=str, required=True, choices=["aids", "mutag", "ptc_fm", "ptc_fr", "ptc_mm", "ptc_mr"], help="Name of dataset for experiment")
+        dataset_group.add_argument("--dataset_size", type=str, default="small", choices=["small", "large"], help="Size of dataset for experiment - small v/s large")
         dataset_group.add_argument("--dataset_path", type=str, default=".", help="Relative path where datasets are stored")
 
         optimization_group = self.parser.add_argument_group("optimization")
@@ -32,10 +32,11 @@ class Parser:
         optimization_group.add_argument("--weight_decay", type=float, default=0.0005, help="Weight decay for training")
 
         model_group = self.parser.add_argument_group("model_group")
-        model_group.add_argument("--model_config_path", type=str)
+        model_group.add_argument("--model_config_path", type=str, required=True)
 
     def parse_args(self):
-        return self.parser.parse_args()
+        self.args = self.parser.parse_args()
+        return self.args
 
     def get_experiment_config(self):
         return ReadOnlyConfig(
