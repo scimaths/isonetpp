@@ -20,10 +20,10 @@ else
 fi
 
 if [ -z "$4" ]; then
-    echo Give time_updates argument
+    echo Give consistency_lambda argument
     exit
 else
-    time_updates=$4
+    consistency_lambda=$4
 fi
 
 if [ -z "$5" ]; then
@@ -48,7 +48,6 @@ for ((idx=0; idx<${#datasets[@]}; idx++)); do
     CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=$((idx)) python -m subgraph.iso_matching_models \
     --experiment_group=${experiment_group} \
     --TASK=${TASK} \
-    --time_updates=${time_updates} \
     --NOISE_FACTOR=0 \
     --MARGIN=0.5 \
     --filters_1=10 \
@@ -57,6 +56,7 @@ for ((idx=0; idx<${#datasets[@]}; idx++)); do
     --transform_dim=16 \
     --FEAT_TYPE="One" \
     --DATASET_NAME=${dataset} \
+    --consistency_lambda=${consistency_lambda} \
     --loss_lambda=${loss_lambda} \
     --output_type=2 \
     --loss_type=${loss_type} \
