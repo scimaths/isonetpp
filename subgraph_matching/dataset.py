@@ -29,7 +29,7 @@ class SubgraphIsomorphismDataset:
         self.mode = mode
         self.dataset_name = dataset_name
         self.dataset_size = dataset_size
-        self.max_set_size = {"small": 15, "large": 20}[dataset_size]
+        self.max_node_set_size = {"small": 15, "large": 20}[dataset_size]
         self.batch_size = batch_size
         self.data_type = data_type
         self.dataset_base_path = dataset_base_path
@@ -39,6 +39,11 @@ class SubgraphIsomorphismDataset:
         self.load_graphs(experiment=experiment)
         self.preprocess_subgraphs_to_pyG_data()
         self.build_adjacency_info()
+
+        self.max_edge_set_size = max(
+            max([graph.number_of_edges() for graph in self.query_graphs]),
+            max([graph.number_of_edges() for graph in self.corpus_graphs])
+        )
 
     def load_graphs(self, experiment):
         dataset_accessor = lambda file_name: os.path.join(
@@ -100,7 +105,7 @@ class SubgraphIsomorphismDataset:
                 unpadded_adj = torch.tensor(nx.adjacency_matrix(graph).todense(), dtype=torch.float, device=self.device)
                 assert unpadded_adj.shape[0] == unpadded_adj.shape[1]
                 num_nodes = len(unpadded_adj)
-                padded_adj = F.pad(unpadded_adj, pad = (0, self.max_set_size - num_nodes, 0, self.max_set_size - num_nodes))
+                padded_adj = F.pad(unpadded_adj, pad = (0, self.max_node_set_size - num_nodes, 0, self.max_node_set_size - num_nodes))
                 adj_list.append(padded_adj)
             return adj_list
 
@@ -137,24 +142,23 @@ class SubgraphIsomorphismDataset:
 
     def create_stratified_batches(self):
         self.batch_setting = 'stratified'
-        pos_pairs, neg_pairs = copy.deepcopy(self.pos_pairs), copy.deepcopy(self.neg_pairs)
-        random.shuffle(pos_pairs), random.shuffle(neg_pairs)
-        pos_to_neg_ratio = len(pos_pairs) / len(neg_pairs)
+        random.shuffle(self.pos_pairs), random.shuffle(self.neg_pairs)
+        pos_to_neg_ratio = len(self.pos_pairs) / len(self.neg_pairs)
 
         num_pos_per_batch = math.ceil(pos_to_neg_ratio/(1 + pos_to_neg_ratio) * self.batch_size)
         num_neg_per_batch = self.batch_size - num_pos_per_batch
 
         batches_pos, batches_neg = [], []
         labels_pos, labels_neg = [], []
-        for idx in range(0, len(pos_pairs), num_pos_per_batch):
-            elements_remaining = len(pos_pairs) - idx
+        for idx in range(0, len(self.pos_pairs), num_pos_per_batch):
+            elements_remaining = len(self.pos_pairs) - idx
             elements_chosen = min(num_pos_per_batch, elements_remaining)
-            batches_pos.append(pos_pairs[idx : idx + elements_chosen])
+            batches_pos.append(self.pos_pairs[idx : idx + elements_chosen])
             labels_pos.append([1.0] * elements_chosen)
-        for idx in range(0, len(neg_pairs), num_neg_per_batch):
-            elements_remaining = len(neg_pairs) - idx
+        for idx in range(0, len(self.neg_pairs), num_neg_per_batch):
+            elements_remaining = len(self.neg_pairs) - idx
             elements_chosen = min(num_neg_per_batch, elements_remaining)
-            batches_neg.append(neg_pairs[idx : idx + elements_chosen])
+            batches_neg.append(self.neg_pairs[idx : idx + elements_chosen])
             labels_neg.append([0.0] * elements_chosen)
 
         self.num_batches = min(len(batches_pos), len(batches_neg))

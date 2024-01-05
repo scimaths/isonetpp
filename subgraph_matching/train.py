@@ -86,7 +86,13 @@ if __name__ == "__main__":
     data_type = get_data_type_for_model(args.model)
     datasets = get_datasets(dataset_config, experiment, data_type)
 
-    model = get_model(model_name=args.model, config_path=args.model_config_path, max_set_size=datasets['train'].max_set_size, device=device)
+    model = get_model(
+        model_name=args.model,
+        config_path=args.model_config_path,
+        max_node_set_size=datasets['train'].max_node_set_size,
+        max_edge_set_size=datasets['train'].max_edge_set_size,
+        device=device
+    )
 
     trained_model = train_model(
         model,

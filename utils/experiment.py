@@ -44,6 +44,7 @@ class Experiment:
             
         self.logger = setup_logging(logpath)
         self.logger.info(f"Experiment {self.experiment_id} for model: '{self.model}', dataset: '{self.dataset}', seed: {self.seed} started at time: {time_now}")
+        self.logger.info("\n".join([sys.argv[0]] + [f"{sys.argv[idx]} {sys.argv[idx+1]}" for idx in range(1, len(sys.argv), 2)]))
 
         # Dump config
         config_path = self.get_unique_path(subdir=CONFIG_DIR, suffix='json')
@@ -51,7 +52,7 @@ class Experiment:
             config_file.write(config.toJSON())
 
     def get_unique_path(self, subdir, suffix):
-        file_name = f"{self.model}_{self.dataset}_seed_{self.seed}.{suffix}"
+        file_name = f"{self.model}_{self.dataset}_dataset_seed_{self.seed}_{self.experiment_time}.{suffix}"
         return os.path.join(self.home_dir, self.experiment_id, subdir, file_name)
 
     def log(self, log_string, *args):

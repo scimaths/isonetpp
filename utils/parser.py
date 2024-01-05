@@ -25,8 +25,8 @@ class Parser:
         dataset_group.add_argument("--dataset_path", type=str, default=".", help="Relative path where datasets are stored")
 
         optimization_group = self.parser.add_argument_group("optimization")
-        optimization_group.add_argument("--margin", type=float, default="0.5", help="Margin for hinging paired loss")
-        optimization_group.add_argument("--max_epochs", type=int, default="1000", help="Maximum number of epochs to stop training at")
+        optimization_group.add_argument("--margin", type=float, default=0.5, help="Margin for hinging paired loss")
+        optimization_group.add_argument("--max_epochs", type=int, default=1000, help="Maximum number of epochs to stop training at")
         optimization_group.add_argument("--batch_size", type=int, default=128, help="Batch size for training")
         optimization_group.add_argument("--learning_rate", type=float, default=0.001, help="Learning rate for training")
         optimization_group.add_argument("--weight_decay", type=float, default=0.0005, help="Weight decay for training")

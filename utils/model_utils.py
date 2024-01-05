@@ -1,4 +1,5 @@
 import torch
+from GMN.segment import unsorted_segment_sum
 import torch.nn.functional as F
 
 def get_graph_features(graphs):
@@ -46,3 +47,26 @@ def feature_alignment_score(query_features, corpus_features, transport_plan):
         query_features - transport_plan @ corpus_features,
         torch.tensor([0], device=query_features.device)
     ).sum(dim=(1, 2))
+
+def get_paired_edge_counts(from_idx, to_idx, graph_idx, num_graphs):
+    edges_per_src_node = unsorted_segment_sum(torch.ones_like(from_idx, dtype=torch.float), from_idx, len(graph_idx))
+    edges_per_graph_from = unsorted_segment_sum(edges_per_src_node, graph_idx, num_graphs)
+
+    edges_per_dest_node = unsorted_segment_sum(torch.ones_like(to_idx, dtype=torch.float), to_idx, len(graph_idx))
+    edges_per_graph_to = unsorted_segment_sum(edges_per_dest_node, graph_idx, num_graphs)
+
+    assert (edges_per_graph_from == edges_per_graph_to).all()
+
+    return edges_per_graph_to.reshape(-1, 2).int().tolist()
+
+def propagation_messages(propagation_layer, node_features, edge_features, from_idx, to_idx):
+    edge_src_features = node_features[from_idx]
+    edge_dest_features = node_features[to_idx]
+
+    forward_edge_msg = propagation_layer._message_net(torch.cat([
+        edge_src_features, edge_dest_features, edge_features
+    ], dim=-1))
+    backward_edge_msg = propagation_layer._reverse_message_net(torch.cat([
+        edge_dest_features, edge_src_features, edge_features
+    ], dim=-1))
+    return forward_edge_msg + backward_edge_msg

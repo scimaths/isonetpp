@@ -2,22 +2,25 @@ from utils.tooling import read_config
 import subgraph_matching.dataset as dataset
 
 from subgraph_matching.models.node_align_node_loss import NodeAlignNodeLoss
+from subgraph_matching.models.isonet import ISONET
 
 model_name_to_class_mappings = {
     'node_align_node_loss': NodeAlignNodeLoss,
+    'isonet': ISONET,
 }
 
 def get_model_names():
     return list(model_name_to_class_mappings.keys())
 
-def get_model(model_name, config_path, max_set_size, device):
+def get_model(model_name, config_path, max_node_set_size, max_edge_set_size, device):
     assert model_name in get_model_names(), f"Model {model_name} not defined; choose one from {', '.join(get_model_names())}"
 
     config = read_config(config_path)
     assert config.name == model_name, f"Model names in args and config differ - {model_name} v/s {config.name}"
 
     return model_name_to_class_mappings[model_name](
-        max_set_size=max_set_size,
+        max_node_set_size=max_node_set_size,
+        max_edge_set_size=max_edge_set_size,
         device=device,
         **config.model_config
     )
