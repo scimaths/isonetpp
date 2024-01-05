@@ -2,11 +2,15 @@ from utils.tooling import read_config
 import subgraph_matching.dataset as dataset
 
 from subgraph_matching.models.node_align_node_loss import NodeAlignNodeLoss
+from subgraph_matching.models.nanl_consistency import NodeAlignNodeLossConsistency
 from subgraph_matching.models.isonet import ISONET
+from subgraph_matching.models.node_early_interaction import NodeEarlyInteraction
 
 model_name_to_class_mappings = {
     'node_align_node_loss': NodeAlignNodeLoss,
+    'nanl_consistency': NodeAlignNodeLossConsistency,
     'isonet': ISONET,
+    'node_early_interaction': NodeEarlyInteraction
 }
 
 def get_model_names():

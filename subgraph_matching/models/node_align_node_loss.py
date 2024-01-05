@@ -46,7 +46,9 @@ class NodeAlignNodeLoss(torch.nn.Module):
         for _ in range(self.propagation_steps) :
             node_features_enc = self.prop_layer(node_features_enc, from_idx, to_idx, edge_features_enc)
         
-        stacked_features_query, stacked_features_corpus = model_utils.split_and_stack(node_features_enc, graph_sizes, self.max_node_set_size)
+        stacked_features_query, stacked_features_corpus = model_utils.split_and_stack(
+            node_features_enc, graph_sizes, self.max_node_set_size
+        )
         transformed_features_query = self.sinkhorn_feature_layers(stacked_features_query)
         transformed_features_corpus = self.sinkhorn_feature_layers(stacked_features_corpus)
 

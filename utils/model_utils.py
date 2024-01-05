@@ -26,10 +26,25 @@ def graph_size_to_mask_map(max_set_size, lateral_dim, device=None):
         torch.tensor([0], device=device, dtype=torch.float).repeat(max_set_size - x, 1).repeat(1, lateral_dim)
     )) for x in range(0, max_set_size + 1)]
 
+def flatten_list_of_lists(list_of_lists):
+    return [item for sublist in list_of_lists for item in sublist]
+
+def get_padded_indices(paired_sizes, max_set_size, device):
+    num_pairs = len(paired_sizes)
+    max_set_size_arange = torch.arange(max_set_size, dtype=torch.long, device=device).reshape(1, -1).repeat(num_pairs * 2, 1)
+    flattened_sizes = torch.tensor(flatten_list_of_lists(paired_sizes), device=device)
+    presence_mask = max_set_size_arange < flattened_sizes.unsqueeze(1)
+
+    cumulative_set_sizes = torch.cumsum(torch.tensor(
+        max_set_size, dtype=torch.long, device=device
+    ).repeat(len(flattened_sizes)), dim=0)
+    max_set_size_arange[1:, :] += cumulative_set_sizes[:-1].unsqueeze(1)
+    return max_set_size_arange[presence_mask]
+
 def split_to_query_and_corpus(features, graph_sizes):
     # [(8, 12), (10, 13), (10, 14)] -> [8, 12, 10, 13, 10, 14]
-    graph_sizes_flat  = [item for sublist in graph_sizes for item in sublist]
-    features_split = torch.split(features, graph_sizes_flat, dim=0)
+    flattened_graph_sizes  = flatten_list_of_lists(graph_sizes)
+    features_split = torch.split(features, flattened_graph_sizes, dim=0)
     features_query = features_split[0::2]
     features_corpus = features_split[1::2]
     return features_query, features_corpus
@@ -70,3 +85,50 @@ def propagation_messages(propagation_layer, node_features, edge_features, from_i
         edge_dest_features, edge_src_features, edge_features
     ], dim=-1))
     return forward_edge_msg + backward_edge_msg
+
+def kronecker_product_on_nodes(node_transport_plan, from_idx, to_idx, paired_edge_counts, graph_sizes, max_edge_set_size):
+    flattened_edge_counts = flatten_list_of_lists(paired_edge_counts)
+    segregated_edge_vertices = torch.split(
+        torch.cat([from_idx.unsqueeze(-1), to_idx.unsqueeze(-1)], dim=-1),
+        flattened_edge_counts, dim=0
+    )
+    batched_edge_vertices_shifted = torch.cat([
+        F.pad(z_idxs, pad=(0, 0, 0, max_edge_set_size - len(z_idxs)), value=-1).unsqueeze(0)
+    for z_idxs in segregated_edge_vertices]).long()
+
+    flattened_graph_sizes = flatten_list_of_lists(graph_sizes)
+    node_count_prefix_sum = torch.zeros(len(flattened_graph_sizes), device=to_idx.device, dtype=torch.long)
+    node_count_prefix_sum[1:] = torch.cumsum(torch.tensor(flattened_graph_sizes, device=to_idx.device), dim=0)[:-1]
+    
+    batched_edge_vertices = batched_edge_vertices_shifted - node_count_prefix_sum.view(-1, 1, 1)
+    batched_edge_vertices[batched_edge_vertices < 0] = -1
+
+    query_from_vertices = batched_edge_vertices[::2, :, 0].unsqueeze(-1)
+    query_to_vertices = batched_edge_vertices[::2, :, 1].unsqueeze(-1)
+    corpus_from_vertices = batched_edge_vertices[1::2, :, 0].unsqueeze(1)
+    corpus_to_vertices = batched_edge_vertices[1::2, :, 1].unsqueeze(1)
+    batch_arange = torch.arange(len(graph_sizes), device=to_idx.device, dtype=torch.long).view(-1, 1, 1)
+    edge_presence_mask = (query_from_vertices >= 0) * (corpus_from_vertices >= 0)
+
+    straight_mapped_scores = torch.mul(
+        node_transport_plan[batch_arange, query_from_vertices, corpus_from_vertices],
+        node_transport_plan[batch_arange, query_to_vertices, corpus_to_vertices]
+    ) * edge_presence_mask
+    cross_mapped_scores = torch.mul(
+        node_transport_plan[batch_arange, query_from_vertices, corpus_to_vertices],
+        node_transport_plan[batch_arange, query_to_vertices, corpus_from_vertices]
+    ) * edge_presence_mask
+    return straight_mapped_scores, cross_mapped_scores
+
+def get_interaction_feature_store(transport_plan, query_features, corpus_features):
+    batch_size, set_size, feature_dim = query_features.shape
+    assert query_features.shape == corpus_features.shape, "Query and corpus features have different feature dimensions"
+
+    query_from_corpus = torch.bmm(transport_plan, corpus_features)
+    corpus_from_query = torch.bmm(transport_plan.permute(0, 2, 1), query_features)
+    interleaved_features = torch.cat([
+        query_from_corpus.unsqueeze(1),
+        corpus_from_query.unsqueeze(1)
+    ], dim=1).reshape(2*batch_size*set_size, feature_dim)
+
+    return interleaved_features
