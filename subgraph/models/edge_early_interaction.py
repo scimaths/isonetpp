@@ -80,6 +80,8 @@ class EdgeEarlyInteraction(torch.nn.Module):
         
         edge_counts  = self.fetch_edge_counts(to_idx,from_idx,graph_idx,2*len(batch_data_sizes))
         edge_counts = torch.tensor(edge_counts, device=device, dtype=torch.long)
+        qgraph_edge_sizes = edge_counts[0::2]
+        cgraph_edge_sizes = edge_counts[1::2]
         
         encoded_node_features, encoded_edge_features = self.encoder(node_features, edge_features)
         num_edges, edge_feature_dim = encoded_edge_features.shape
@@ -131,8 +133,8 @@ class EdgeEarlyInteraction(torch.nn.Module):
             transformed_qedge_final_emb = self.fc_transform2(self.relu1(self.fc_transform1(stacked_qedge_final_emb)))
             transformed_cedge_final_emb = self.fc_transform2(self.relu1(self.fc_transform1(stacked_cedge_final_emb)))
             
-            qgraph_mask = cudavar(self.av, torch.stack([self.graph_size_to_mask_map[i] for i in qgraph_sizes]))
-            cgraph_mask = cudavar(self.av, torch.stack([self.graph_size_to_mask_map[i] for i in cgraph_sizes]))
+            qgraph_mask = cudavar(self.av, torch.stack([self.graph_size_to_mask_map[i] for i in qgraph_edge_sizes]))
+            cgraph_mask = cudavar(self.av, torch.stack([self.graph_size_to_mask_map[i] for i in cgraph_edge_sizes]))
             masked_qedge_final_emb = torch.mul(qgraph_mask,transformed_qedge_final_emb)
             masked_cedge_final_emb = torch.mul(cgraph_mask,transformed_cedge_final_emb)
 
