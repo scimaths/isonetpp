@@ -146,6 +146,11 @@ def get_result(av,model_loc,state_dict):
       model = im.NodeEarlyInteractionWithConsistency(av,config,1).to(device)
       test_data.data_type = "gmn"
       val_data.data_type = "gmn"
+    elif model_loc.startswith("node_edge_early_interaction_with_consistency_and_two_sinkhorns"):
+      config = load_config(av)
+      model = im.NodeEdgeEarlyInteractionWithConsistencyAndTwoSinkhorns(av,config,1).to(device)
+      test_data.data_type = "gmn"
+      val_data.data_type = "gmn"
     elif model_loc.startswith("edge_early_interaction"):
       config = load_config(av)
       model = im.EdgeEarlyInteraction(av,config,1).to(device)
@@ -195,6 +200,7 @@ ap.add_argument("--save_loc", type=str)
 ad = ap.parse_args()
 task_dict = {} 
 
+task_dict['node_edge_early_interaction'] = "Node Edge Early Interaction"
 task_dict['edge_early_interaction'] = "Edge Early Interaction"
 task_dict['node_early_interaction'] = "Node Early Interaction"
 task_dict['node_align_node_loss'] = "Node Align Node Loss"
