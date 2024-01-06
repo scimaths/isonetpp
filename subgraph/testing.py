@@ -77,7 +77,10 @@ def evaluate_embeddings_similarity_map_mrr_mndcg(av,model,sampler):
   for i in range(n_batches):
     #ignoring target values here since not needed for AP ranking score 
     batch_data,batch_data_sizes,_,batch_adj = sampler.fetch_batched_data_by_id(i)
-    pred.append( model(batch_data,batch_data_sizes,batch_adj).data)
+    if av.output_type == 1:
+        pred.append( model(batch_data,batch_data_sizes,batch_adj).data)
+    elif av.output_type == 2:
+        pred.append( model(batch_data,batch_data_sizes,batch_adj)[0].data)
 
   all_pred = torch.cat(pred,dim=0) 
   labels = cudavar(av,torch.cat((torch.ones(npos),torch.zeros(nneg))))
@@ -104,7 +107,10 @@ def evaluate_embeddings_similarity_map_mrr_mndcg(av,model,sampler):
       for i in range(n_batches):
         #ignoring known ged values here since not needed for AP ranking score 
         batch_data,batch_data_sizes,_,batch_adj = sampler.fetch_batched_data_by_id(i)
-        pred.append( model(batch_data,batch_data_sizes,batch_adj).data)
+        if av.output_type == 1:
+            pred.append( model(batch_data,batch_data_sizes,batch_adj).data)
+        elif av.output_type == 2:
+            pred.append( model(batch_data,batch_data_sizes,batch_adj)[0].data)         
       all_pred = torch.cat(pred,dim=0) 
       labels = cudavar(av,torch.cat((torch.ones(npos),torch.zeros(nneg))))
       ap   = average_precision_score(labels.cpu(), all_pred.cpu()) 
@@ -119,88 +125,6 @@ def evaluate_embeddings_similarity_map_mrr_mndcg(av,model,sampler):
       hits_20 = torch.sum(labels_ranked[:neg_20]) / (torch.sum(labels_ranked))
       all_hits_20.append(hits_20)
   return ap_score, np.mean(all_ap), np.std(all_ap), rr, np.mean(all_rr), np.std(all_rr), ndcg, np.mean(all_ndcg), np.std(all_ndcg), all_ap, all_rr, np.mean(all_hits_20)
-
-def evaluate_histogram(av,model,sampler,lambd=1):
-  model.eval()
-  d_pos = sampler.list_pos
-  d_neg = sampler.list_neg
-
-  d = d_pos + d_neg
-  npos = len(d_pos)
-  nneg = len(d_neg)
-
-  import networkx as nx
-  import networkx.algorithms.isomorphism as iso
-  
-  norms_tot = []
-
-  q_graphs = list(range(len(sampler.query_graphs)))   
-    
-  for q_id in q_graphs:
-    dpos = list(filter(lambda x:x[0][0]==q_id,d_pos))
-    dneg = list(filter(lambda x:x[0][0]==q_id,d_neg))
-    npos = len(dpos)
-    nneg = len(dneg)
-    d = dpos+dneg
-    if npos>0 and nneg>0:
-      n_batches = sampler.create_batches(d) 
-      norms = []
-      for i in range(n_batches): 
-        batch_data,batch_data_sizes,_,batch_adj = sampler.fetch_batched_data_by_id(i)
-        transport_plans = model(batch_data,batch_data_sizes,batch_adj).data
-        batch_data_sizes_flat = [item for sublist in batch_data_sizes for item in sublist]
-        bef = 0
-        af = batch_data_sizes_flat[0]
-        for j in range(0, transport_plans.shape[0]):
-          Query = nx.Graph()
-          
-          index = np.logical_and(batch_data.from_idx >= bef, batch_data.from_idx < af)
-          query_from = batch_data.from_idx[index]
-
-          index = np.logical_and(batch_data.to_idx >= bef, batch_data.to_idx < af)
-          query_to = batch_data.to_idx[index]
-
-          query_edges = [(query_from[k] - bef, query_to[k] - bef) for k in range(len(query_from))]
-          Query.add_edges_from(query_edges)
-          # print("query nodes", Query.number_of_nodes(), "original", batch_data_sizes_flat[j*2])
-
-          bef += batch_data_sizes_flat[j*2]
-          af += batch_data_sizes_flat[j*2+1]
-
-          Corpus = nx.Graph()
-
-          corpus_from = batch_data.from_idx[np.logical_and(batch_data.from_idx >= bef, batch_data.from_idx < af)]
-          corpus_to = batch_data.to_idx[np.logical_and(batch_data.to_idx >= bef, batch_data.to_idx < af)]
-          
-          corpus_edges = [(corpus_from[k] - bef, corpus_to[k] - bef) for k in range(len(corpus_from))]
-          Corpus.add_edges_from(corpus_edges)
-          # print("corpus nodes", Corpus.number_of_nodes(), "original", batch_data_sizes_flat[j*2 + 1])
-
-          bef += batch_data_sizes_flat[j*2 + 1]
-          if j*2 + 2 < len(batch_data_sizes_flat):
-            af += batch_data_sizes_flat[j*2+2]
-          
-          GM = iso.GraphMatcher(Corpus,Query)
-          norm = torch.inf
-          for mapping in GM.subgraph_isomorphisms_iter():
-            p_hat = torch.zeros(batch_data_sizes_flat[j*2], batch_data_sizes_flat[j*2+1]).to(transport_plans.device)
-            for key in mapping.keys():
-              p_hat[mapping[key]][key] = 1
-            norm = min(norm, torch.sum(torch.abs(transport_plans[j][:batch_data_sizes_flat[j*2], :batch_data_sizes_flat[j*2+1]] - p_hat)))
-          norms.append(norm)
-      norms_tot.extend(norms[:npos])
-  values_np = np.array([x.cpu() for x in norms_tot])
-  import pickle
-  import matplotlib.pyplot as plt
-  pickle.dump(values_np, open(f'lambda_{lambd}_source_mask', 'wb'))
-  plt.figure(figsize=(8, 6))
-  plt.hist(values_np, bins=20, color='skyblue', edgecolor='black')  # Adjust the number of bins as needed
-  plt.xlabel('Norm(P - P_hat)')
-  plt.ylabel('Frequency')
-  plt.title(f'Histogram for lambda={lambd} Source Masking : Aids (Seed 4586)')
-  plt.grid(True)
-  plt.savefig(f'lambda_{lambd}_source_mask_aids_4586.png')
-  return norms_tot
 
 def fetch_gmn_data(av):
     data_mode = "test" if av.test_size==25 else "Extra_test_300"
@@ -242,6 +166,11 @@ def get_result(av,model_loc,state_dict):
       model = im.ISONET(av,config,1).to(device)
       test_data.data_type = "gmn"
       val_data.data_type = "gmn"
+    elif model_loc.startswith("nanl_consistency_45"):
+      config = load_config(av)
+      model = im.OurMatchingModelVar45_GMN_encoding_NodeAndEdgePerm_SinkhornParamBig_HingeScore(av,config,1).to(device)
+      test_data.data_type = "gmn"
+      val_data.data_type = "gmn"
     elif model_loc.startswith("nanl_consistency"):
       config = load_config(av)
       model = im.OurMatchingModelVar39_GMN_encoding_NodePerm_SinkhornParamBig_HingeScore_EdgePermConsistency(av,config,1).to(device)
@@ -277,6 +206,7 @@ task_dict['node_early_interaction'] = "Node Early Interaction"
 task_dict['node_align_node_loss'] = "Node Align Node Loss"
 task_dict['isonet'] = "ISONET"
 task_dict['nanl_consistency'] = "NANL+Consistency"
+task_dict['nanl_consistency_45'] = "NANL+Consistency"
 datasets = ["aids", "mutag", "ptc_fr", "ptc_fm", "ptc_mr", "ptc_mm"]
 test_model_dir = ad.model_dir
 

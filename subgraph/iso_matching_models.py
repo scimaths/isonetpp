@@ -109,6 +109,16 @@ def train(av,config):
     model = ISONET(av,config,1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
+  elif av.TASK.startswith("nanl_consistency_45"):
+    logger.info("Loading model OurMatchingModelVar45_GMN_encoding_NodeAndEdgePerm_SinkhornParamBig_HingeScore")
+    logger.info("This uses GMN encoder followed by parameterized sinkhorn with LRL and similarity computation using hinge scoring (H_q, PH_c) .We're taking edge perm from node perm kronecker product and the checking edge consistency with edge embeddings")
+    #One more hack. 
+    av.MAX_EDGES = max(max([g.number_of_edges() for g in train_data.query_graphs]),\
+                   max([g.number_of_edges() for g in train_data.corpus_graphs]))
+    model = OurMatchingModelVar45_GMN_encoding_NodeAndEdgePerm_SinkhornParamBig_HingeScore(av,config,1).to(device)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"
+    av.store_epoch_info = False
   elif av.TASK.startswith("nanl_consistency"):
     logger.info("Loading model OurMatchingModelVar39_GMN_encoding_NodePerm_SinkhornParamBig_HingeScore_EdgePermConsistency")
     logger.info("This uses GMN encoder followed by parameterized sinkhorn with LRL and similarity computation using hinge scoring (H_q, PH_c) .We're taking edge perm from node perm kronecker product and the checking edge consistency with edge embeddings")
@@ -146,11 +156,24 @@ def train(av,config):
     for i in range(n_batches):
       batch_data,batch_data_sizes,target,batch_adj = train_data.fetch_batched_data_by_id(i)
       optimizer.zero_grad()
-      prediction = model(batch_data,batch_data_sizes,batch_adj)
+      if av.output_type == 1:
+        prediction = model(batch_data,batch_data_sizes,batch_adj)
+      elif av.output_type == 2:
+        outputs = model(batch_data,batch_data_sizes,batch_adj)
+        prediction = outputs[0]
+        consistency_loss2 = torch.sum(outputs[1])/outputs[1].shape[0]
+        consistency_loss3 = torch.sum(outputs[2])/outputs[2].shape[0]
       #Pairwise ranking loss
       predPos = prediction[target>0.5]
       predNeg = prediction[target<0.5]
-      losses = pairwise_ranking_loss_similarity(predPos.unsqueeze(1),predNeg.unsqueeze(1), av.MARGIN)
+      if av.loss_type == 1:
+          losses = pairwise_ranking_loss_similarity(predPos.unsqueeze(1),predNeg.unsqueeze(1), av.MARGIN)
+      elif av.loss_type == 3:
+          losses = pairwise_ranking_loss_similarity(predPos.unsqueeze(1),predNeg.unsqueeze(1), av.MARGIN) + \
+                    (av.loss_lambda * consistency_loss2)
+      elif av.loss_type == 4:
+          losses = pairwise_ranking_loss_similarity(predPos.unsqueeze(1),predNeg.unsqueeze(1), av.MARGIN) + \
+                    (av.loss_lambda * consistency_loss3)
       #losses = torch.nn.functional.mse_loss(target, prediction,reduction="sum")
       losses.backward()
       optimizer.step()
@@ -229,10 +252,10 @@ if __name__ == "__main__":
   ap.add_argument("--no_of_corpus_subgraphs",         type=int,   default=800)
   ap.add_argument("--scores",                         nargs="+", default=["node_align", "kronecker_edge_align"])
   ap.add_argument("--loss_type",                      type=int, default=1)
+  ap.add_argument("--output_type",                      type=int, default=1)
   ap.add_argument("--loss_lambda",                    type=float, default=1)
   ap.add_argument("--transport_node_type",            type=str,   default="soft")
   ap.add_argument("--transport_edge_type",            type=str,   default="sinkhorn")
-  ap.add_argument("--masked",                         type=str,   default="no")
 
   av = ap.parse_args()
   seeds = [4586, 7366, 7474, 7762, 4929, 3543, 1704, 356, 4891, 3133]
@@ -241,6 +264,7 @@ if __name__ == "__main__":
     'edge_early_interaction': {'aids': 7474, 'mutag': 7474, 'ptc_fm': 4929, 'ptc_fr': 7366, 'ptc_mm': 7762, 'ptc_mr': 7366},
     'isonet': {'aids': 7762, 'mutag': 4586, 'ptc_fm': 7366, 'ptc_fr': 7474, 'ptc_mm': 7366, 'ptc_mr': 7366},
     'nanl_consistency': {'aids': 7762, 'mutag': 4586, 'ptc_fm': 7366, 'ptc_fr': 7474, 'ptc_mm': 7366, 'ptc_mr': 7366},
+    'nanl_consistency_45': {'aids': 7762, 'mutag': 4586, 'ptc_fm': 7366, 'ptc_fr': 7474, 'ptc_mm': 7366, 'ptc_mr': 7366},
     'node_align_node_loss': {'aids': 7762, 'mutag': 4586, 'ptc_fm': 4586, 'ptc_fr': 4929, 'ptc_mm': 7762, 'ptc_mr': 4929},
   }
   seed_accessor = av.TASK if av.TASK in best_seed_dict else 'node_early_interaction'
