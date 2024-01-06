@@ -2,7 +2,9 @@ import os
 import sys
 import time
 import torch
+import random
 import argparse
+import numpy as np
 
 from datetime import datetime
 from common import logger, set_log
@@ -151,7 +153,20 @@ def train(av,config):
     model.train()
     start_time = time.time()
     n_batches = train_data.create_stratified_batches()
+
     epoch_loss = 0
+    epoch_consistency_loss2 = 0
+    epoch_scores_node_align = 0
+    epoch_scores_kronecker_edge_align = 0
+    epoch_consistency_loss3 = 0
+    epoch_consistency_loss4 = 0
+    epoch_consistency_loss2_pos = 0
+    epoch_consistency_loss3_pos = 0
+    epoch_consistency_loss4_pos = 0
+    epoch_consistency_loss2_neg = 0
+    epoch_consistency_loss3_neg = 0
+    epoch_consistency_loss4_neg = 0
+
     start_time = time.time()
     for i in range(n_batches):
       batch_data,batch_data_sizes,target,batch_adj = train_data.fetch_batched_data_by_id(i)
@@ -160,9 +175,34 @@ def train(av,config):
         prediction = model(batch_data,batch_data_sizes,batch_adj)
       elif av.output_type == 2:
         outputs = model(batch_data,batch_data_sizes,batch_adj)
+
         prediction = outputs[0]
         consistency_loss2 = torch.sum(outputs[1])/outputs[1].shape[0]
         consistency_loss3 = torch.sum(outputs[2])/outputs[2].shape[0]
+        consistency_loss4 = torch.sum(outputs[5])/outputs[5].shape[0]
+        epoch_consistency_loss2 += consistency_loss2.item()
+        epoch_consistency_loss3 += consistency_loss3.item()
+        epoch_consistency_loss4 += consistency_loss4.item()
+
+        scores_node_align = torch.sum(outputs[3])/outputs[3].shape[0]
+        scores_kronecker_edge_align = torch.sum(outputs[4])/outputs[4].shape[0]
+        epoch_scores_node_align += scores_node_align.item()
+        epoch_scores_kronecker_edge_align += scores_kronecker_edge_align.item()
+
+        consistency_loss2_pos = torch.sum(outputs[1][target==1])/outputs[1][target==1].shape[0]
+        consistency_loss3_pos = torch.sum(outputs[2][target==1])/outputs[2][target==1].shape[0]
+        consistency_loss4_pos = torch.sum(outputs[5][target==1])/outputs[5][target==1].shape[0]
+        epoch_consistency_loss2_pos += consistency_loss2_pos.item()
+        epoch_consistency_loss3_pos += consistency_loss3_pos.item()
+        epoch_consistency_loss4_pos += consistency_loss4_pos.item()
+      
+        consistency_loss2_neg = torch.sum(outputs[1][target==0])/outputs[1][target==0].shape[0]
+        consistency_loss3_neg = torch.sum(outputs[2][target==0])/outputs[2][target==0].shape[0]
+        consistency_loss4_neg = torch.sum(outputs[5][target==0])/outputs[5][target==0].shape[0]
+        epoch_consistency_loss2_neg += consistency_loss2_neg.item()
+        epoch_consistency_loss3_neg += consistency_loss3_neg.item()
+        epoch_consistency_loss4_neg += consistency_loss4_neg.item()
+
       #Pairwise ranking loss
       predPos = prediction[target>0.5]
       predNeg = prediction[target<0.5]
@@ -174,12 +214,23 @@ def train(av,config):
       elif av.loss_type == 4:
           losses = pairwise_ranking_loss_similarity(predPos.unsqueeze(1),predNeg.unsqueeze(1), av.MARGIN) + \
                     (av.loss_lambda * consistency_loss3)
-      #losses = torch.nn.functional.mse_loss(target, prediction,reduction="sum")
+      elif av.loss_type == 5:
+          losses = pairwise_ranking_loss_similarity(predPos.unsqueeze(1),predNeg.unsqueeze(1), av.MARGIN) + \
+                    (av.loss_lambda * consistency_loss4)
+      if av.output_type == 2:
+        logger.info("%f, %f, %f, %f", pairwise_ranking_loss_similarity(predPos.unsqueeze(1),predNeg.unsqueeze(1), av.MARGIN), consistency_loss2, consistency_loss3, consistency_loss4)
+
       losses.backward()
       optimizer.step()
       epoch_loss = epoch_loss + losses.item()
 
     logger.info("Run: %d train loss: %f Time: %.2f",run,epoch_loss,time.time()-start_time)
+    if av.output_type == 2:
+      logger.info("Run: %d train scores node align: %f, scores kronecker align: %f",run,epoch_scores_node_align/n_batches, epoch_scores_kronecker_edge_align/n_batches)
+      logger.info("Run: %d train consistency_loss2: %f, consistency_loss3: %f, consistency_loss4: %f",run,epoch_consistency_loss2/n_batches, epoch_consistency_loss3/n_batches, epoch_consistency_loss4/n_batches)
+      logger.info("Run: %d train consistency_loss2_pos: %f, consistency_loss3_pos: %f, consistency_loss4_pos: %f",run,epoch_consistency_loss2_pos/n_batches, epoch_consistency_loss3_pos/n_batches, epoch_consistency_loss4_pos/n_batches)
+      logger.info("Run: %d train consistency_loss2_neg: %f, consistency_loss3_neg: %f, consistency_loss4_neg: %f",run,epoch_consistency_loss2_neg/n_batches, epoch_consistency_loss3_neg/n_batches, epoch_consistency_loss4_neg/n_batches)
+
     start_time = time.time()
     ap_score, map_score = evaluate_embeddings_similarity(av,model,val_data)
     logger.info("Run: %d VAL ap_score: %.6f map_score: %.6f Time: %.2f", run, ap_score,map_score, time.time()-start_time)
@@ -188,10 +239,7 @@ def train(av,config):
         break
     run+=1
 
-def seed_everything(seed: int):
-    import random, os
-    import numpy as np
-    
+def seed_everything(seed: int):    
     random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
     np.random.seed(seed)
@@ -270,7 +318,7 @@ if __name__ == "__main__":
   seed_accessor = av.TASK if av.TASK in best_seed_dict else 'node_early_interaction'
   av.SEED = best_seed_dict[seed_accessor][av.DATASET_NAME]
   av.time_key = str(datetime.now()).replace(' ', '_')
-  
+
   exp_name = f"{av.TASK}_{av.DATASET_NAME}_margin_{av.MARGIN}_seed_{av.SEED}_time_{av.time_key}_lambd_{av.lambd}"
   av.logpath = av.experiment_group + "/" + av.logpath + exp_name
   set_log(av)
@@ -319,5 +367,5 @@ if __name__ == "__main__":
   seed_everything(seed)
 
   av.dataset = av.DATASET_NAME
-  
+
   train(av, config)
