@@ -128,6 +128,7 @@ class GraphPropLayer(nn.Module):
                  node_state_dim,
                  edge_hidden_sizes,  # int
                  node_hidden_sizes,  # int
+                 edge_embedding_dim=1,
                  edge_net_init_scale=0.1,
                  node_update_type='residual',
                  use_reverse_direction=True,
@@ -158,6 +159,7 @@ class GraphPropLayer(nn.Module):
 
         self._node_state_dim = node_state_dim
         self._edge_hidden_sizes = edge_hidden_sizes[:]
+        self._edge_embedding_dim = edge_embedding_dim
 
         # output size is node_state_dim
         self._node_hidden_sizes = node_hidden_sizes[:] + [node_state_dim]
@@ -177,7 +179,7 @@ class GraphPropLayer(nn.Module):
 
     def build_model(self):
         layer = []
-        layer.append(nn.Linear(self._edge_hidden_sizes[0] + 1, self._edge_hidden_sizes[0]))
+        layer.append(nn.Linear(self._edge_hidden_sizes[0] + self._edge_embedding_dim, self._edge_hidden_sizes[0]))
         for i in range(1, len(self._edge_hidden_sizes)):
             layer.append(nn.ReLU())
             layer.append(nn.Linear(self._edge_hidden_sizes[i - 1], self._edge_hidden_sizes[i]))

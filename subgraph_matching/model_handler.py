@@ -5,12 +5,14 @@ from subgraph_matching.models.node_align_node_loss import NodeAlignNodeLoss
 from subgraph_matching.models.nanl_consistency import NodeAlignNodeLossConsistency
 from subgraph_matching.models.isonet import ISONET
 from subgraph_matching.models.node_early_interaction import NodeEarlyInteraction
+from subgraph_matching.models.edge_early_interaction import EdgeEarlyInteraction
 
 model_name_to_class_mappings = {
     'node_align_node_loss': NodeAlignNodeLoss,
     'nanl_consistency': NodeAlignNodeLossConsistency,
     'isonet': ISONET,
-    'node_early_interaction': NodeEarlyInteraction
+    'node_early_interaction': NodeEarlyInteraction,
+    'edge_early_interaction': EdgeEarlyInteraction,
 }
 
 def get_model_names():
