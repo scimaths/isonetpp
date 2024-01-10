@@ -1,0 +1,1873 @@
+Command line
+/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/subgraph/iso_matching_models.py
+--experiment_group=nanl_consistency_45_losstype5_losslambda1_consistencylambda07
+--TASK=nanl_consistency_45
+--NOISE_FACTOR=0
+--MARGIN=0.5
+--filters_1=10
+--filters_2=10
+--filters_3=10
+--transform_dim=16
+--FEAT_TYPE=One
+--DATASET_NAME=mutag
+--consistency_lambda=0.7
+--loss_lambda=1
+--output_type=2
+--loss_type=5
+--no_of_query_subgraphs=300
+--MIN_QUERY_SUBGRAPH_SIZE=5
+--MAX_QUERY_SUBGRAPH_SIZE=15
+--MIN_CORPUS_SUBGRAPH_SIZE=16
+--MAX_CORPUS_SUBGRAPH_SIZE=20
+fringe_isonet= {'masking_for_msg_passing_count': 4}
+encoder= {'node_hidden_sizes': [10], 'node_feature_dim': 1, 'edge_hidden_sizes': None, 'edge_feature_dim': 1}
+aggregator= {'node_hidden_sizes': [10], 'graph_transform_sizes': [10], 'input_size': [10], 'gated': True, 'aggregation_type': 'sum'}
+graph_embedding_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'embedding'}
+graph_matching_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'matching', 'similarity': 'dotproduct'}
+model_type= embedding
+data= {'problem': 'graph_edit_distance', 'dataset_params': {'n_nodes_range': [20, 20], 'p_edge_range': [0.2, 0.2], 'n_changes_positive': 1, 'n_changes_negative': 2, 'validation_dataset_size': 1000}}
+training= {'batch_size': 128, 'learning_rate': 0.0001, 'mode': 'pair', 'loss': 'margin', 'margin': 0.5, 'graph_vec_regularizer_weight': 1e-06, 'clip_value': 10.0, 'n_training_steps': 500000, 'print_after': 100, 'eval_after': 10}
+evaluation= {'batch_size': 128}
+seed= 4586
+early_interaction= {'n_time_updates': 3, 'time_update_idx': 'k_t', 'prop_separate_params': None}
+node_early_interaction_interpretability= {'lambd': 1.0}
+loading train query graphs from ./velugoti_dataset/Datasets/splits/train/train_mutag240k_query_subgraphs.pkl
+loading train relationships from ./velugoti_dataset/Datasets/splits/train/train_mutag240k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from ./velugoti_dataset/Datasets/splits/mutag240k_corpus_subgraphs.pkl
+loading val query graphs from ./velugoti_dataset/Datasets/splits/val/val_mutag240k_query_subgraphs.pkl
+loading val relationships from ./velugoti_dataset/Datasets/splits/val/val_mutag240k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from ./velugoti_dataset/Datasets/splits/mutag240k_corpus_subgraphs.pkl
+Loading model OurMatchingModelVar45_GMN_encoding_NodeAndEdgePerm_SinkhornParamBig_HingeScore
+This uses GMN encoder followed by parameterized sinkhorn with LRL and similarity computation using hinge scoring (H_q, PH_c) .We're taking edge perm from node perm kronecker product and the checking edge consistency with edge embeddings
+saving initial model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/initialModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+no. of params in model: 2476
+Run: 0 train loss: 593.989646 Time: 265.97
+Run: 0 train pair similarity score: 0.534636
+Run: 0 train scores node align: -7.522611, scores kronecker align: -9.043718
+Run: 0 train consistency_loss2: 25.509084, consistency_loss3: 22.971743, consistency_loss4: 0.004375
+Run: 0 train consistency_loss2_pos: 25.488548, consistency_loss3_pos: 22.998874, consistency_loss4_pos: 0.004333
+Run: 0 train consistency_loss2_neg: 25.513809, consistency_loss3_neg: 22.965493, consistency_loss4_neg: 0.004385
+Run: 0 VAL ap_score: 0.361508 map_score: 0.382553 Time: 110.65
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 1 train loss: 322.291515 Time: 301.46
+Run: 1 train pair similarity score: 0.290247
+Run: 1 train scores node align: -5.653150, scores kronecker align: -5.426772
+Run: 1 train consistency_loss2: 25.534760, consistency_loss3: 22.949113, consistency_loss4: 0.002213
+Run: 1 train consistency_loss2_pos: 25.502899, consistency_loss3_pos: 22.981316, consistency_loss4_pos: 0.002165
+Run: 1 train consistency_loss2_neg: 25.542111, consistency_loss3_neg: 22.941685, consistency_loss4_neg: 0.002224
+Run: 1 VAL ap_score: 0.378659 map_score: 0.389054 Time: 110.22
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 2 train loss: 312.689127 Time: 286.88
+Run: 2 train pair similarity score: 0.280163
+Run: 2 train scores node align: -5.204748, scores kronecker align: -4.903246
+Run: 2 train consistency_loss2: 25.540279, consistency_loss3: 22.879425, consistency_loss4: 0.003584
+Run: 2 train consistency_loss2_pos: 25.507206, consistency_loss3_pos: 22.909677, consistency_loss4_pos: 0.003841
+Run: 2 train consistency_loss2_neg: 25.547909, consistency_loss3_neg: 22.872450, consistency_loss4_neg: 0.003524
+Run: 2 VAL ap_score: 0.384889 map_score: 0.416661 Time: 98.59
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 3 train loss: 301.723081 Time: 280.59
+Run: 3 train pair similarity score: 0.268584
+Run: 3 train scores node align: -5.020815, scores kronecker align: -4.912485
+Run: 3 train consistency_loss2: 25.522180, consistency_loss3: 22.869476, consistency_loss4: 0.005212
+Run: 3 train consistency_loss2_pos: 25.497222, consistency_loss3_pos: 22.888582, consistency_loss4_pos: 0.006058
+Run: 3 train consistency_loss2_neg: 25.527938, consistency_loss3_neg: 22.865070, consistency_loss4_neg: 0.005016
+Run: 3 VAL ap_score: 0.402874 map_score: 0.420953 Time: 98.69
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 4 train loss: 290.704449 Time: 288.01
+Run: 4 train pair similarity score: 0.256810
+Run: 4 train scores node align: -4.982731, scores kronecker align: -5.822467
+Run: 4 train consistency_loss2: 25.542541, consistency_loss3: 22.804873, consistency_loss4: 0.006987
+Run: 4 train consistency_loss2_pos: 25.528787, consistency_loss3_pos: 22.817402, consistency_loss4_pos: 0.007860
+Run: 4 train consistency_loss2_neg: 25.545707, consistency_loss3_neg: 22.801990, consistency_loss4_neg: 0.006785
+Run: 4 VAL ap_score: 0.398915 map_score: 0.434791 Time: 94.40
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 5 train loss: 275.278542 Time: 289.27
+Run: 5 train pair similarity score: 0.242518
+Run: 5 train scores node align: -5.254939, scores kronecker align: -7.322491
+Run: 5 train consistency_loss2: 25.574807, consistency_loss3: 22.787016, consistency_loss4: 0.007281
+Run: 5 train consistency_loss2_pos: 25.550047, consistency_loss3_pos: 22.808363, consistency_loss4_pos: 0.007749
+Run: 5 train consistency_loss2_neg: 25.580507, consistency_loss3_neg: 22.782101, consistency_loss4_neg: 0.007173
+Run: 5 VAL ap_score: 0.424591 map_score: 0.467236 Time: 95.22
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 6 train loss: 255.509899 Time: 286.33
+Run: 6 train pair similarity score: 0.224633
+Run: 6 train scores node align: -5.886389, scores kronecker align: -9.243827
+Run: 6 train consistency_loss2: 25.571105, consistency_loss3: 22.790412, consistency_loss4: 0.007227
+Run: 6 train consistency_loss2_pos: 25.540655, consistency_loss3_pos: 22.817876, consistency_loss4_pos: 0.007514
+Run: 6 train consistency_loss2_neg: 25.578133, consistency_loss3_neg: 22.784076, consistency_loss4_neg: 0.007162
+Run: 6 VAL ap_score: 0.437742 map_score: 0.458162 Time: 94.01
+Run: 7 train loss: 235.505967 Time: 286.56
+Run: 7 train pair similarity score: 0.206936
+Run: 7 train scores node align: -6.604449, scores kronecker align: -11.066701
+Run: 7 train consistency_loss2: 25.563847, consistency_loss3: 22.796904, consistency_loss4: 0.006771
+Run: 7 train consistency_loss2_pos: 25.533088, consistency_loss3_pos: 22.825315, consistency_loss4_pos: 0.007156
+Run: 7 train consistency_loss2_neg: 25.570944, consistency_loss3_neg: 22.790352, consistency_loss4_neg: 0.006683
+Run: 7 VAL ap_score: 0.453322 map_score: 0.488646 Time: 97.37
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 8 train loss: 219.250448 Time: 289.27
+Run: 8 train pair similarity score: 0.193105
+Run: 8 train scores node align: -7.050324, scores kronecker align: -12.417626
+Run: 8 train consistency_loss2: 25.549352, consistency_loss3: 22.827974, consistency_loss4: 0.005852
+Run: 8 train consistency_loss2_pos: 25.513776, consistency_loss3_pos: 22.859227, consistency_loss4_pos: 0.006139
+Run: 8 train consistency_loss2_neg: 25.557557, consistency_loss3_neg: 22.820767, consistency_loss4_neg: 0.005786
+Run: 8 VAL ap_score: 0.497906 map_score: 0.516315 Time: 95.00
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 9 train loss: 206.077736 Time: 286.50
+Run: 9 train pair similarity score: 0.181742
+Run: 9 train scores node align: -7.482909, scores kronecker align: -13.650203
+Run: 9 train consistency_loss2: 25.537115, consistency_loss3: 22.844815, consistency_loss4: 0.005262
+Run: 9 train consistency_loss2_pos: 25.497095, consistency_loss3_pos: 22.877260, consistency_loss4_pos: 0.005609
+Run: 9 train consistency_loss2_neg: 25.546343, consistency_loss3_neg: 22.837333, consistency_loss4_neg: 0.005181
+Run: 9 VAL ap_score: 0.447256 map_score: 0.513347 Time: 95.51
+Run: 10 train loss: 196.368904 Time: 283.86
+Run: 10 train pair similarity score: 0.173273
+Run: 10 train scores node align: -7.944052, scores kronecker align: -14.481476
+Run: 10 train consistency_loss2: 25.537721, consistency_loss3: 22.854390, consistency_loss4: 0.004920
+Run: 10 train consistency_loss2_pos: 25.502196, consistency_loss3_pos: 22.882495, consistency_loss4_pos: 0.005243
+Run: 10 train consistency_loss2_neg: 25.545915, consistency_loss3_neg: 22.847911, consistency_loss4_neg: 0.004845
+Run: 10 VAL ap_score: 0.522769 map_score: 0.535706 Time: 94.45
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 11 train loss: 187.249849 Time: 287.18
+Run: 11 train pair similarity score: 0.165396
+Run: 11 train scores node align: -8.111339, scores kronecker align: -15.108546
+Run: 11 train consistency_loss2: 25.521854, consistency_loss3: 22.866876, consistency_loss4: 0.004522
+Run: 11 train consistency_loss2_pos: 25.487338, consistency_loss3_pos: 22.893418, consistency_loss4_pos: 0.004792
+Run: 11 train consistency_loss2_neg: 25.529830, consistency_loss3_neg: 22.860746, consistency_loss4_neg: 0.004460
+Run: 11 VAL ap_score: 0.432200 map_score: 0.535196 Time: 98.21
+Run: 12 train loss: 178.703917 Time: 287.86
+Run: 12 train pair similarity score: 0.157642
+Run: 12 train scores node align: -8.271989, scores kronecker align: -15.861113
+Run: 12 train consistency_loss2: 25.507762, consistency_loss3: 22.870007, consistency_loss4: 0.004521
+Run: 12 train consistency_loss2_pos: 25.475720, consistency_loss3_pos: 22.894239, consistency_loss4_pos: 0.004736
+Run: 12 train consistency_loss2_neg: 25.515163, consistency_loss3_neg: 22.864413, consistency_loss4_neg: 0.004471
+Run: 12 VAL ap_score: 0.507796 map_score: 0.541707 Time: 96.12
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 13 train loss: 171.459696 Time: 278.27
+Run: 13 train pair similarity score: 0.151057
+Run: 13 train scores node align: -8.309328, scores kronecker align: -16.664524
+Run: 13 train consistency_loss2: 25.510847, consistency_loss3: 22.865688, consistency_loss4: 0.004532
+Run: 13 train consistency_loss2_pos: 25.483892, consistency_loss3_pos: 22.885595, consistency_loss4_pos: 0.004756
+Run: 13 train consistency_loss2_neg: 25.517065, consistency_loss3_neg: 22.861099, consistency_loss4_neg: 0.004481
+Run: 13 VAL ap_score: 0.517598 map_score: 0.565076 Time: 97.26
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 14 train loss: 166.077209 Time: 278.59
+Run: 14 train pair similarity score: 0.146373
+Run: 14 train scores node align: -8.362012, scores kronecker align: -17.432617
+Run: 14 train consistency_loss2: 25.514128, consistency_loss3: 22.857669, consistency_loss4: 0.004332
+Run: 14 train consistency_loss2_pos: 25.492857, consistency_loss3_pos: 22.874891, consistency_loss4_pos: 0.004513
+Run: 14 train consistency_loss2_neg: 25.519038, consistency_loss3_neg: 22.853696, consistency_loss4_neg: 0.004291
+Run: 14 VAL ap_score: 0.529966 map_score: 0.579856 Time: 101.16
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 15 train loss: 160.660089 Time: 279.31
+Run: 15 train pair similarity score: 0.141597
+Run: 15 train scores node align: -8.476667, scores kronecker align: -18.323284
+Run: 15 train consistency_loss2: 25.514551, consistency_loss3: 22.852639, consistency_loss4: 0.004192
+Run: 15 train consistency_loss2_pos: 25.496320, consistency_loss3_pos: 22.868067, consistency_loss4_pos: 0.004421
+Run: 15 train consistency_loss2_neg: 25.518753, consistency_loss3_neg: 22.849085, consistency_loss4_neg: 0.004139
+Run: 15 VAL ap_score: 0.524449 map_score: 0.563522 Time: 103.58
+Run: 16 train loss: 157.995691 Time: 280.74
+Run: 16 train pair similarity score: 0.139123
+Run: 16 train scores node align: -8.417264, scores kronecker align: -19.082055
+Run: 16 train consistency_loss2: 25.517120, consistency_loss3: 22.844772, consistency_loss4: 0.004249
+Run: 16 train consistency_loss2_pos: 25.499152, consistency_loss3_pos: 22.859782, consistency_loss4_pos: 0.004497
+Run: 16 train consistency_loss2_neg: 25.521269, consistency_loss3_neg: 22.841306, consistency_loss4_neg: 0.004191
+Run: 16 VAL ap_score: 0.579765 map_score: 0.590009 Time: 99.32
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 17 train loss: 152.394230 Time: 282.89
+Run: 17 train pair similarity score: 0.133839
+Run: 17 train scores node align: -8.404720, scores kronecker align: -19.319913
+Run: 17 train consistency_loss2: 25.546797, consistency_loss3: 22.813173, consistency_loss4: 0.004449
+Run: 17 train consistency_loss2_pos: 25.530738, consistency_loss3_pos: 22.828266, consistency_loss4_pos: 0.004741
+Run: 17 train consistency_loss2_neg: 25.550508, consistency_loss3_neg: 22.809690, consistency_loss4_neg: 0.004382
+Run: 17 VAL ap_score: 0.576139 map_score: 0.585154 Time: 102.82
+Run: 18 train loss: 151.431291 Time: 284.03
+Run: 18 train pair similarity score: 0.132969
+Run: 18 train scores node align: -8.565646, scores kronecker align: -19.884883
+Run: 18 train consistency_loss2: 25.555270, consistency_loss3: 22.803133, consistency_loss4: 0.004446
+Run: 18 train consistency_loss2_pos: 25.540782, consistency_loss3_pos: 22.818039, consistency_loss4_pos: 0.004740
+Run: 18 train consistency_loss2_neg: 25.558612, consistency_loss3_neg: 22.799696, consistency_loss4_neg: 0.004378
+Run: 18 VAL ap_score: 0.502485 map_score: 0.572242 Time: 100.43
+Run: 19 train loss: 150.278687 Time: 284.65
+Run: 19 train pair similarity score: 0.131929
+Run: 19 train scores node align: -8.540012, scores kronecker align: -19.904610
+Run: 19 train consistency_loss2: 25.553102, consistency_loss3: 22.797444, consistency_loss4: 0.004440
+Run: 19 train consistency_loss2_pos: 25.539227, consistency_loss3_pos: 22.811996, consistency_loss4_pos: 0.004714
+Run: 19 train consistency_loss2_neg: 25.556302, consistency_loss3_neg: 22.794089, consistency_loss4_neg: 0.004377
+Run: 19 VAL ap_score: 0.588720 map_score: 0.605326 Time: 97.34
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 20 train loss: 145.605180 Time: 283.34
+Run: 20 train pair similarity score: 0.127661
+Run: 20 train scores node align: -8.663835, scores kronecker align: -20.376037
+Run: 20 train consistency_loss2: 25.566548, consistency_loss3: 22.791493, consistency_loss4: 0.004468
+Run: 20 train consistency_loss2_pos: 25.555135, consistency_loss3_pos: 22.804464, consistency_loss4_pos: 0.004789
+Run: 20 train consistency_loss2_neg: 25.569171, consistency_loss3_neg: 22.788514, consistency_loss4_neg: 0.004393
+Run: 20 VAL ap_score: 0.571236 map_score: 0.615603 Time: 101.92
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 21 train loss: 143.711174 Time: 291.83
+Run: 21 train pair similarity score: 0.125847
+Run: 21 train scores node align: -8.744569, scores kronecker align: -20.484032
+Run: 21 train consistency_loss2: 25.585971, consistency_loss3: 22.767969, consistency_loss4: 0.004562
+Run: 21 train consistency_loss2_pos: 25.574442, consistency_loss3_pos: 22.782412, consistency_loss4_pos: 0.004874
+Run: 21 train consistency_loss2_neg: 25.588636, consistency_loss3_neg: 22.764636, consistency_loss4_neg: 0.004490
+Run: 21 VAL ap_score: 0.585470 map_score: 0.611454 Time: 98.65
+Run: 22 train loss: 140.832266 Time: 285.87
+Run: 22 train pair similarity score: 0.123348
+Run: 22 train scores node align: -8.757046, scores kronecker align: -20.899584
+Run: 22 train consistency_loss2: 25.590897, consistency_loss3: 22.770564, consistency_loss4: 0.004449
+Run: 22 train consistency_loss2_pos: 25.579233, consistency_loss3_pos: 22.784272, consistency_loss4_pos: 0.004741
+Run: 22 train consistency_loss2_neg: 25.593590, consistency_loss3_neg: 22.767403, consistency_loss4_neg: 0.004381
+Run: 22 VAL ap_score: 0.549288 map_score: 0.601440 Time: 97.21
+Run: 23 train loss: 141.907603 Time: 290.12
+Run: 23 train pair similarity score: 0.124450
+Run: 23 train scores node align: -8.849518, scores kronecker align: -21.241222
+Run: 23 train consistency_loss2: 25.578190, consistency_loss3: 22.784105, consistency_loss4: 0.004323
+Run: 23 train consistency_loss2_pos: 25.566947, consistency_loss3_pos: 22.797482, consistency_loss4_pos: 0.004584
+Run: 23 train consistency_loss2_neg: 25.580791, consistency_loss3_neg: 22.781016, consistency_loss4_neg: 0.004263
+Run: 23 VAL ap_score: 0.576938 map_score: 0.610568 Time: 98.12
+Run: 24 train loss: 139.339057 Time: 299.58
+Run: 24 train pair similarity score: 0.122120
+Run: 24 train scores node align: -8.959490, scores kronecker align: -21.500227
+Run: 24 train consistency_loss2: 25.580085, consistency_loss3: 22.780597, consistency_loss4: 0.004322
+Run: 24 train consistency_loss2_pos: 25.569482, consistency_loss3_pos: 22.794204, consistency_loss4_pos: 0.004568
+Run: 24 train consistency_loss2_neg: 25.582542, consistency_loss3_neg: 22.777450, consistency_loss4_neg: 0.004265
+Run: 24 VAL ap_score: 0.539697 map_score: 0.602972 Time: 98.00
+Run: 25 train loss: 139.440389 Time: 298.09
+Run: 25 train pair similarity score: 0.122201
+Run: 25 train scores node align: -8.989420, scores kronecker align: -21.801479
+Run: 25 train consistency_loss2: 25.591428, consistency_loss3: 22.775279, consistency_loss4: 0.004333
+Run: 25 train consistency_loss2_pos: 25.581701, consistency_loss3_pos: 22.787844, consistency_loss4_pos: 0.004578
+Run: 25 train consistency_loss2_neg: 25.593679, consistency_loss3_neg: 22.772377, consistency_loss4_neg: 0.004276
+Run: 25 VAL ap_score: 0.565327 map_score: 0.616442 Time: 98.27
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 26 train loss: 137.798803 Time: 301.16
+Run: 26 train pair similarity score: 0.120716
+Run: 26 train scores node align: -9.039350, scores kronecker align: -21.869033
+Run: 26 train consistency_loss2: 25.600629, consistency_loss3: 22.767028, consistency_loss4: 0.004328
+Run: 26 train consistency_loss2_pos: 25.591288, consistency_loss3_pos: 22.779987, consistency_loss4_pos: 0.004544
+Run: 26 train consistency_loss2_neg: 25.602780, consistency_loss3_neg: 22.764041, consistency_loss4_neg: 0.004279
+Run: 26 VAL ap_score: 0.581905 map_score: 0.620141 Time: 98.03
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 27 train loss: 136.634885 Time: 301.35
+Run: 27 train pair similarity score: 0.119712
+Run: 27 train scores node align: -9.104113, scores kronecker align: -22.025494
+Run: 27 train consistency_loss2: 25.596493, consistency_loss3: 22.774636, consistency_loss4: 0.004276
+Run: 27 train consistency_loss2_pos: 25.587626, consistency_loss3_pos: 22.787216, consistency_loss4_pos: 0.004500
+Run: 27 train consistency_loss2_neg: 25.598549, consistency_loss3_neg: 22.771731, consistency_loss4_neg: 0.004224
+Run: 27 VAL ap_score: 0.587357 map_score: 0.621785 Time: 99.04
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 28 train loss: 135.176368 Time: 298.98
+Run: 28 train pair similarity score: 0.118425
+Run: 28 train scores node align: -9.111318, scores kronecker align: -22.166464
+Run: 28 train consistency_loss2: 25.593727, consistency_loss3: 22.775108, consistency_loss4: 0.004239
+Run: 28 train consistency_loss2_pos: 25.585124, consistency_loss3_pos: 22.786591, consistency_loss4_pos: 0.004480
+Run: 28 train consistency_loss2_neg: 25.595711, consistency_loss3_neg: 22.772463, consistency_loss4_neg: 0.004184
+Run: 28 VAL ap_score: 0.583833 map_score: 0.607979 Time: 98.87
+Run: 29 train loss: 133.224841 Time: 298.16
+Run: 29 train pair similarity score: 0.116634
+Run: 29 train scores node align: -9.213643, scores kronecker align: -22.471569
+Run: 29 train consistency_loss2: 25.600860, consistency_loss3: 22.766376, consistency_loss4: 0.004260
+Run: 29 train consistency_loss2_pos: 25.592581, consistency_loss3_pos: 22.777998, consistency_loss4_pos: 0.004475
+Run: 29 train consistency_loss2_neg: 25.602772, consistency_loss3_neg: 22.763696, consistency_loss4_neg: 0.004211
+Run: 29 VAL ap_score: 0.583637 map_score: 0.616691 Time: 101.61
+Run: 30 train loss: 134.552251 Time: 298.18
+Run: 30 train pair similarity score: 0.117609
+Run: 30 train scores node align: -9.179745, scores kronecker align: -22.301710
+Run: 30 train consistency_loss2: 25.609053, consistency_loss3: 22.753124, consistency_loss4: 0.004490
+Run: 30 train consistency_loss2_pos: 25.604075, consistency_loss3_pos: 22.762001, consistency_loss4_pos: 0.004743
+Run: 30 train consistency_loss2_neg: 25.610214, consistency_loss3_neg: 22.751069, consistency_loss4_neg: 0.004431
+Run: 30 VAL ap_score: 0.577558 map_score: 0.626418 Time: 100.85
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 31 train loss: 131.004114 Time: 298.68
+Run: 31 train pair similarity score: 0.114413
+Run: 31 train scores node align: -9.214587, scores kronecker align: -22.631004
+Run: 31 train consistency_loss2: 25.605085, consistency_loss3: 22.756362, consistency_loss4: 0.004466
+Run: 31 train consistency_loss2_pos: 25.600428, consistency_loss3_pos: 22.764309, consistency_loss4_pos: 0.004737
+Run: 31 train consistency_loss2_neg: 25.606156, consistency_loss3_neg: 22.754534, consistency_loss4_neg: 0.004403
+Run: 31 VAL ap_score: 0.602257 map_score: 0.627899 Time: 100.29
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 32 train loss: 130.840907 Time: 300.05
+Run: 32 train pair similarity score: 0.114191
+Run: 32 train scores node align: -9.325504, scores kronecker align: -22.829487
+Run: 32 train consistency_loss2: 25.618795, consistency_loss3: 22.743340, consistency_loss4: 0.004540
+Run: 32 train consistency_loss2_pos: 25.616518, consistency_loss3_pos: 22.749837, consistency_loss4_pos: 0.004809
+Run: 32 train consistency_loss2_neg: 25.619329, consistency_loss3_neg: 22.741838, consistency_loss4_neg: 0.004478
+Run: 32 VAL ap_score: 0.590063 map_score: 0.625509 Time: 101.29
+Run: 33 train loss: 130.722313 Time: 298.68
+Run: 33 train pair similarity score: 0.113977
+Run: 33 train scores node align: -9.291459, scores kronecker align: -23.120618
+Run: 33 train consistency_loss2: 25.620239, consistency_loss3: 22.741036, consistency_loss4: 0.004646
+Run: 33 train consistency_loss2_pos: 25.617131, consistency_loss3_pos: 22.747870, consistency_loss4_pos: 0.004921
+Run: 33 train consistency_loss2_neg: 25.620959, consistency_loss3_neg: 22.739458, consistency_loss4_neg: 0.004583
+Run: 33 VAL ap_score: 0.595533 map_score: 0.634223 Time: 99.88
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 34 train loss: 129.388510 Time: 300.11
+Run: 34 train pair similarity score: 0.112896
+Run: 34 train scores node align: -9.283139, scores kronecker align: -23.165098
+Run: 34 train consistency_loss2: 25.621672, consistency_loss3: 22.742486, consistency_loss4: 0.004516
+Run: 34 train consistency_loss2_pos: 25.618637, consistency_loss3_pos: 22.749668, consistency_loss4_pos: 0.004762
+Run: 34 train consistency_loss2_neg: 25.622376, consistency_loss3_neg: 22.740830, consistency_loss4_neg: 0.004460
+Run: 34 VAL ap_score: 0.538290 map_score: 0.627321 Time: 100.41
+Run: 35 train loss: 127.188644 Time: 300.03
+Run: 35 train pair similarity score: 0.110742
+Run: 35 train scores node align: -9.335022, scores kronecker align: -23.375429
+Run: 35 train consistency_loss2: 25.641630, consistency_loss3: 22.726735, consistency_loss4: 0.004674
+Run: 35 train consistency_loss2_pos: 25.639042, consistency_loss3_pos: 22.733033, consistency_loss4_pos: 0.004988
+Run: 35 train consistency_loss2_neg: 25.642233, consistency_loss3_neg: 22.725283, consistency_loss4_neg: 0.004601
+Run: 35 VAL ap_score: 0.603066 map_score: 0.640613 Time: 98.19
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 36 train loss: 126.851745 Time: 300.90
+Run: 36 train pair similarity score: 0.110481
+Run: 36 train scores node align: -9.320558, scores kronecker align: -23.491358
+Run: 36 train consistency_loss2: 25.628132, consistency_loss3: 22.736172, consistency_loss4: 0.004629
+Run: 36 train consistency_loss2_pos: 25.626417, consistency_loss3_pos: 22.741671, consistency_loss4_pos: 0.004916
+Run: 36 train consistency_loss2_neg: 25.628527, consistency_loss3_neg: 22.734908, consistency_loss4_neg: 0.004563
+Run: 36 VAL ap_score: 0.495956 map_score: 0.608524 Time: 98.88
+Run: 37 train loss: 126.376103 Time: 301.27
+Run: 37 train pair similarity score: 0.109898
+Run: 37 train scores node align: -9.355451, scores kronecker align: -23.443306
+Run: 37 train consistency_loss2: 25.646717, consistency_loss3: 22.722381, consistency_loss4: 0.004781
+Run: 37 train consistency_loss2_pos: 25.645646, consistency_loss3_pos: 22.727532, consistency_loss4_pos: 0.005061
+Run: 37 train consistency_loss2_neg: 25.646976, consistency_loss3_neg: 22.721187, consistency_loss4_neg: 0.004717
+Run: 37 VAL ap_score: 0.620109 map_score: 0.640199 Time: 98.84
+Run: 38 train loss: 126.092869 Time: 300.08
+Run: 38 train pair similarity score: 0.109564
+Run: 38 train scores node align: -9.389500, scores kronecker align: -23.711458
+Run: 38 train consistency_loss2: 25.642157, consistency_loss3: 22.720921, consistency_loss4: 0.004858
+Run: 38 train consistency_loss2_pos: 25.641431, consistency_loss3_pos: 22.724804, consistency_loss4_pos: 0.005144
+Run: 38 train consistency_loss2_neg: 25.642328, consistency_loss3_neg: 22.720023, consistency_loss4_neg: 0.004792
+Run: 38 VAL ap_score: 0.588937 map_score: 0.623247 Time: 99.74
+Run: 39 train loss: 123.199154 Time: 299.52
+Run: 39 train pair similarity score: 0.106997
+Run: 39 train scores node align: -9.406084, scores kronecker align: -23.867147
+Run: 39 train consistency_loss2: 25.647251, consistency_loss3: 22.725436, consistency_loss4: 0.004799
+Run: 39 train consistency_loss2_pos: 25.647152, consistency_loss3_pos: 22.729071, consistency_loss4_pos: 0.005055
+Run: 39 train consistency_loss2_neg: 25.647272, consistency_loss3_neg: 22.724600, consistency_loss4_neg: 0.004740
+Run: 39 VAL ap_score: 0.587183 map_score: 0.643916 Time: 100.06
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 40 train loss: 122.854538 Time: 300.10
+Run: 40 train pair similarity score: 0.106610
+Run: 40 train scores node align: -9.416276, scores kronecker align: -23.971510
+Run: 40 train consistency_loss2: 25.648368, consistency_loss3: 22.715631, consistency_loss4: 0.004874
+Run: 40 train consistency_loss2_pos: 25.648566, consistency_loss3_pos: 22.719026, consistency_loss4_pos: 0.005129
+Run: 40 train consistency_loss2_neg: 25.648335, consistency_loss3_neg: 22.714837, consistency_loss4_neg: 0.004815
+Run: 40 VAL ap_score: 0.575783 map_score: 0.628379 Time: 101.47
+Run: 41 train loss: 123.451537 Time: 296.88
+Run: 41 train pair similarity score: 0.107090
+Run: 41 train scores node align: -9.446117, scores kronecker align: -24.028383
+Run: 41 train consistency_loss2: 25.660559, consistency_loss3: 22.706265, consistency_loss4: 0.004935
+Run: 41 train consistency_loss2_pos: 25.660169, consistency_loss3_pos: 22.709970, consistency_loss4_pos: 0.005208
+Run: 41 train consistency_loss2_neg: 25.660651, consistency_loss3_neg: 22.705409, consistency_loss4_neg: 0.004872
+Run: 41 VAL ap_score: 0.576735 map_score: 0.644303 Time: 101.09
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 42 train loss: 122.993221 Time: 298.54
+Run: 42 train pair similarity score: 0.106545
+Run: 42 train scores node align: -9.512262, scores kronecker align: -24.193513
+Run: 42 train consistency_loss2: 25.668597, consistency_loss3: 22.694987, consistency_loss4: 0.005064
+Run: 42 train consistency_loss2_pos: 25.669405, consistency_loss3_pos: 22.698907, consistency_loss4_pos: 0.005332
+Run: 42 train consistency_loss2_neg: 25.668426, consistency_loss3_neg: 22.694074, consistency_loss4_neg: 0.005002
+Run: 42 VAL ap_score: 0.609910 map_score: 0.634442 Time: 98.82
+Run: 43 train loss: 121.925700 Time: 298.32
+Run: 43 train pair similarity score: 0.105511
+Run: 43 train scores node align: -9.465764, scores kronecker align: -24.296416
+Run: 43 train consistency_loss2: 25.675861, consistency_loss3: 22.691294, consistency_loss4: 0.005130
+Run: 43 train consistency_loss2_pos: 25.676747, consistency_loss3_pos: 22.694939, consistency_loss4_pos: 0.005426
+Run: 43 train consistency_loss2_neg: 25.675658, consistency_loss3_neg: 22.690457, consistency_loss4_neg: 0.005061
+Run: 43 VAL ap_score: 0.600352 map_score: 0.647111 Time: 99.38
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 44 train loss: 121.610762 Time: 297.47
+Run: 44 train pair similarity score: 0.105309
+Run: 44 train scores node align: -9.531496, scores kronecker align: -24.465927
+Run: 44 train consistency_loss2: 25.661805, consistency_loss3: 22.706524, consistency_loss4: 0.005045
+Run: 44 train consistency_loss2_pos: 25.661840, consistency_loss3_pos: 22.710172, consistency_loss4_pos: 0.005298
+Run: 44 train consistency_loss2_neg: 25.661779, consistency_loss3_neg: 22.705704, consistency_loss4_neg: 0.004987
+Run: 44 VAL ap_score: 0.589697 map_score: 0.640408 Time: 98.57
+Run: 45 train loss: 119.984922 Time: 298.62
+Run: 45 train pair similarity score: 0.103795
+Run: 45 train scores node align: -9.498545, scores kronecker align: -24.627090
+Run: 45 train consistency_loss2: 25.668786, consistency_loss3: 22.699881, consistency_loss4: 0.005084
+Run: 45 train consistency_loss2_pos: 25.669090, consistency_loss3_pos: 22.702288, consistency_loss4_pos: 0.005380
+Run: 45 train consistency_loss2_neg: 25.668713, consistency_loss3_neg: 22.699329, consistency_loss4_neg: 0.005016
+Run: 45 VAL ap_score: 0.572679 map_score: 0.650735 Time: 97.66
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 46 train loss: 120.644824 Time: 297.23
+Run: 46 train pair similarity score: 0.104305
+Run: 46 train scores node align: -9.554833, scores kronecker align: -24.664215
+Run: 46 train consistency_loss2: 25.673108, consistency_loss3: 22.694419, consistency_loss4: 0.005173
+Run: 46 train consistency_loss2_pos: 25.673575, consistency_loss3_pos: 22.697675, consistency_loss4_pos: 0.005452
+Run: 46 train consistency_loss2_neg: 25.673004, consistency_loss3_neg: 22.693666, consistency_loss4_neg: 0.005109
+Run: 46 VAL ap_score: 0.572394 map_score: 0.640467 Time: 97.91
+Run: 47 train loss: 119.374808 Time: 300.11
+Run: 47 train pair similarity score: 0.103173
+Run: 47 train scores node align: -9.642790, scores kronecker align: -24.755921
+Run: 47 train consistency_loss2: 25.675676, consistency_loss3: 22.694364, consistency_loss4: 0.005153
+Run: 47 train consistency_loss2_pos: 25.676155, consistency_loss3_pos: 22.698165, consistency_loss4_pos: 0.005455
+Run: 47 train consistency_loss2_neg: 25.675572, consistency_loss3_neg: 22.693485, consistency_loss4_neg: 0.005083
+Run: 47 VAL ap_score: 0.605988 map_score: 0.649348 Time: 99.38
+Run: 48 train loss: 118.150827 Time: 300.00
+Run: 48 train pair similarity score: 0.102070
+Run: 48 train scores node align: -9.581534, scores kronecker align: -24.854332
+Run: 48 train consistency_loss2: 25.676544, consistency_loss3: 22.691479, consistency_loss4: 0.005145
+Run: 48 train consistency_loss2_pos: 25.677707, consistency_loss3_pos: 22.694963, consistency_loss4_pos: 0.005444
+Run: 48 train consistency_loss2_neg: 25.676281, consistency_loss3_neg: 22.690673, consistency_loss4_neg: 0.005076
+Run: 48 VAL ap_score: 0.606918 map_score: 0.664783 Time: 98.51
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 49 train loss: 117.231167 Time: 300.00
+Run: 49 train pair similarity score: 0.101099
+Run: 49 train scores node align: -9.610438, scores kronecker align: -25.035147
+Run: 49 train consistency_loss2: 25.676568, consistency_loss3: 22.693627, consistency_loss4: 0.005281
+Run: 49 train consistency_loss2_pos: 25.678309, consistency_loss3_pos: 22.695489, consistency_loss4_pos: 0.005579
+Run: 49 train consistency_loss2_neg: 25.676165, consistency_loss3_neg: 22.693201, consistency_loss4_neg: 0.005213
+Run: 49 VAL ap_score: 0.638050 map_score: 0.662464 Time: 99.94
+Run: 50 train loss: 116.248093 Time: 299.32
+Run: 50 train pair similarity score: 0.100098
+Run: 50 train scores node align: -9.698835, scores kronecker align: -25.190846
+Run: 50 train consistency_loss2: 25.686563, consistency_loss3: 22.686892, consistency_loss4: 0.005390
+Run: 50 train consistency_loss2_pos: 25.687840, consistency_loss3_pos: 22.689894, consistency_loss4_pos: 0.005694
+Run: 50 train consistency_loss2_neg: 25.686271, consistency_loss3_neg: 22.686197, consistency_loss4_neg: 0.005320
+Run: 50 VAL ap_score: 0.581013 map_score: 0.663343 Time: 98.71
+Run: 51 train loss: 116.973152 Time: 296.69
+Run: 51 train pair similarity score: 0.100776
+Run: 51 train scores node align: -9.752327, scores kronecker align: -25.319904
+Run: 51 train consistency_loss2: 25.684695, consistency_loss3: 22.686436, consistency_loss4: 0.005371
+Run: 51 train consistency_loss2_pos: 25.685969, consistency_loss3_pos: 22.689278, consistency_loss4_pos: 0.005662
+Run: 51 train consistency_loss2_neg: 25.684402, consistency_loss3_neg: 22.685783, consistency_loss4_neg: 0.005303
+Run: 51 VAL ap_score: 0.602656 map_score: 0.655227 Time: 99.93
+Run: 52 train loss: 115.562542 Time: 297.47
+Run: 52 train pair similarity score: 0.099483
+Run: 52 train scores node align: -9.724388, scores kronecker align: -25.376745
+Run: 52 train consistency_loss2: 25.684805, consistency_loss3: 22.685733, consistency_loss4: 0.005384
+Run: 52 train consistency_loss2_pos: 25.685693, consistency_loss3_pos: 22.689254, consistency_loss4_pos: 0.005675
+Run: 52 train consistency_loss2_neg: 25.684598, consistency_loss3_neg: 22.684922, consistency_loss4_neg: 0.005317
+Run: 52 VAL ap_score: 0.615365 map_score: 0.657046 Time: 101.45
+Run: 53 train loss: 116.273530 Time: 295.58
+Run: 53 train pair similarity score: 0.100099
+Run: 53 train scores node align: -9.748873, scores kronecker align: -25.521209
+Run: 53 train consistency_loss2: 25.687409, consistency_loss3: 22.686927, consistency_loss4: 0.005413
+Run: 53 train consistency_loss2_pos: 25.687572, consistency_loss3_pos: 22.689986, consistency_loss4_pos: 0.005719
+Run: 53 train consistency_loss2_neg: 25.687371, consistency_loss3_neg: 22.686224, consistency_loss4_neg: 0.005342
+Run: 53 VAL ap_score: 0.623406 map_score: 0.658109 Time: 102.02
+Run: 54 train loss: 114.782412 Time: 296.14
+Run: 54 train pair similarity score: 0.098717
+Run: 54 train scores node align: -9.775583, scores kronecker align: -25.503861
+Run: 54 train consistency_loss2: 25.693890, consistency_loss3: 22.684934, consistency_loss4: 0.005441
+Run: 54 train consistency_loss2_pos: 25.693744, consistency_loss3_pos: 22.688094, consistency_loss4_pos: 0.005747
+Run: 54 train consistency_loss2_neg: 25.693923, consistency_loss3_neg: 22.684210, consistency_loss4_neg: 0.005370
+Run: 54 VAL ap_score: 0.628170 map_score: 0.666122 Time: 102.86
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 55 train loss: 114.462825 Time: 297.78
+Run: 55 train pair similarity score: 0.098356
+Run: 55 train scores node align: -9.832545, scores kronecker align: -25.503104
+Run: 55 train consistency_loss2: 25.698450, consistency_loss3: 22.681226, consistency_loss4: 0.005512
+Run: 55 train consistency_loss2_pos: 25.698117, consistency_loss3_pos: 22.684760, consistency_loss4_pos: 0.005803
+Run: 55 train consistency_loss2_neg: 25.698523, consistency_loss3_neg: 22.680414, consistency_loss4_neg: 0.005445
+Run: 55 VAL ap_score: 0.616843 map_score: 0.663864 Time: 101.75
+Run: 56 train loss: 113.300686 Time: 296.91
+Run: 56 train pair similarity score: 0.097265
+Run: 56 train scores node align: -9.888363, scores kronecker align: -25.767955
+Run: 56 train consistency_loss2: 25.697082, consistency_loss3: 22.684024, consistency_loss4: 0.005548
+Run: 56 train consistency_loss2_pos: 25.696982, consistency_loss3_pos: 22.687282, consistency_loss4_pos: 0.005838
+Run: 56 train consistency_loss2_neg: 25.697111, consistency_loss3_neg: 22.683269, consistency_loss4_neg: 0.005482
+Run: 56 VAL ap_score: 0.556849 map_score: 0.632708 Time: 99.72
+Run: 57 train loss: 113.637739 Time: 295.70
+Run: 57 train pair similarity score: 0.097547
+Run: 57 train scores node align: -9.925953, scores kronecker align: -25.789550
+Run: 57 train consistency_loss2: 25.706300, consistency_loss3: 22.679344, consistency_loss4: 0.005572
+Run: 57 train consistency_loss2_pos: 25.705581, consistency_loss3_pos: 22.683414, consistency_loss4_pos: 0.005847
+Run: 57 train consistency_loss2_neg: 25.706464, consistency_loss3_neg: 22.678409, consistency_loss4_neg: 0.005509
+Run: 57 VAL ap_score: 0.603765 map_score: 0.671842 Time: 100.92
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 58 train loss: 112.988872 Time: 295.39
+Run: 58 train pair similarity score: 0.096904
+Run: 58 train scores node align: -9.837510, scores kronecker align: -25.856952
+Run: 58 train consistency_loss2: 25.698155, consistency_loss3: 22.681190, consistency_loss4: 0.005627
+Run: 58 train consistency_loss2_pos: 25.698653, consistency_loss3_pos: 22.685454, consistency_loss4_pos: 0.005908
+Run: 58 train consistency_loss2_neg: 25.698043, consistency_loss3_neg: 22.680205, consistency_loss4_neg: 0.005563
+Run: 58 VAL ap_score: 0.639474 map_score: 0.673622 Time: 100.54
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 59 train loss: 112.417628 Time: 299.38
+Run: 59 train pair similarity score: 0.096442
+Run: 59 train scores node align: -10.009746, scores kronecker align: -26.063523
+Run: 59 train consistency_loss2: 25.702240, consistency_loss3: 22.684289, consistency_loss4: 0.005570
+Run: 59 train consistency_loss2_pos: 25.703071, consistency_loss3_pos: 22.687941, consistency_loss4_pos: 0.005813
+Run: 59 train consistency_loss2_neg: 25.702055, consistency_loss3_neg: 22.683442, consistency_loss4_neg: 0.005514
+Run: 59 VAL ap_score: 0.632293 map_score: 0.675520 Time: 99.76
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 60 train loss: 110.171351 Time: 296.74
+Run: 60 train pair similarity score: 0.094394
+Run: 60 train scores node align: -9.987916, scores kronecker align: -25.955325
+Run: 60 train consistency_loss2: 25.708183, consistency_loss3: 22.679263, consistency_loss4: 0.005580
+Run: 60 train consistency_loss2_pos: 25.710343, consistency_loss3_pos: 22.681528, consistency_loss4_pos: 0.005871
+Run: 60 train consistency_loss2_neg: 25.707685, consistency_loss3_neg: 22.678740, consistency_loss4_neg: 0.005513
+Run: 60 VAL ap_score: 0.635286 map_score: 0.664942 Time: 98.26
+Run: 61 train loss: 112.542118 Time: 297.93
+Run: 61 train pair similarity score: 0.096539
+Run: 61 train scores node align: -10.082703, scores kronecker align: -26.203271
+Run: 61 train consistency_loss2: 25.706962, consistency_loss3: 22.682208, consistency_loss4: 0.005586
+Run: 61 train consistency_loss2_pos: 25.707480, consistency_loss3_pos: 22.685181, consistency_loss4_pos: 0.005873
+Run: 61 train consistency_loss2_neg: 25.706849, consistency_loss3_neg: 22.681514, consistency_loss4_neg: 0.005520
+Run: 61 VAL ap_score: 0.633082 map_score: 0.668368 Time: 97.87
+Run: 62 train loss: 110.005263 Time: 300.17
+Run: 62 train pair similarity score: 0.094257
+Run: 62 train scores node align: -10.159051, scores kronecker align: -26.368776
+Run: 62 train consistency_loss2: 25.707619, consistency_loss3: 22.684040, consistency_loss4: 0.005566
+Run: 62 train consistency_loss2_pos: 25.708833, consistency_loss3_pos: 22.686276, consistency_loss4_pos: 0.005868
+Run: 62 train consistency_loss2_neg: 25.707347, consistency_loss3_neg: 22.683518, consistency_loss4_neg: 0.005496
+Run: 62 VAL ap_score: 0.649965 map_score: 0.672435 Time: 97.40
+Run: 63 train loss: 109.781605 Time: 299.95
+Run: 63 train pair similarity score: 0.093935
+Run: 63 train scores node align: -10.181374, scores kronecker align: -26.348603
+Run: 63 train consistency_loss2: 25.721138, consistency_loss3: 22.671281, consistency_loss4: 0.005685
+Run: 63 train consistency_loss2_pos: 25.721728, consistency_loss3_pos: 22.674306, consistency_loss4_pos: 0.005974
+Run: 63 train consistency_loss2_neg: 25.720999, consistency_loss3_neg: 22.670585, consistency_loss4_neg: 0.005618
+Run: 63 VAL ap_score: 0.632863 map_score: 0.673733 Time: 99.04
+Run: 64 train loss: 110.873762 Time: 298.11
+Run: 64 train pair similarity score: 0.094913
+Run: 64 train scores node align: -10.161488, scores kronecker align: -26.362265
+Run: 64 train consistency_loss2: 25.728430, consistency_loss3: 22.670951, consistency_loss4: 0.005698
+Run: 64 train consistency_loss2_pos: 25.727880, consistency_loss3_pos: 22.674826, consistency_loss4_pos: 0.005966
+Run: 64 train consistency_loss2_neg: 25.728551, consistency_loss3_neg: 22.670063, consistency_loss4_neg: 0.005636
+Run: 64 VAL ap_score: 0.598756 map_score: 0.666822 Time: 99.82
+Run: 65 train loss: 108.626393 Time: 298.69
+Run: 65 train pair similarity score: 0.092953
+Run: 65 train scores node align: -10.262788, scores kronecker align: -26.408993
+Run: 65 train consistency_loss2: 25.723890, consistency_loss3: 22.678168, consistency_loss4: 0.005619
+Run: 65 train consistency_loss2_pos: 25.723873, consistency_loss3_pos: 22.681542, consistency_loss4_pos: 0.005864
+Run: 65 train consistency_loss2_neg: 25.723897, consistency_loss3_neg: 22.677392, consistency_loss4_neg: 0.005562
+Run: 65 VAL ap_score: 0.636685 map_score: 0.673025 Time: 100.08
+Run: 66 train loss: 109.673106 Time: 297.67
+Run: 66 train pair similarity score: 0.093923
+Run: 66 train scores node align: -10.218086, scores kronecker align: -26.455299
+Run: 66 train consistency_loss2: 25.736348, consistency_loss3: 22.669145, consistency_loss4: 0.005599
+Run: 66 train consistency_loss2_pos: 25.733949, consistency_loss3_pos: 22.673732, consistency_loss4_pos: 0.005877
+Run: 66 train consistency_loss2_neg: 25.736907, consistency_loss3_neg: 22.668085, consistency_loss4_neg: 0.005535
+Run: 66 VAL ap_score: 0.651007 map_score: 0.678305 Time: 100.01
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 67 train loss: 108.167521 Time: 296.52
+Run: 67 train pair similarity score: 0.092618
+Run: 67 train scores node align: -10.265385, scores kronecker align: -26.480036
+Run: 67 train consistency_loss2: 25.726646, consistency_loss3: 22.676248, consistency_loss4: 0.005538
+Run: 67 train consistency_loss2_pos: 25.723930, consistency_loss3_pos: 22.682222, consistency_loss4_pos: 0.005796
+Run: 67 train consistency_loss2_neg: 25.727264, consistency_loss3_neg: 22.674882, consistency_loss4_neg: 0.005479
+Run: 67 VAL ap_score: 0.617204 map_score: 0.672686 Time: 99.95
+Run: 68 train loss: 107.019222 Time: 301.43
+Run: 68 train pair similarity score: 0.091490
+Run: 68 train scores node align: -10.275533, scores kronecker align: -26.723996
+Run: 68 train consistency_loss2: 25.732648, consistency_loss3: 22.671620, consistency_loss4: 0.005624
+Run: 68 train consistency_loss2_pos: 25.731384, consistency_loss3_pos: 22.675752, consistency_loss4_pos: 0.005878
+Run: 68 train consistency_loss2_neg: 25.732955, consistency_loss3_neg: 22.670656, consistency_loss4_neg: 0.005565
+Run: 68 VAL ap_score: 0.640597 map_score: 0.675126 Time: 100.16
+Run: 69 train loss: 109.090876 Time: 297.61
+Run: 69 train pair similarity score: 0.093342
+Run: 69 train scores node align: -10.314007, scores kronecker align: -26.886986
+Run: 69 train consistency_loss2: 25.729523, consistency_loss3: 22.672585, consistency_loss4: 0.005651
+Run: 69 train consistency_loss2_pos: 25.726460, consistency_loss3_pos: 22.677517, consistency_loss4_pos: 0.005908
+Run: 69 train consistency_loss2_neg: 25.730237, consistency_loss3_neg: 22.671444, consistency_loss4_neg: 0.005592
+Run: 69 VAL ap_score: 0.587601 map_score: 0.674515 Time: 99.53
+Run: 70 train loss: 108.250896 Time: 298.99
+Run: 70 train pair similarity score: 0.092620
+Run: 70 train scores node align: -10.292854, scores kronecker align: -26.715453
+Run: 70 train consistency_loss2: 25.740266, consistency_loss3: 22.669022, consistency_loss4: 0.005611
+Run: 70 train consistency_loss2_pos: 25.738340, consistency_loss3_pos: 22.673908, consistency_loss4_pos: 0.005851
+Run: 70 train consistency_loss2_neg: 25.740709, consistency_loss3_neg: 22.667899, consistency_loss4_neg: 0.005556
+Run: 70 VAL ap_score: 0.619418 map_score: 0.655377 Time: 100.52
+Run: 71 train loss: 106.896927 Time: 296.92
+Run: 71 train pair similarity score: 0.091542
+Run: 71 train scores node align: -10.404298, scores kronecker align: -26.940158
+Run: 71 train consistency_loss2: 25.726442, consistency_loss3: 22.683659, consistency_loss4: 0.005461
+Run: 71 train consistency_loss2_pos: 25.723271, consistency_loss3_pos: 22.688859, consistency_loss4_pos: 0.005717
+Run: 71 train consistency_loss2_neg: 25.727172, consistency_loss3_neg: 22.682465, consistency_loss4_neg: 0.005402
+Run: 71 VAL ap_score: 0.662090 map_score: 0.679405 Time: 101.09
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 72 train loss: 106.664916 Time: 298.56
+Run: 72 train pair similarity score: 0.091322
+Run: 72 train scores node align: -10.497266, scores kronecker align: -26.879778
+Run: 72 train consistency_loss2: 25.731022, consistency_loss3: 22.679672, consistency_loss4: 0.005470
+Run: 72 train consistency_loss2_pos: 25.727954, consistency_loss3_pos: 22.684242, consistency_loss4_pos: 0.005753
+Run: 72 train consistency_loss2_neg: 25.731734, consistency_loss3_neg: 22.678615, consistency_loss4_neg: 0.005405
+Run: 72 VAL ap_score: 0.626291 map_score: 0.677044 Time: 101.02
+Run: 73 train loss: 105.596976 Time: 297.26
+Run: 73 train pair similarity score: 0.090285
+Run: 73 train scores node align: -10.437364, scores kronecker align: -26.831994
+Run: 73 train consistency_loss2: 25.741626, consistency_loss3: 22.671805, consistency_loss4: 0.005538
+Run: 73 train consistency_loss2_pos: 25.737078, consistency_loss3_pos: 22.677652, consistency_loss4_pos: 0.005785
+Run: 73 train consistency_loss2_neg: 25.742674, consistency_loss3_neg: 22.670458, consistency_loss4_neg: 0.005481
+Run: 73 VAL ap_score: 0.651085 map_score: 0.685807 Time: 101.35
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 74 train loss: 106.132058 Time: 297.02
+Run: 74 train pair similarity score: 0.090722
+Run: 74 train scores node align: -10.489691, scores kronecker align: -27.166760
+Run: 74 train consistency_loss2: 25.740435, consistency_loss3: 22.676941, consistency_loss4: 0.005587
+Run: 74 train consistency_loss2_pos: 25.736201, consistency_loss3_pos: 22.682342, consistency_loss4_pos: 0.005826
+Run: 74 train consistency_loss2_neg: 25.741406, consistency_loss3_neg: 22.675703, consistency_loss4_neg: 0.005532
+Run: 74 VAL ap_score: 0.638882 map_score: 0.681980 Time: 99.92
+Run: 75 train loss: 106.391757 Time: 298.73
+Run: 75 train pair similarity score: 0.090931
+Run: 75 train scores node align: -10.501152, scores kronecker align: -27.347597
+Run: 75 train consistency_loss2: 25.743850, consistency_loss3: 22.668914, consistency_loss4: 0.005614
+Run: 75 train consistency_loss2_pos: 25.741050, consistency_loss3_pos: 22.673289, consistency_loss4_pos: 0.005849
+Run: 75 train consistency_loss2_neg: 25.744496, consistency_loss3_neg: 22.667908, consistency_loss4_neg: 0.005559
+Run: 75 VAL ap_score: 0.628973 map_score: 0.676507 Time: 102.36
+Run: 76 train loss: 106.239274 Time: 295.98
+Run: 76 train pair similarity score: 0.090837
+Run: 76 train scores node align: -10.536587, scores kronecker align: -27.285788
+Run: 76 train consistency_loss2: 25.741799, consistency_loss3: 22.674440, consistency_loss4: 0.005568
+Run: 76 train consistency_loss2_pos: 25.738575, consistency_loss3_pos: 22.679127, consistency_loss4_pos: 0.005809
+Run: 76 train consistency_loss2_neg: 25.742551, consistency_loss3_neg: 22.673355, consistency_loss4_neg: 0.005513
+Run: 76 VAL ap_score: 0.647694 map_score: 0.683400 Time: 102.79
+Run: 77 train loss: 105.312587 Time: 294.89
+Run: 77 train pair similarity score: 0.089948
+Run: 77 train scores node align: -10.588835, scores kronecker align: -27.175987
+Run: 77 train consistency_loss2: 25.743199, consistency_loss3: 22.671914, consistency_loss4: 0.005617
+Run: 77 train consistency_loss2_pos: 25.739069, consistency_loss3_pos: 22.677178, consistency_loss4_pos: 0.005862
+Run: 77 train consistency_loss2_neg: 25.744165, consistency_loss3_neg: 22.670690, consistency_loss4_neg: 0.005560
+Run: 77 VAL ap_score: 0.663502 map_score: 0.679724 Time: 102.07
+Run: 78 train loss: 106.015995 Time: 294.90
+Run: 78 train pair similarity score: 0.090569
+Run: 78 train scores node align: -10.555981, scores kronecker align: -27.353974
+Run: 78 train consistency_loss2: 25.738422, consistency_loss3: 22.676758, consistency_loss4: 0.005634
+Run: 78 train consistency_loss2_pos: 25.735403, consistency_loss3_pos: 22.680604, consistency_loss4_pos: 0.005880
+Run: 78 train consistency_loss2_neg: 25.739120, consistency_loss3_neg: 22.675870, consistency_loss4_neg: 0.005577
+Run: 78 VAL ap_score: 0.582337 map_score: 0.673791 Time: 103.18
+Run: 79 train loss: 106.253065 Time: 294.93
+Run: 79 train pair similarity score: 0.090826
+Run: 79 train scores node align: -10.557816, scores kronecker align: -27.364046
+Run: 79 train consistency_loss2: 25.737210, consistency_loss3: 22.680904, consistency_loss4: 0.005592
+Run: 79 train consistency_loss2_pos: 25.733406, consistency_loss3_pos: 22.685674, consistency_loss4_pos: 0.005837
+Run: 79 train consistency_loss2_neg: 25.738085, consistency_loss3_neg: 22.679808, consistency_loss4_neg: 0.005536
+Run: 79 VAL ap_score: 0.635627 map_score: 0.672449 Time: 103.11
+Run: 80 train loss: 105.238060 Time: 293.00
+Run: 80 train pair similarity score: 0.089976
+Run: 80 train scores node align: -10.614540, scores kronecker align: -27.422135
+Run: 80 train consistency_loss2: 25.737358, consistency_loss3: 22.681204, consistency_loss4: 0.005521
+Run: 80 train consistency_loss2_pos: 25.731700, consistency_loss3_pos: 22.686881, consistency_loss4_pos: 0.005756
+Run: 80 train consistency_loss2_neg: 25.738661, consistency_loss3_neg: 22.679897, consistency_loss4_neg: 0.005467
+Run: 80 VAL ap_score: 0.658942 map_score: 0.681739 Time: 103.28
+Run: 81 train loss: 105.794205 Time: 294.44
+Run: 81 train pair similarity score: 0.090394
+Run: 81 train scores node align: -10.654227, scores kronecker align: -27.425941
+Run: 81 train consistency_loss2: 25.744108, consistency_loss3: 22.675945, consistency_loss4: 0.005608
+Run: 81 train consistency_loss2_pos: 25.739471, consistency_loss3_pos: 22.681040, consistency_loss4_pos: 0.005838
+Run: 81 train consistency_loss2_neg: 25.745189, consistency_loss3_neg: 22.674766, consistency_loss4_neg: 0.005555
+Run: 81 VAL ap_score: 0.636716 map_score: 0.680868 Time: 105.67
+Run: 82 train loss: 104.091087 Time: 294.22
+Run: 82 train pair similarity score: 0.088885
+Run: 82 train scores node align: -10.700996, scores kronecker align: -27.469459
+Run: 82 train consistency_loss2: 25.739351, consistency_loss3: 22.679566, consistency_loss4: 0.005571
+Run: 82 train consistency_loss2_pos: 25.732023, consistency_loss3_pos: 22.685685, consistency_loss4_pos: 0.005813
+Run: 82 train consistency_loss2_neg: 25.741042, consistency_loss3_neg: 22.678156, consistency_loss4_neg: 0.005515
+Run: 82 VAL ap_score: 0.663160 map_score: 0.685857 Time: 103.35
+Run: 83 train loss: 104.907687 Time: 295.27
+Run: 83 train pair similarity score: 0.089622
+Run: 83 train scores node align: -10.667890, scores kronecker align: -27.447671
+Run: 83 train consistency_loss2: 25.739144, consistency_loss3: 22.680124, consistency_loss4: 0.005575
+Run: 83 train consistency_loss2_pos: 25.731898, consistency_loss3_pos: 22.686636, consistency_loss4_pos: 0.005818
+Run: 83 train consistency_loss2_neg: 25.740806, consistency_loss3_neg: 22.678632, consistency_loss4_neg: 0.005519
+Run: 83 VAL ap_score: 0.625318 map_score: 0.672637 Time: 105.22
+Run: 84 train loss: 104.276142 Time: 293.98
+Run: 84 train pair similarity score: 0.089040
+Run: 84 train scores node align: -10.629661, scores kronecker align: -27.551253
+Run: 84 train consistency_loss2: 25.738822, consistency_loss3: 22.681218, consistency_loss4: 0.005584
+Run: 84 train consistency_loss2_pos: 25.733192, consistency_loss3_pos: 22.686171, consistency_loss4_pos: 0.005850
+Run: 84 train consistency_loss2_neg: 25.740130, consistency_loss3_neg: 22.680071, consistency_loss4_neg: 0.005523
+Run: 84 VAL ap_score: 0.630004 map_score: 0.665638 Time: 105.66
+Run: 85 train loss: 103.595691 Time: 294.41
+Run: 85 train pair similarity score: 0.088440
+Run: 85 train scores node align: -10.712100, scores kronecker align: -27.570319
+Run: 85 train consistency_loss2: 25.737079, consistency_loss3: 22.682189, consistency_loss4: 0.005567
+Run: 85 train consistency_loss2_pos: 25.730077, consistency_loss3_pos: 22.688100, consistency_loss4_pos: 0.005820
+Run: 85 train consistency_loss2_neg: 25.738698, consistency_loss3_neg: 22.680824, consistency_loss4_neg: 0.005509
+Run: 85 VAL ap_score: 0.659439 map_score: 0.679339 Time: 108.12
+Run: 86 train loss: 103.243821 Time: 294.83
+Run: 86 train pair similarity score: 0.088143
+Run: 86 train scores node align: -10.756050, scores kronecker align: -27.685143
+Run: 86 train consistency_loss2: 25.737935, consistency_loss3: 22.679913, consistency_loss4: 0.005545
+Run: 86 train consistency_loss2_pos: 25.731111, consistency_loss3_pos: 22.686132, consistency_loss4_pos: 0.005784
+Run: 86 train consistency_loss2_neg: 25.739510, consistency_loss3_neg: 22.678480, consistency_loss4_neg: 0.005490
+Run: 86 VAL ap_score: 0.671534 map_score: 0.688292 Time: 108.33
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 87 train loss: 103.591536 Time: 292.62
+Run: 87 train pair similarity score: 0.088400
+Run: 87 train scores node align: -10.712156, scores kronecker align: -27.690443
+Run: 87 train consistency_loss2: 25.738241, consistency_loss3: 22.680014, consistency_loss4: 0.005603
+Run: 87 train consistency_loss2_pos: 25.730342, consistency_loss3_pos: 22.687084, consistency_loss4_pos: 0.005847
+Run: 87 train consistency_loss2_neg: 25.740064, consistency_loss3_neg: 22.678383, consistency_loss4_neg: 0.005547
+Run: 87 VAL ap_score: 0.653948 map_score: 0.678159 Time: 110.47
+Run: 88 train loss: 102.449402 Time: 291.88
+Run: 88 train pair similarity score: 0.087572
+Run: 88 train scores node align: -10.788096, scores kronecker align: -27.793382
+Run: 88 train consistency_loss2: 25.737914, consistency_loss3: 22.689484, consistency_loss4: 0.005395
+Run: 88 train consistency_loss2_pos: 25.728494, consistency_loss3_pos: 22.696811, consistency_loss4_pos: 0.005619
+Run: 88 train consistency_loss2_neg: 25.740086, consistency_loss3_neg: 22.687799, consistency_loss4_neg: 0.005343
+Run: 88 VAL ap_score: 0.640849 map_score: 0.686469 Time: 111.40
+Run: 89 train loss: 103.698917 Time: 291.35
+Run: 89 train pair similarity score: 0.088665
+Run: 89 train scores node align: -10.828273, scores kronecker align: -28.023788
+Run: 89 train consistency_loss2: 25.738978, consistency_loss3: 22.689003, consistency_loss4: 0.005435
+Run: 89 train consistency_loss2_pos: 25.728856, consistency_loss3_pos: 22.696797, consistency_loss4_pos: 0.005673
+Run: 89 train consistency_loss2_neg: 25.741312, consistency_loss3_neg: 22.687211, consistency_loss4_neg: 0.005381
+Run: 89 VAL ap_score: 0.623677 map_score: 0.685414 Time: 111.50
+Run: 90 train loss: 103.692824 Time: 291.60
+Run: 90 train pair similarity score: 0.088666
+Run: 90 train scores node align: -10.738104, scores kronecker align: -27.719173
+Run: 90 train consistency_loss2: 25.741592, consistency_loss3: 22.682406, consistency_loss4: 0.005429
+Run: 90 train consistency_loss2_pos: 25.732052, consistency_loss3_pos: 22.689807, consistency_loss4_pos: 0.005673
+Run: 90 train consistency_loss2_neg: 25.743800, consistency_loss3_neg: 22.680691, consistency_loss4_neg: 0.005373
+Run: 90 VAL ap_score: 0.660666 map_score: 0.672396 Time: 108.93
+Run: 91 train loss: 103.185183 Time: 292.05
+Run: 91 train pair similarity score: 0.088149
+Run: 91 train scores node align: -10.801717, scores kronecker align: -27.816245
+Run: 91 train consistency_loss2: 25.729660, consistency_loss3: 22.688683, consistency_loss4: 0.005485
+Run: 91 train consistency_loss2_pos: 25.720491, consistency_loss3_pos: 22.695376, consistency_loss4_pos: 0.005725
+Run: 91 train consistency_loss2_neg: 25.731781, consistency_loss3_neg: 22.687137, consistency_loss4_neg: 0.005430
+Run: 91 VAL ap_score: 0.634299 map_score: 0.676843 Time: 106.99
+Run: 92 train loss: 102.257469 Time: 291.07
+Run: 92 train pair similarity score: 0.087431
+Run: 92 train scores node align: -10.788902, scores kronecker align: -27.963187
+Run: 92 train consistency_loss2: 25.725294, consistency_loss3: 22.698355, consistency_loss4: 0.005361
+Run: 92 train consistency_loss2_pos: 25.715006, consistency_loss3_pos: 22.705299, consistency_loss4_pos: 0.005618
+Run: 92 train consistency_loss2_neg: 25.727673, consistency_loss3_neg: 22.696747, consistency_loss4_neg: 0.005302
+Run: 92 VAL ap_score: 0.650639 map_score: 0.684619 Time: 106.46
+Run: 93 train loss: 102.880679 Time: 294.30
+Run: 93 train pair similarity score: 0.087901
+Run: 93 train scores node align: -10.788881, scores kronecker align: -28.025563
+Run: 93 train consistency_loss2: 25.727528, consistency_loss3: 22.689577, consistency_loss4: 0.005457
+Run: 93 train consistency_loss2_pos: 25.717502, consistency_loss3_pos: 22.696990, consistency_loss4_pos: 0.005710
+Run: 93 train consistency_loss2_neg: 25.729834, consistency_loss3_neg: 22.687872, consistency_loss4_neg: 0.005399
+Run: 93 VAL ap_score: 0.624941 map_score: 0.670253 Time: 102.55
+Run: 94 train loss: 102.083764 Time: 295.80
+Run: 94 train pair similarity score: 0.087181
+Run: 94 train scores node align: -10.814667, scores kronecker align: -28.083657
+Run: 94 train consistency_loss2: 25.729830, consistency_loss3: 22.689717, consistency_loss4: 0.005453
+Run: 94 train consistency_loss2_pos: 25.720101, consistency_loss3_pos: 22.696543, consistency_loss4_pos: 0.005693
+Run: 94 train consistency_loss2_neg: 25.732073, consistency_loss3_neg: 22.688145, consistency_loss4_neg: 0.005398
+Run: 94 VAL ap_score: 0.644386 map_score: 0.675511 Time: 104.58
+Run: 95 train loss: 101.259979 Time: 295.23
+Run: 95 train pair similarity score: 0.086508
+Run: 95 train scores node align: -10.876708, scores kronecker align: -28.207056
+Run: 95 train consistency_loss2: 25.728541, consistency_loss3: 22.697779, consistency_loss4: 0.005379
+Run: 95 train consistency_loss2_pos: 25.715430, consistency_loss3_pos: 22.706886, consistency_loss4_pos: 0.005592
+Run: 95 train consistency_loss2_neg: 25.731567, consistency_loss3_neg: 22.695678, consistency_loss4_neg: 0.005330
+Run: 95 VAL ap_score: 0.653823 map_score: 0.682360 Time: 103.21
+Run: 96 train loss: 101.500638 Time: 294.47
+Run: 96 train pair similarity score: 0.086752
+Run: 96 train scores node align: -10.858021, scores kronecker align: -28.281598
+Run: 96 train consistency_loss2: 25.729100, consistency_loss3: 22.694918, consistency_loss4: 0.005354
+Run: 96 train consistency_loss2_pos: 25.716935, consistency_loss3_pos: 22.703103, consistency_loss4_pos: 0.005580
+Run: 96 train consistency_loss2_neg: 25.731895, consistency_loss3_neg: 22.693041, consistency_loss4_neg: 0.005302
+Run: 96 VAL ap_score: 0.665376 map_score: 0.681880 Time: 103.99
+Run: 97 train loss: 101.551319 Time: 295.21
+Run: 97 train pair similarity score: 0.086702
+Run: 97 train scores node align: -10.921445, scores kronecker align: -28.343041
+Run: 97 train consistency_loss2: 25.724406, consistency_loss3: 22.695478, consistency_loss4: 0.005449
+Run: 97 train consistency_loss2_pos: 25.713186, consistency_loss3_pos: 22.703065, consistency_loss4_pos: 0.005677
+Run: 97 train consistency_loss2_neg: 25.726983, consistency_loss3_neg: 22.693741, consistency_loss4_neg: 0.005397
+Run: 97 VAL ap_score: 0.637899 map_score: 0.684684 Time: 103.03
+Run: 98 train loss: 101.308752 Time: 290.75
+Run: 98 train pair similarity score: 0.086563
+Run: 98 train scores node align: -10.915474, scores kronecker align: -28.322661
+Run: 98 train consistency_loss2: 25.725472, consistency_loss3: 22.695832, consistency_loss4: 0.005369
+Run: 98 train consistency_loss2_pos: 25.714990, consistency_loss3_pos: 22.703220, consistency_loss4_pos: 0.005600
+Run: 98 train consistency_loss2_neg: 25.727896, consistency_loss3_neg: 22.694125, consistency_loss4_neg: 0.005316
+Run: 98 VAL ap_score: 0.663260 map_score: 0.684669 Time: 100.70
+Run: 99 train loss: 101.542760 Time: 296.70
+Run: 99 train pair similarity score: 0.086682
+Run: 99 train scores node align: -10.832811, scores kronecker align: -28.165267
+Run: 99 train consistency_loss2: 25.728469, consistency_loss3: 22.691361, consistency_loss4: 0.005462
+Run: 99 train consistency_loss2_pos: 25.717552, consistency_loss3_pos: 22.699436, consistency_loss4_pos: 0.005689
+Run: 99 train consistency_loss2_neg: 25.730986, consistency_loss3_neg: 22.689502, consistency_loss4_neg: 0.005410
+Run: 99 VAL ap_score: 0.649307 map_score: 0.678582 Time: 103.70
+Run: 100 train loss: 99.731225 Time: 295.33
+Run: 100 train pair similarity score: 0.085044
+Run: 100 train scores node align: -10.935086, scores kronecker align: -28.340413
+Run: 100 train consistency_loss2: 25.726554, consistency_loss3: 22.696154, consistency_loss4: 0.005456
+Run: 100 train consistency_loss2_pos: 25.714690, consistency_loss3_pos: 22.704390, consistency_loss4_pos: 0.005669
+Run: 100 train consistency_loss2_neg: 25.729291, consistency_loss3_neg: 22.694262, consistency_loss4_neg: 0.005407
+Run: 100 VAL ap_score: 0.617487 map_score: 0.680547 Time: 100.92
+Run: 101 train loss: 102.397578 Time: 296.31
+Run: 101 train pair similarity score: 0.087569
+Run: 101 train scores node align: -10.913448, scores kronecker align: -28.489670
+Run: 101 train consistency_loss2: 25.720595, consistency_loss3: 22.701209, consistency_loss4: 0.005351
+Run: 101 train consistency_loss2_pos: 25.707008, consistency_loss3_pos: 22.710589, consistency_loss4_pos: 0.005566
+Run: 101 train consistency_loss2_neg: 25.723731, consistency_loss3_neg: 22.699047, consistency_loss4_neg: 0.005301
+Run: 101 VAL ap_score: 0.643843 map_score: 0.675283 Time: 103.27
+Run: 102 train loss: 100.106476 Time: 294.04
+Run: 102 train pair similarity score: 0.085391
+Run: 102 train scores node align: -10.940894, scores kronecker align: -28.436877
+Run: 102 train consistency_loss2: 25.721513, consistency_loss3: 22.698936, consistency_loss4: 0.005449
+Run: 102 train consistency_loss2_pos: 25.708211, consistency_loss3_pos: 22.708047, consistency_loss4_pos: 0.005680
+Run: 102 train consistency_loss2_neg: 25.724582, consistency_loss3_neg: 22.696835, consistency_loss4_neg: 0.005396
+Run: 102 VAL ap_score: 0.629293 map_score: 0.671117 Time: 101.04
+Run: 103 train loss: 100.940287 Time: 295.85
+Run: 103 train pair similarity score: 0.086133
+Run: 103 train scores node align: -11.013990, scores kronecker align: -28.655024
+Run: 103 train consistency_loss2: 25.716449, consistency_loss3: 22.703442, consistency_loss4: 0.005464
+Run: 103 train consistency_loss2_pos: 25.701686, consistency_loss3_pos: 22.713423, consistency_loss4_pos: 0.005684
+Run: 103 train consistency_loss2_neg: 25.719860, consistency_loss3_neg: 22.701137, consistency_loss4_neg: 0.005413
+Run: 103 VAL ap_score: 0.629817 map_score: 0.679669 Time: 99.65
+Run: 104 train loss: 100.836341 Time: 294.80
+Run: 104 train pair similarity score: 0.086099
+Run: 104 train scores node align: -11.050717, scores kronecker align: -28.568484
+Run: 104 train consistency_loss2: 25.719578, consistency_loss3: 22.701458, consistency_loss4: 0.005404
+Run: 104 train consistency_loss2_pos: 25.705031, consistency_loss3_pos: 22.712182, consistency_loss4_pos: 0.005578
+Run: 104 train consistency_loss2_neg: 25.722941, consistency_loss3_neg: 22.698981, consistency_loss4_neg: 0.005364
+Run: 104 VAL ap_score: 0.647391 map_score: 0.656266 Time: 97.14
+Run: 105 train loss: 100.214401 Time: 293.90
+Run: 105 train pair similarity score: 0.085622
+Run: 105 train scores node align: -11.021510, scores kronecker align: -28.584902
+Run: 105 train consistency_loss2: 25.715390, consistency_loss3: 22.706173, consistency_loss4: 0.005317
+Run: 105 train consistency_loss2_pos: 25.699829, consistency_loss3_pos: 22.716245, consistency_loss4_pos: 0.005507
+Run: 105 train consistency_loss2_neg: 25.718976, consistency_loss3_neg: 22.703854, consistency_loss4_neg: 0.005273
+Run: 105 VAL ap_score: 0.643560 map_score: 0.651229 Time: 97.48
+Run: 106 train loss: 101.290448 Time: 296.41
+Run: 106 train pair similarity score: 0.086529
+Run: 106 train scores node align: -10.953767, scores kronecker align: -28.402971
+Run: 106 train consistency_loss2: 25.718215, consistency_loss3: 22.700338, consistency_loss4: 0.005386
+Run: 106 train consistency_loss2_pos: 25.702586, consistency_loss3_pos: 22.710981, consistency_loss4_pos: 0.005581
+Run: 106 train consistency_loss2_neg: 25.721825, consistency_loss3_neg: 22.697881, consistency_loss4_neg: 0.005340
+Run: 106 VAL ap_score: 0.630546 map_score: 0.673720 Time: 98.92
+Run: 107 train loss: 100.475390 Time: 301.89
+Run: 107 train pair similarity score: 0.085747
+Run: 107 train scores node align: -11.064094, scores kronecker align: -28.615434
+Run: 107 train consistency_loss2: 25.717111, consistency_loss3: 22.702901, consistency_loss4: 0.005429
+Run: 107 train consistency_loss2_pos: 25.701839, consistency_loss3_pos: 22.714192, consistency_loss4_pos: 0.005617
+Run: 107 train consistency_loss2_neg: 25.720642, consistency_loss3_neg: 22.700290, consistency_loss4_neg: 0.005385
+Run: 107 VAL ap_score: 0.621966 map_score: 0.658807 Time: 100.36
+Run: 108 train loss: 100.600525 Time: 302.02
+Run: 108 train pair similarity score: 0.085884
+Run: 108 train scores node align: -11.058004, scores kronecker align: -28.593324
+Run: 108 train consistency_loss2: 25.721953, consistency_loss3: 22.701582, consistency_loss4: 0.005405
+Run: 108 train consistency_loss2_pos: 25.706847, consistency_loss3_pos: 22.711726, consistency_loss4_pos: 0.005621
+Run: 108 train consistency_loss2_neg: 25.725441, consistency_loss3_neg: 22.699238, consistency_loss4_neg: 0.005356
+Run: 108 VAL ap_score: 0.655978 map_score: 0.684235 Time: 101.76
+Run: 109 train loss: 99.063376 Time: 295.62
+Run: 109 train pair similarity score: 0.084583
+Run: 109 train scores node align: -11.147451, scores kronecker align: -28.694272
+Run: 109 train consistency_loss2: 25.714977, consistency_loss3: 22.708607, consistency_loss4: 0.005311
+Run: 109 train consistency_loss2_pos: 25.697858, consistency_loss3_pos: 22.720148, consistency_loss4_pos: 0.005493
+Run: 109 train consistency_loss2_neg: 25.718932, consistency_loss3_neg: 22.705940, consistency_loss4_neg: 0.005269
+Run: 109 VAL ap_score: 0.662766 map_score: 0.679514 Time: 102.85
+Run: 110 train loss: 99.047860 Time: 296.89
+Run: 110 train pair similarity score: 0.084538
+Run: 110 train scores node align: -11.178554, scores kronecker align: -28.818518
+Run: 110 train consistency_loss2: 25.719372, consistency_loss3: 22.705011, consistency_loss4: 0.005342
+Run: 110 train consistency_loss2_pos: 25.705151, consistency_loss3_pos: 22.715107, consistency_loss4_pos: 0.005519
+Run: 110 train consistency_loss2_neg: 25.722662, consistency_loss3_neg: 22.702675, consistency_loss4_neg: 0.005301
+Run: 110 VAL ap_score: 0.652047 map_score: 0.686128 Time: 102.93
+Run: 111 train loss: 99.879939 Time: 294.50
+Run: 111 train pair similarity score: 0.085190
+Run: 111 train scores node align: -11.183977, scores kronecker align: -28.741455
+Run: 111 train consistency_loss2: 25.712971, consistency_loss3: 22.706244, consistency_loss4: 0.005445
+Run: 111 train consistency_loss2_pos: 25.695884, consistency_loss3_pos: 22.718275, consistency_loss4_pos: 0.005614
+Run: 111 train consistency_loss2_neg: 25.716913, consistency_loss3_neg: 22.703472, consistency_loss4_neg: 0.005407
+Run: 111 VAL ap_score: 0.614393 map_score: 0.671478 Time: 102.18
+Run: 112 train loss: 100.052342 Time: 295.49
+Run: 112 train pair similarity score: 0.085375
+Run: 112 train scores node align: -11.156821, scores kronecker align: -28.956155
+Run: 112 train consistency_loss2: 25.712921, consistency_loss3: 22.708743, consistency_loss4: 0.005417
+Run: 112 train consistency_loss2_pos: 25.696482, consistency_loss3_pos: 22.719939, consistency_loss4_pos: 0.005578
+Run: 112 train consistency_loss2_neg: 25.716714, consistency_loss3_neg: 22.706162, consistency_loss4_neg: 0.005379
+Run: 112 VAL ap_score: 0.667875 map_score: 0.687771 Time: 102.04
+Run: 113 train loss: 100.430058 Time: 294.67
+Run: 113 train pair similarity score: 0.085701
+Run: 113 train scores node align: -11.234141, scores kronecker align: -28.833494
+Run: 113 train consistency_loss2: 25.720195, consistency_loss3: 22.700551, consistency_loss4: 0.005434
+Run: 113 train consistency_loss2_pos: 25.702352, consistency_loss3_pos: 22.713261, consistency_loss4_pos: 0.005575
+Run: 113 train consistency_loss2_neg: 25.724310, consistency_loss3_neg: 22.697622, consistency_loss4_neg: 0.005401
+Run: 113 VAL ap_score: 0.662005 map_score: 0.678860 Time: 100.86
+Run: 114 train loss: 98.889530 Time: 294.11
+Run: 114 train pair similarity score: 0.084436
+Run: 114 train scores node align: -11.244792, scores kronecker align: -28.989019
+Run: 114 train consistency_loss2: 25.715549, consistency_loss3: 22.709290, consistency_loss4: 0.005300
+Run: 114 train consistency_loss2_pos: 25.697155, consistency_loss3_pos: 22.721979, consistency_loss4_pos: 0.005487
+Run: 114 train consistency_loss2_neg: 25.719796, consistency_loss3_neg: 22.706362, consistency_loss4_neg: 0.005257
+Run: 114 VAL ap_score: 0.652580 map_score: 0.689533 Time: 102.37
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 115 train loss: 100.137146 Time: 293.89
+Run: 115 train pair similarity score: 0.085543
+Run: 115 train scores node align: -11.269002, scores kronecker align: -28.935592
+Run: 115 train consistency_loss2: 25.712760, consistency_loss3: 22.709576, consistency_loss4: 0.005326
+Run: 115 train consistency_loss2_pos: 25.695477, consistency_loss3_pos: 22.721364, consistency_loss4_pos: 0.005498
+Run: 115 train consistency_loss2_neg: 25.716746, consistency_loss3_neg: 22.706858, consistency_loss4_neg: 0.005286
+Run: 115 VAL ap_score: 0.548032 map_score: 0.672108 Time: 102.04
+Run: 116 train loss: 98.829532 Time: 294.99
+Run: 116 train pair similarity score: 0.084308
+Run: 116 train scores node align: -11.189498, scores kronecker align: -28.912297
+Run: 116 train consistency_loss2: 25.718306, consistency_loss3: 22.703301, consistency_loss4: 0.005374
+Run: 116 train consistency_loss2_pos: 25.702951, consistency_loss3_pos: 22.713949, consistency_loss4_pos: 0.005553
+Run: 116 train consistency_loss2_neg: 25.721848, consistency_loss3_neg: 22.700848, consistency_loss4_neg: 0.005333
+Run: 116 VAL ap_score: 0.665253 map_score: 0.690605 Time: 102.06
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 117 train loss: 98.630964 Time: 298.65
+Run: 117 train pair similarity score: 0.084180
+Run: 117 train scores node align: -11.307170, scores kronecker align: -29.016895
+Run: 117 train consistency_loss2: 25.720512, consistency_loss3: 22.707187, consistency_loss4: 0.005321
+Run: 117 train consistency_loss2_pos: 25.702960, consistency_loss3_pos: 22.719484, consistency_loss4_pos: 0.005470
+Run: 117 train consistency_loss2_neg: 25.724565, consistency_loss3_neg: 22.704350, consistency_loss4_neg: 0.005287
+Run: 117 VAL ap_score: 0.653256 map_score: 0.689552 Time: 101.14
+Run: 118 train loss: 98.641277 Time: 298.16
+Run: 118 train pair similarity score: 0.084035
+Run: 118 train scores node align: -11.303632, scores kronecker align: -29.084885
+Run: 118 train consistency_loss2: 25.718061, consistency_loss3: 22.700982, consistency_loss4: 0.005476
+Run: 118 train consistency_loss2_pos: 25.702574, consistency_loss3_pos: 22.711613, consistency_loss4_pos: 0.005658
+Run: 118 train consistency_loss2_neg: 25.721631, consistency_loss3_neg: 22.698536, consistency_loss4_neg: 0.005434
+Run: 118 VAL ap_score: 0.662988 map_score: 0.674933 Time: 101.53
+Run: 119 train loss: 99.268064 Time: 297.31
+Run: 119 train pair similarity score: 0.084826
+Run: 119 train scores node align: -11.347813, scores kronecker align: -29.076206
+Run: 119 train consistency_loss2: 25.718898, consistency_loss3: 22.707392, consistency_loss4: 0.005254
+Run: 119 train consistency_loss2_pos: 25.703204, consistency_loss3_pos: 22.717706, consistency_loss4_pos: 0.005446
+Run: 119 train consistency_loss2_neg: 25.722523, consistency_loss3_neg: 22.705013, consistency_loss4_neg: 0.005210
+Run: 119 VAL ap_score: 0.658082 map_score: 0.690506 Time: 99.07
+Run: 120 train loss: 98.300957 Time: 296.89
+Run: 120 train pair similarity score: 0.083944
+Run: 120 train scores node align: -11.310977, scores kronecker align: -29.119253
+Run: 120 train consistency_loss2: 25.713660, consistency_loss3: 22.709701, consistency_loss4: 0.005259
+Run: 120 train consistency_loss2_pos: 25.696468, consistency_loss3_pos: 22.721181, consistency_loss4_pos: 0.005427
+Run: 120 train consistency_loss2_neg: 25.717626, consistency_loss3_neg: 22.707050, consistency_loss4_neg: 0.005220
+Run: 120 VAL ap_score: 0.624715 map_score: 0.677652 Time: 99.62
+Run: 121 train loss: 97.622126 Time: 300.31
+Run: 121 train pair similarity score: 0.083383
+Run: 121 train scores node align: -11.301941, scores kronecker align: -29.149988
+Run: 121 train consistency_loss2: 25.719393, consistency_loss3: 22.709321, consistency_loss4: 0.005204
+Run: 121 train consistency_loss2_pos: 25.702571, consistency_loss3_pos: 22.721546, consistency_loss4_pos: 0.005359
+Run: 121 train consistency_loss2_neg: 25.723268, consistency_loss3_neg: 22.706507, consistency_loss4_neg: 0.005168
+Run: 121 VAL ap_score: 0.660945 map_score: 0.682207 Time: 99.16
+Run: 122 train loss: 97.550686 Time: 300.40
+Run: 122 train pair similarity score: 0.083245
+Run: 122 train scores node align: -11.349053, scores kronecker align: -29.343631
+Run: 122 train consistency_loss2: 25.715468, consistency_loss3: 22.712087, consistency_loss4: 0.005276
+Run: 122 train consistency_loss2_pos: 25.697160, consistency_loss3_pos: 22.725652, consistency_loss4_pos: 0.005404
+Run: 122 train consistency_loss2_neg: 25.719694, consistency_loss3_neg: 22.708958, consistency_loss4_neg: 0.005247
+Run: 122 VAL ap_score: 0.675204 map_score: 0.688928 Time: 97.50
+Run: 123 train loss: 97.541797 Time: 302.09
+Run: 123 train pair similarity score: 0.083173
+Run: 123 train scores node align: -11.415306, scores kronecker align: -29.402159
+Run: 123 train consistency_loss2: 25.716105, consistency_loss3: 22.711634, consistency_loss4: 0.005341
+Run: 123 train consistency_loss2_pos: 25.698199, consistency_loss3_pos: 22.724985, consistency_loss4_pos: 0.005466
+Run: 123 train consistency_loss2_neg: 25.720231, consistency_loss3_neg: 22.708561, consistency_loss4_neg: 0.005312
+Run: 123 VAL ap_score: 0.652158 map_score: 0.692768 Time: 96.15
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 124 train loss: 98.884641 Time: 302.78
+Run: 124 train pair similarity score: 0.084451
+Run: 124 train scores node align: -11.361490, scores kronecker align: -29.423068
+Run: 124 train consistency_loss2: 25.712101, consistency_loss3: 22.710098, consistency_loss4: 0.005281
+Run: 124 train consistency_loss2_pos: 25.695027, consistency_loss3_pos: 22.722836, consistency_loss4_pos: 0.005412
+Run: 124 train consistency_loss2_neg: 25.716040, consistency_loss3_neg: 22.707159, consistency_loss4_neg: 0.005251
+Run: 124 VAL ap_score: 0.663671 map_score: 0.695837 Time: 97.48
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 125 train loss: 98.049084 Time: 298.81
+Run: 125 train pair similarity score: 0.083663
+Run: 125 train scores node align: -11.380677, scores kronecker align: -29.385430
+Run: 125 train consistency_loss2: 25.712713, consistency_loss3: 22.708130, consistency_loss4: 0.005311
+Run: 125 train consistency_loss2_pos: 25.696054, consistency_loss3_pos: 22.719824, consistency_loss4_pos: 0.005460
+Run: 125 train consistency_loss2_neg: 25.716545, consistency_loss3_neg: 22.705445, consistency_loss4_neg: 0.005276
+Run: 125 VAL ap_score: 0.629796 map_score: 0.686993 Time: 95.97
+Run: 126 train loss: 97.124530 Time: 298.81
+Run: 126 train pair similarity score: 0.082899
+Run: 126 train scores node align: -11.415283, scores kronecker align: -29.359980
+Run: 126 train consistency_loss2: 25.709714, consistency_loss3: 22.712692, consistency_loss4: 0.005236
+Run: 126 train consistency_loss2_pos: 25.691703, consistency_loss3_pos: 22.724868, consistency_loss4_pos: 0.005362
+Run: 126 train consistency_loss2_neg: 25.713876, consistency_loss3_neg: 22.709880, consistency_loss4_neg: 0.005207
+Run: 126 VAL ap_score: 0.629077 map_score: 0.656707 Time: 96.17
+Run: 127 train loss: 97.725772 Time: 300.20
+Run: 127 train pair similarity score: 0.083368
+Run: 127 train scores node align: -11.365038, scores kronecker align: -29.125636
+Run: 127 train consistency_loss2: 25.718938, consistency_loss3: 22.706142, consistency_loss4: 0.005312
+Run: 127 train consistency_loss2_pos: 25.701726, consistency_loss3_pos: 22.717621, consistency_loss4_pos: 0.005449
+Run: 127 train consistency_loss2_neg: 25.722902, consistency_loss3_neg: 22.703501, consistency_loss4_neg: 0.005281
+Run: 127 VAL ap_score: 0.593984 map_score: 0.692402 Time: 96.46
+Run: 128 train loss: 98.060466 Time: 301.17
+Run: 128 train pair similarity score: 0.083634
+Run: 128 train scores node align: -11.380046, scores kronecker align: -29.385472
+Run: 128 train consistency_loss2: 25.718784, consistency_loss3: 22.705147, consistency_loss4: 0.005350
+Run: 128 train consistency_loss2_pos: 25.700413, consistency_loss3_pos: 22.718171, consistency_loss4_pos: 0.005459
+Run: 128 train consistency_loss2_neg: 25.723011, consistency_loss3_neg: 22.702150, consistency_loss4_neg: 0.005324
+Run: 128 VAL ap_score: 0.616854 map_score: 0.681211 Time: 96.93
+Run: 129 train loss: 97.327190 Time: 301.06
+Run: 129 train pair similarity score: 0.083042
+Run: 129 train scores node align: -11.420615, scores kronecker align: -29.495850
+Run: 129 train consistency_loss2: 25.716821, consistency_loss3: 22.709335, consistency_loss4: 0.005277
+Run: 129 train consistency_loss2_pos: 25.699028, consistency_loss3_pos: 22.721330, consistency_loss4_pos: 0.005414
+Run: 129 train consistency_loss2_neg: 25.720918, consistency_loss3_neg: 22.706576, consistency_loss4_neg: 0.005245
+Run: 129 VAL ap_score: 0.641747 map_score: 0.688280 Time: 96.41
+Run: 130 train loss: 97.712127 Time: 300.67
+Run: 130 train pair similarity score: 0.083379
+Run: 130 train scores node align: -11.458231, scores kronecker align: -29.317406
+Run: 130 train consistency_loss2: 25.718918, consistency_loss3: 22.704697, consistency_loss4: 0.005289
+Run: 130 train consistency_loss2_pos: 25.699786, consistency_loss3_pos: 22.717395, consistency_loss4_pos: 0.005421
+Run: 130 train consistency_loss2_neg: 25.723328, consistency_loss3_neg: 22.701772, consistency_loss4_neg: 0.005258
+Run: 130 VAL ap_score: 0.636658 map_score: 0.678209 Time: 96.87
+Run: 131 train loss: 98.515774 Time: 299.93
+Run: 131 train pair similarity score: 0.084111
+Run: 131 train scores node align: -11.422019, scores kronecker align: -29.420228
+Run: 131 train consistency_loss2: 25.713097, consistency_loss3: 22.708444, consistency_loss4: 0.005286
+Run: 131 train consistency_loss2_pos: 25.693057, consistency_loss3_pos: 22.722229, consistency_loss4_pos: 0.005401
+Run: 131 train consistency_loss2_neg: 25.717726, consistency_loss3_neg: 22.705260, consistency_loss4_neg: 0.005260
+Run: 131 VAL ap_score: 0.657130 map_score: 0.686701 Time: 96.63
+Run: 132 train loss: 96.441670 Time: 300.96
+Run: 132 train pair similarity score: 0.082253
+Run: 132 train scores node align: -11.517860, scores kronecker align: -29.509656
+Run: 132 train consistency_loss2: 25.714131, consistency_loss3: 22.710455, consistency_loss4: 0.005262
+Run: 132 train consistency_loss2_pos: 25.694619, consistency_loss3_pos: 22.723582, consistency_loss4_pos: 0.005363
+Run: 132 train consistency_loss2_neg: 25.718628, consistency_loss3_neg: 22.707431, consistency_loss4_neg: 0.005239
+Run: 132 VAL ap_score: 0.656136 map_score: 0.694699 Time: 97.04
+Run: 133 train loss: 97.534138 Time: 299.59
+Run: 133 train pair similarity score: 0.083260
+Run: 133 train scores node align: -11.555513, scores kronecker align: -29.580512
+Run: 133 train consistency_loss2: 25.712839, consistency_loss3: 22.709179, consistency_loss4: 0.005247
+Run: 133 train consistency_loss2_pos: 25.693438, consistency_loss3_pos: 22.721987, consistency_loss4_pos: 0.005320
+Run: 133 train consistency_loss2_neg: 25.717313, consistency_loss3_neg: 22.706226, consistency_loss4_neg: 0.005230
+Run: 133 VAL ap_score: 0.668350 map_score: 0.688384 Time: 96.44
+Run: 134 train loss: 96.376902 Time: 301.89
+Run: 134 train pair similarity score: 0.082266
+Run: 134 train scores node align: -11.549885, scores kronecker align: -29.496446
+Run: 134 train consistency_loss2: 25.715266, consistency_loss3: 22.710138, consistency_loss4: 0.005190
+Run: 134 train consistency_loss2_pos: 25.696731, consistency_loss3_pos: 22.721960, consistency_loss4_pos: 0.005281
+Run: 134 train consistency_loss2_neg: 25.719549, consistency_loss3_neg: 22.707409, consistency_loss4_neg: 0.005169
+Run: 134 VAL ap_score: 0.659836 map_score: 0.691525 Time: 97.64
+Run: 135 train loss: 97.046375 Time: 303.41
+Run: 135 train pair similarity score: 0.082726
+Run: 135 train scores node align: -11.532165, scores kronecker align: -29.445593
+Run: 135 train consistency_loss2: 25.721384, consistency_loss3: 22.700972, consistency_loss4: 0.005338
+Run: 135 train consistency_loss2_pos: 25.703476, consistency_loss3_pos: 22.713156, consistency_loss4_pos: 0.005430
+Run: 135 train consistency_loss2_neg: 25.725517, consistency_loss3_neg: 22.698163, consistency_loss4_neg: 0.005317
+Run: 135 VAL ap_score: 0.657257 map_score: 0.697567 Time: 98.91
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 136 train loss: 96.545356 Time: 302.64
+Run: 136 train pair similarity score: 0.082319
+Run: 136 train scores node align: -11.539839, scores kronecker align: -29.562250
+Run: 136 train consistency_loss2: 25.714063, consistency_loss3: 22.704387, consistency_loss4: 0.005290
+Run: 136 train consistency_loss2_pos: 25.696406, consistency_loss3_pos: 22.716947, consistency_loss4_pos: 0.005380
+Run: 136 train consistency_loss2_neg: 25.718135, consistency_loss3_neg: 22.701492, consistency_loss4_neg: 0.005269
+Run: 136 VAL ap_score: 0.671424 map_score: 0.682664 Time: 98.98
+Run: 137 train loss: 97.194563 Time: 300.97
+Run: 137 train pair similarity score: 0.082874
+Run: 137 train scores node align: -11.481073, scores kronecker align: -29.543351
+Run: 137 train consistency_loss2: 25.709226, consistency_loss3: 22.705554, consistency_loss4: 0.005324
+Run: 137 train consistency_loss2_pos: 25.689714, consistency_loss3_pos: 22.718764, consistency_loss4_pos: 0.005411
+Run: 137 train consistency_loss2_neg: 25.713728, consistency_loss3_neg: 22.702508, consistency_loss4_neg: 0.005304
+Run: 137 VAL ap_score: 0.673903 map_score: 0.684325 Time: 99.32
+Run: 138 train loss: 96.072548 Time: 297.58
+Run: 138 train pair similarity score: 0.081916
+Run: 138 train scores node align: -11.514893, scores kronecker align: -29.465642
+Run: 138 train consistency_loss2: 25.708725, consistency_loss3: 22.710375, consistency_loss4: 0.005264
+Run: 138 train consistency_loss2_pos: 25.691628, consistency_loss3_pos: 22.722585, consistency_loss4_pos: 0.005358
+Run: 138 train consistency_loss2_neg: 25.712673, consistency_loss3_neg: 22.707557, consistency_loss4_neg: 0.005243
+Run: 138 VAL ap_score: 0.652282 map_score: 0.688940 Time: 100.19
+Run: 139 train loss: 96.190192 Time: 297.41
+Run: 139 train pair similarity score: 0.082017
+Run: 139 train scores node align: -11.563415, scores kronecker align: -29.657123
+Run: 139 train consistency_loss2: 25.711811, consistency_loss3: 22.710998, consistency_loss4: 0.005270
+Run: 139 train consistency_loss2_pos: 25.692969, consistency_loss3_pos: 22.723787, consistency_loss4_pos: 0.005330
+Run: 139 train consistency_loss2_neg: 25.716162, consistency_loss3_neg: 22.708044, consistency_loss4_neg: 0.005256
+Run: 139 VAL ap_score: 0.655649 map_score: 0.670452 Time: 101.85
+Run: 140 train loss: 96.617342 Time: 299.02
+Run: 140 train pair similarity score: 0.082499
+Run: 140 train scores node align: -11.569046, scores kronecker align: -29.659400
+Run: 140 train consistency_loss2: 25.712536, consistency_loss3: 22.708799, consistency_loss4: 0.005176
+Run: 140 train consistency_loss2_pos: 25.695051, consistency_loss3_pos: 22.720026, consistency_loss4_pos: 0.005284
+Run: 140 train consistency_loss2_neg: 25.716572, consistency_loss3_neg: 22.706207, consistency_loss4_neg: 0.005151
+Run: 140 VAL ap_score: 0.647239 map_score: 0.689077 Time: 101.07
+Run: 141 train loss: 96.411711 Time: 296.64
+Run: 141 train pair similarity score: 0.082172
+Run: 141 train scores node align: -11.585546, scores kronecker align: -29.833732
+Run: 141 train consistency_loss2: 25.718958, consistency_loss3: 22.701027, consistency_loss4: 0.005316
+Run: 141 train consistency_loss2_pos: 25.699600, consistency_loss3_pos: 22.713663, consistency_loss4_pos: 0.005425
+Run: 141 train consistency_loss2_neg: 25.723429, consistency_loss3_neg: 22.698107, consistency_loss4_neg: 0.005290
+Run: 141 VAL ap_score: 0.663653 map_score: 0.691432 Time: 103.85
+Run: 142 train loss: 95.731899 Time: 296.79
+Run: 142 train pair similarity score: 0.081672
+Run: 142 train scores node align: -11.563877, scores kronecker align: -29.810559
+Run: 142 train consistency_loss2: 25.713547, consistency_loss3: 22.707523, consistency_loss4: 0.005199
+Run: 142 train consistency_loss2_pos: 25.694491, consistency_loss3_pos: 22.720446, consistency_loss4_pos: 0.005285
+Run: 142 train consistency_loss2_neg: 25.717956, consistency_loss3_neg: 22.704536, consistency_loss4_neg: 0.005179
+Run: 142 VAL ap_score: 0.670764 map_score: 0.699130 Time: 104.82
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 143 train loss: 95.990768 Time: 292.11
+Run: 143 train pair similarity score: 0.081769
+Run: 143 train scores node align: -11.561707, scores kronecker align: -29.886741
+Run: 143 train consistency_loss2: 25.714761, consistency_loss3: 22.705644, consistency_loss4: 0.005337
+Run: 143 train consistency_loss2_pos: 25.692997, consistency_loss3_pos: 22.720277, consistency_loss4_pos: 0.005415
+Run: 143 train consistency_loss2_neg: 25.719770, consistency_loss3_neg: 22.702281, consistency_loss4_neg: 0.005319
+Run: 143 VAL ap_score: 0.636330 map_score: 0.685084 Time: 103.98
+Run: 144 train loss: 95.302549 Time: 293.02
+Run: 144 train pair similarity score: 0.081273
+Run: 144 train scores node align: -11.559240, scores kronecker align: -29.660786
+Run: 144 train consistency_loss2: 25.714571, consistency_loss3: 22.705387, consistency_loss4: 0.005208
+Run: 144 train consistency_loss2_pos: 25.694636, consistency_loss3_pos: 22.718888, consistency_loss4_pos: 0.005269
+Run: 144 train consistency_loss2_neg: 25.719166, consistency_loss3_neg: 22.702279, consistency_loss4_neg: 0.005194
+Run: 144 VAL ap_score: 0.663807 map_score: 0.695227 Time: 103.85
+Run: 145 train loss: 96.543691 Time: 293.83
+Run: 145 train pair similarity score: 0.082264
+Run: 145 train scores node align: -11.591753, scores kronecker align: -29.767969
+Run: 145 train consistency_loss2: 25.722908, consistency_loss3: 22.698937, consistency_loss4: 0.005344
+Run: 145 train consistency_loss2_pos: 25.704269, consistency_loss3_pos: 22.711531, consistency_loss4_pos: 0.005421
+Run: 145 train consistency_loss2_neg: 25.727229, consistency_loss3_neg: 22.696013, consistency_loss4_neg: 0.005326
+Run: 145 VAL ap_score: 0.632573 map_score: 0.669351 Time: 103.11
+Run: 146 train loss: 95.456015 Time: 293.28
+Run: 146 train pair similarity score: 0.081296
+Run: 146 train scores node align: -11.547749, scores kronecker align: -29.742761
+Run: 146 train consistency_loss2: 25.719412, consistency_loss3: 22.701777, consistency_loss4: 0.005324
+Run: 146 train consistency_loss2_pos: 25.701202, consistency_loss3_pos: 22.714178, consistency_loss4_pos: 0.005401
+Run: 146 train consistency_loss2_neg: 25.723615, consistency_loss3_neg: 22.698914, consistency_loss4_neg: 0.005307
+Run: 146 VAL ap_score: 0.642664 map_score: 0.692149 Time: 103.04
+Run: 147 train loss: 95.444561 Time: 295.70
+Run: 147 train pair similarity score: 0.081347
+Run: 147 train scores node align: -11.571610, scores kronecker align: -29.796070
+Run: 147 train consistency_loss2: 25.715830, consistency_loss3: 22.704592, consistency_loss4: 0.005263
+Run: 147 train consistency_loss2_pos: 25.696346, consistency_loss3_pos: 22.718190, consistency_loss4_pos: 0.005336
+Run: 147 train consistency_loss2_neg: 25.720324, consistency_loss3_neg: 22.701458, consistency_loss4_neg: 0.005247
+Run: 147 VAL ap_score: 0.655274 map_score: 0.699681 Time: 102.43
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 148 train loss: 95.486156 Time: 294.65
+Run: 148 train pair similarity score: 0.081455
+Run: 148 train scores node align: -11.600546, scores kronecker align: -30.031072
+Run: 148 train consistency_loss2: 25.713230, consistency_loss3: 22.709769, consistency_loss4: 0.005193
+Run: 148 train consistency_loss2_pos: 25.693695, consistency_loss3_pos: 22.723348, consistency_loss4_pos: 0.005268
+Run: 148 train consistency_loss2_neg: 25.717744, consistency_loss3_neg: 22.706632, consistency_loss4_neg: 0.005176
+Run: 148 VAL ap_score: 0.650957 map_score: 0.694556 Time: 102.96
+Run: 149 train loss: 95.362073 Time: 295.53
+Run: 149 train pair similarity score: 0.081292
+Run: 149 train scores node align: -11.625617, scores kronecker align: -29.866379
+Run: 149 train consistency_loss2: 25.719405, consistency_loss3: 22.702894, consistency_loss4: 0.005244
+Run: 149 train consistency_loss2_pos: 25.699589, consistency_loss3_pos: 22.716550, consistency_loss4_pos: 0.005312
+Run: 149 train consistency_loss2_neg: 25.723985, consistency_loss3_neg: 22.699738, consistency_loss4_neg: 0.005228
+Run: 149 VAL ap_score: 0.636939 map_score: 0.689345 Time: 102.45
+Run: 150 train loss: 95.254818 Time: 296.81
+Run: 150 train pair similarity score: 0.081125
+Run: 150 train scores node align: -11.553638, scores kronecker align: -30.028320
+Run: 150 train consistency_loss2: 25.710948, consistency_loss3: 22.705869, consistency_loss4: 0.005313
+Run: 150 train consistency_loss2_pos: 25.691438, consistency_loss3_pos: 22.719257, consistency_loss4_pos: 0.005393
+Run: 150 train consistency_loss2_neg: 25.715441, consistency_loss3_neg: 22.702787, consistency_loss4_neg: 0.005294
+Run: 150 VAL ap_score: 0.648154 map_score: 0.682361 Time: 101.52
+Run: 151 train loss: 96.043388 Time: 295.63
+Run: 151 train pair similarity score: 0.081950
+Run: 151 train scores node align: -11.618931, scores kronecker align: -29.990219
+Run: 151 train consistency_loss2: 25.711092, consistency_loss3: 22.707990, consistency_loss4: 0.005204
+Run: 151 train consistency_loss2_pos: 25.691711, consistency_loss3_pos: 22.721254, consistency_loss4_pos: 0.005271
+Run: 151 train consistency_loss2_neg: 25.715572, consistency_loss3_neg: 22.704923, consistency_loss4_neg: 0.005189
+Run: 151 VAL ap_score: 0.653169 map_score: 0.674059 Time: 101.75
+Run: 152 train loss: 94.366062 Time: 296.23
+Run: 152 train pair similarity score: 0.080335
+Run: 152 train scores node align: -11.599216, scores kronecker align: -29.837278
+Run: 152 train consistency_loss2: 25.717680, consistency_loss3: 22.703397, consistency_loss4: 0.005297
+Run: 152 train consistency_loss2_pos: 25.697287, consistency_loss3_pos: 22.717248, consistency_loss4_pos: 0.005360
+Run: 152 train consistency_loss2_neg: 25.722382, consistency_loss3_neg: 22.700207, consistency_loss4_neg: 0.005282
+Run: 152 VAL ap_score: 0.672765 map_score: 0.683905 Time: 101.91
+Run: 153 train loss: 95.296195 Time: 298.72
+Run: 153 train pair similarity score: 0.081203
+Run: 153 train scores node align: -11.686473, scores kronecker align: -29.949910
+Run: 153 train consistency_loss2: 25.712470, consistency_loss3: 22.708396, consistency_loss4: 0.005272
+Run: 153 train consistency_loss2_pos: 25.692488, consistency_loss3_pos: 22.722731, consistency_loss4_pos: 0.005323
+Run: 153 train consistency_loss2_neg: 25.717081, consistency_loss3_neg: 22.705087, consistency_loss4_neg: 0.005261
+Run: 153 VAL ap_score: 0.636218 map_score: 0.682661 Time: 99.79
+Run: 154 train loss: 94.276054 Time: 297.34
+Run: 154 train pair similarity score: 0.080210
+Run: 154 train scores node align: -11.651172, scores kronecker align: -29.980461
+Run: 154 train consistency_loss2: 25.712762, consistency_loss3: 22.707775, consistency_loss4: 0.005340
+Run: 154 train consistency_loss2_pos: 25.693054, consistency_loss3_pos: 22.721389, consistency_loss4_pos: 0.005425
+Run: 154 train consistency_loss2_neg: 25.717313, consistency_loss3_neg: 22.704632, consistency_loss4_neg: 0.005320
+Run: 154 VAL ap_score: 0.651834 map_score: 0.692686 Time: 100.34
+Run: 155 train loss: 95.344684 Time: 299.18
+Run: 155 train pair similarity score: 0.081247
+Run: 155 train scores node align: -11.692350, scores kronecker align: -30.131435
+Run: 155 train consistency_loss2: 25.710024, consistency_loss3: 22.709673, consistency_loss4: 0.005272
+Run: 155 train consistency_loss2_pos: 25.689692, consistency_loss3_pos: 22.723673, consistency_loss4_pos: 0.005347
+Run: 155 train consistency_loss2_neg: 25.714712, consistency_loss3_neg: 22.706449, consistency_loss4_neg: 0.005255
+Run: 155 VAL ap_score: 0.639391 map_score: 0.685546 Time: 100.82
+Run: 156 train loss: 95.386052 Time: 299.49
+Run: 156 train pair similarity score: 0.081322
+Run: 156 train scores node align: -11.752192, scores kronecker align: -30.123784
+Run: 156 train consistency_loss2: 25.712596, consistency_loss3: 22.708424, consistency_loss4: 0.005235
+Run: 156 train consistency_loss2_pos: 25.693142, consistency_loss3_pos: 22.721146, consistency_loss4_pos: 0.005307
+Run: 156 train consistency_loss2_neg: 25.717089, consistency_loss3_neg: 22.705486, consistency_loss4_neg: 0.005219
+Run: 156 VAL ap_score: 0.691818 map_score: 0.700211 Time: 98.73
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 157 train loss: 96.563732 Time: 297.67
+Run: 157 train pair similarity score: 0.082308
+Run: 157 train scores node align: -11.696228, scores kronecker align: -29.887586
+Run: 157 train consistency_loss2: 25.713251, consistency_loss3: 22.703756, consistency_loss4: 0.005318
+Run: 157 train consistency_loss2_pos: 25.693538, consistency_loss3_pos: 22.717482, consistency_loss4_pos: 0.005404
+Run: 157 train consistency_loss2_neg: 25.717784, consistency_loss3_neg: 22.700600, consistency_loss4_neg: 0.005297
+Run: 157 VAL ap_score: 0.663650 map_score: 0.685800 Time: 99.40
+Run: 158 train loss: 96.080548 Time: 298.40
+Run: 158 train pair similarity score: 0.081948
+Run: 158 train scores node align: -11.716378, scores kronecker align: -29.875001
+Run: 158 train consistency_loss2: 25.707448, consistency_loss3: 22.712145, consistency_loss4: 0.005240
+Run: 158 train consistency_loss2_pos: 25.688544, consistency_loss3_pos: 22.724961, consistency_loss4_pos: 0.005335
+Run: 158 train consistency_loss2_neg: 25.711815, consistency_loss3_neg: 22.709186, consistency_loss4_neg: 0.005218
+Run: 158 VAL ap_score: 0.653562 map_score: 0.688690 Time: 99.09
+Run: 159 train loss: 94.839747 Time: 298.27
+Run: 159 train pair similarity score: 0.080766
+Run: 159 train scores node align: -11.666370, scores kronecker align: -29.584496
+Run: 159 train consistency_loss2: 25.712582, consistency_loss3: 22.704574, consistency_loss4: 0.005296
+Run: 159 train consistency_loss2_pos: 25.692227, consistency_loss3_pos: 22.718312, consistency_loss4_pos: 0.005374
+Run: 159 train consistency_loss2_neg: 25.717284, consistency_loss3_neg: 22.701402, consistency_loss4_neg: 0.005278
+Run: 159 VAL ap_score: 0.677958 map_score: 0.691007 Time: 98.70
+Run: 160 train loss: 94.268601 Time: 298.55
+Run: 160 train pair similarity score: 0.080277
+Run: 160 train scores node align: -11.671230, scores kronecker align: -29.676150
+Run: 160 train consistency_loss2: 25.710320, consistency_loss3: 22.706778, consistency_loss4: 0.005266
+Run: 160 train consistency_loss2_pos: 25.689880, consistency_loss3_pos: 22.720759, consistency_loss4_pos: 0.005348
+Run: 160 train consistency_loss2_neg: 25.715037, consistency_loss3_neg: 22.703553, consistency_loss4_neg: 0.005247
+Run: 160 VAL ap_score: 0.656567 map_score: 0.681028 Time: 99.28
+Run: 161 train loss: 94.718335 Time: 298.45
+Run: 161 train pair similarity score: 0.080762
+Run: 161 train scores node align: -11.716997, scores kronecker align: -29.766485
+Run: 161 train consistency_loss2: 25.704539, consistency_loss3: 22.712337, consistency_loss4: 0.005189
+Run: 161 train consistency_loss2_pos: 25.683219, consistency_loss3_pos: 22.726851, consistency_loss4_pos: 0.005264
+Run: 161 train consistency_loss2_neg: 25.709451, consistency_loss3_neg: 22.708995, consistency_loss4_neg: 0.005172
+Run: 161 VAL ap_score: 0.647507 map_score: 0.698576 Time: 99.85
+Run: 162 train loss: 93.825275 Time: 300.37
+Run: 162 train pair similarity score: 0.079937
+Run: 162 train scores node align: -11.687900, scores kronecker align: -29.982656
+Run: 162 train consistency_loss2: 25.707746, consistency_loss3: 22.709551, consistency_loss4: 0.005204
+Run: 162 train consistency_loss2_pos: 25.687451, consistency_loss3_pos: 22.722529, consistency_loss4_pos: 0.005282
+Run: 162 train consistency_loss2_neg: 25.712441, consistency_loss3_neg: 22.706549, consistency_loss4_neg: 0.005186
+Run: 162 VAL ap_score: 0.663065 map_score: 0.695389 Time: 99.60
+Run: 163 train loss: 95.249752 Time: 299.16
+Run: 163 train pair similarity score: 0.081181
+Run: 163 train scores node align: -11.703166, scores kronecker align: -30.028253
+Run: 163 train consistency_loss2: 25.703629, consistency_loss3: 22.709338, consistency_loss4: 0.005253
+Run: 163 train consistency_loss2_pos: 25.682132, consistency_loss3_pos: 22.723544, consistency_loss4_pos: 0.005335
+Run: 163 train consistency_loss2_neg: 25.708594, consistency_loss3_neg: 22.706055, consistency_loss4_neg: 0.005234
+Run: 163 VAL ap_score: 0.660667 map_score: 0.686684 Time: 101.85
+Run: 164 train loss: 94.706463 Time: 298.58
+Run: 164 train pair similarity score: 0.080754
+Run: 164 train scores node align: -11.774885, scores kronecker align: -30.029607
+Run: 164 train consistency_loss2: 25.704227, consistency_loss3: 22.715626, consistency_loss4: 0.005186
+Run: 164 train consistency_loss2_pos: 25.682905, consistency_loss3_pos: 22.728984, consistency_loss4_pos: 0.005265
+Run: 164 train consistency_loss2_neg: 25.709150, consistency_loss3_neg: 22.712546, consistency_loss4_neg: 0.005168
+Run: 164 VAL ap_score: 0.649784 map_score: 0.685722 Time: 101.51
+Run: 165 train loss: 95.053097 Time: 296.77
+Run: 165 train pair similarity score: 0.081107
+Run: 165 train scores node align: -11.798518, scores kronecker align: -30.092651
+Run: 165 train consistency_loss2: 25.705021, consistency_loss3: 22.713648, consistency_loss4: 0.005148
+Run: 165 train consistency_loss2_pos: 25.683758, consistency_loss3_pos: 22.727615, consistency_loss4_pos: 0.005196
+Run: 165 train consistency_loss2_neg: 25.709923, consistency_loss3_neg: 22.710432, consistency_loss4_neg: 0.005137
+Run: 165 VAL ap_score: 0.666164 map_score: 0.682656 Time: 101.66
+Run: 166 train loss: 93.658009 Time: 295.86
+Run: 166 train pair similarity score: 0.079803
+Run: 166 train scores node align: -11.791650, scores kronecker align: -30.195623
+Run: 166 train consistency_loss2: 25.705892, consistency_loss3: 22.710605, consistency_loss4: 0.005187
+Run: 166 train consistency_loss2_pos: 25.684724, consistency_loss3_pos: 22.724811, consistency_loss4_pos: 0.005250
+Run: 166 train consistency_loss2_neg: 25.710774, consistency_loss3_neg: 22.707332, consistency_loss4_neg: 0.005172
+Run: 166 VAL ap_score: 0.662382 map_score: 0.688077 Time: 101.62
+Run: 167 train loss: 95.332675 Time: 295.24
+Run: 167 train pair similarity score: 0.081333
+Run: 167 train scores node align: -11.804083, scores kronecker align: -30.261191
+Run: 167 train consistency_loss2: 25.705661, consistency_loss3: 22.712856, consistency_loss4: 0.005176
+Run: 167 train consistency_loss2_pos: 25.682912, consistency_loss3_pos: 22.727566, consistency_loss4_pos: 0.005260
+Run: 167 train consistency_loss2_neg: 25.710905, consistency_loss3_neg: 22.709469, consistency_loss4_neg: 0.005157
+Run: 167 VAL ap_score: 0.657750 map_score: 0.685580 Time: 102.35
+Run: 168 train loss: 95.202184 Time: 294.20
+Run: 168 train pair similarity score: 0.081072
+Run: 168 train scores node align: -11.824567, scores kronecker align: -30.174166
+Run: 168 train consistency_loss2: 25.715588, consistency_loss3: 22.698263, consistency_loss4: 0.005318
+Run: 168 train consistency_loss2_pos: 25.692884, consistency_loss3_pos: 22.713845, consistency_loss4_pos: 0.005377
+Run: 168 train consistency_loss2_neg: 25.720833, consistency_loss3_neg: 22.694665, consistency_loss4_neg: 0.005304
+Run: 168 VAL ap_score: 0.663914 map_score: 0.689321 Time: 101.07
+Run: 169 train loss: 94.539128 Time: 295.06
+Run: 169 train pair similarity score: 0.080634
+Run: 169 train scores node align: -11.776972, scores kronecker align: -30.139918
+Run: 169 train consistency_loss2: 25.704414, consistency_loss3: 22.711865, consistency_loss4: 0.005155
+Run: 169 train consistency_loss2_pos: 25.683047, consistency_loss3_pos: 22.726563, consistency_loss4_pos: 0.005216
+Run: 169 train consistency_loss2_neg: 25.709346, consistency_loss3_neg: 22.708475, consistency_loss4_neg: 0.005140
+Run: 169 VAL ap_score: 0.657299 map_score: 0.680188 Time: 102.51
+Run: 170 train loss: 94.161803 Time: 295.57
+Run: 170 train pair similarity score: 0.080149
+Run: 170 train scores node align: -11.871650, scores kronecker align: -30.271746
+Run: 170 train consistency_loss2: 25.708768, consistency_loss3: 22.706853, consistency_loss4: 0.005297
+Run: 170 train consistency_loss2_pos: 25.688523, consistency_loss3_pos: 22.720712, consistency_loss4_pos: 0.005375
+Run: 170 train consistency_loss2_neg: 25.713439, consistency_loss3_neg: 22.703656, consistency_loss4_neg: 0.005279
+Run: 170 VAL ap_score: 0.650671 map_score: 0.689654 Time: 102.70
+Run: 171 train loss: 93.522671 Time: 294.57
+Run: 171 train pair similarity score: 0.079696
+Run: 171 train scores node align: -11.846948, scores kronecker align: -30.316271
+Run: 171 train consistency_loss2: 25.699277, consistency_loss3: 22.719036, consistency_loss4: 0.005170
+Run: 171 train consistency_loss2_pos: 25.676715, consistency_loss3_pos: 22.733922, consistency_loss4_pos: 0.005226
+Run: 171 train consistency_loss2_neg: 25.704476, consistency_loss3_neg: 22.715610, consistency_loss4_neg: 0.005158
+Run: 171 VAL ap_score: 0.674123 map_score: 0.692544 Time: 102.40
+Run: 172 train loss: 94.694076 Time: 294.97
+Run: 172 train pair similarity score: 0.080685
+Run: 172 train scores node align: -11.873757, scores kronecker align: -30.385250
+Run: 172 train consistency_loss2: 25.697238, consistency_loss3: 22.714205, consistency_loss4: 0.005244
+Run: 172 train consistency_loss2_pos: 25.675176, consistency_loss3_pos: 22.728338, consistency_loss4_pos: 0.005324
+Run: 172 train consistency_loss2_neg: 25.702331, consistency_loss3_neg: 22.710947, consistency_loss4_neg: 0.005226
+Run: 172 VAL ap_score: 0.664159 map_score: 0.695832 Time: 103.43
+Run: 173 train loss: 94.692945 Time: 294.85
+Run: 173 train pair similarity score: 0.080754
+Run: 173 train scores node align: -11.881089, scores kronecker align: -30.302660
+Run: 173 train consistency_loss2: 25.700786, consistency_loss3: 22.714663, consistency_loss4: 0.005174
+Run: 173 train consistency_loss2_pos: 25.678603, consistency_loss3_pos: 22.729436, consistency_loss4_pos: 0.005228
+Run: 173 train consistency_loss2_neg: 25.705896, consistency_loss3_neg: 22.711262, consistency_loss4_neg: 0.005162
+Run: 173 VAL ap_score: 0.667113 map_score: 0.691214 Time: 104.65
+Run: 174 train loss: 94.607844 Time: 297.30
+Run: 174 train pair similarity score: 0.080626
+Run: 174 train scores node align: -11.879014, scores kronecker align: -30.450417
+Run: 174 train consistency_loss2: 25.698727, consistency_loss3: 22.715498, consistency_loss4: 0.005225
+Run: 174 train consistency_loss2_pos: 25.677106, consistency_loss3_pos: 22.728932, consistency_loss4_pos: 0.005317
+Run: 174 train consistency_loss2_neg: 25.703703, consistency_loss3_neg: 22.712411, consistency_loss4_neg: 0.005203
+Run: 174 VAL ap_score: 0.656433 map_score: 0.681771 Time: 103.82
+Run: 175 train loss: 93.730615 Time: 292.50
+Run: 175 train pair similarity score: 0.079899
+Run: 175 train scores node align: -11.859675, scores kronecker align: -30.274620
+Run: 175 train consistency_loss2: 25.699819, consistency_loss3: 22.715773, consistency_loss4: 0.005156
+Run: 175 train consistency_loss2_pos: 25.678432, consistency_loss3_pos: 22.728947, consistency_loss4_pos: 0.005238
+Run: 175 train consistency_loss2_neg: 25.704759, consistency_loss3_neg: 22.712732, consistency_loss4_neg: 0.005137
+Run: 175 VAL ap_score: 0.657472 map_score: 0.688262 Time: 104.33
+Run: 176 train loss: 95.323138 Time: 296.31
+Run: 176 train pair similarity score: 0.081233
+Run: 176 train scores node align: -11.817170, scores kronecker align: -30.188851
+Run: 176 train consistency_loss2: 25.704802, consistency_loss3: 22.709737, consistency_loss4: 0.005267
+Run: 176 train consistency_loss2_pos: 25.683016, consistency_loss3_pos: 22.723797, consistency_loss4_pos: 0.005342
+Run: 176 train consistency_loss2_neg: 25.709835, consistency_loss3_neg: 22.706489, consistency_loss4_neg: 0.005250
+Run: 176 VAL ap_score: 0.643473 map_score: 0.677517 Time: 108.54
+Run: 177 train loss: 93.848569 Time: 294.51
+Run: 177 train pair similarity score: 0.079972
+Run: 177 train scores node align: -11.799021, scores kronecker align: -30.361310
+Run: 177 train consistency_loss2: 25.702550, consistency_loss3: 22.714399, consistency_loss4: 0.005190
+Run: 177 train consistency_loss2_pos: 25.680107, consistency_loss3_pos: 22.729528, consistency_loss4_pos: 0.005250
+Run: 177 train consistency_loss2_neg: 25.707736, consistency_loss3_neg: 22.710903, consistency_loss4_neg: 0.005177
+Run: 177 VAL ap_score: 0.673561 map_score: 0.697696 Time: 105.57
+Run: 178 train loss: 94.394350 Time: 292.13
+Run: 178 train pair similarity score: 0.080515
+Run: 178 train scores node align: -11.918672, scores kronecker align: -30.420605
+Run: 178 train consistency_loss2: 25.707473, consistency_loss3: 22.713742, consistency_loss4: 0.005142
+Run: 178 train consistency_loss2_pos: 25.685403, consistency_loss3_pos: 22.728105, consistency_loss4_pos: 0.005215
+Run: 178 train consistency_loss2_neg: 25.712568, consistency_loss3_neg: 22.710429, consistency_loss4_neg: 0.005125
+Run: 178 VAL ap_score: 0.655781 map_score: 0.687149 Time: 108.09
+Run: 179 train loss: 94.020140 Time: 294.74
+Run: 179 train pair similarity score: 0.080085
+Run: 179 train scores node align: -11.847957, scores kronecker align: -30.322347
+Run: 179 train consistency_loss2: 25.710196, consistency_loss3: 22.706838, consistency_loss4: 0.005233
+Run: 179 train consistency_loss2_pos: 25.688584, consistency_loss3_pos: 22.720934, consistency_loss4_pos: 0.005293
+Run: 179 train consistency_loss2_neg: 25.715180, consistency_loss3_neg: 22.703591, consistency_loss4_neg: 0.005219
+Run: 179 VAL ap_score: 0.656936 map_score: 0.684454 Time: 109.11
+Run: 180 train loss: 93.041600 Time: 291.65
+Run: 180 train pair similarity score: 0.079267
+Run: 180 train scores node align: -11.788087, scores kronecker align: -30.438759
+Run: 180 train consistency_loss2: 25.702360, consistency_loss3: 22.714849, consistency_loss4: 0.005163
+Run: 180 train consistency_loss2_pos: 25.679648, consistency_loss3_pos: 22.729125, consistency_loss4_pos: 0.005235
+Run: 180 train consistency_loss2_neg: 25.707599, consistency_loss3_neg: 22.711558, consistency_loss4_neg: 0.005146
+Run: 180 VAL ap_score: 0.653316 map_score: 0.674427 Time: 109.03
+Run: 181 train loss: 93.185052 Time: 290.49
+Run: 181 train pair similarity score: 0.079353
+Run: 181 train scores node align: -11.903271, scores kronecker align: -30.421069
+Run: 181 train consistency_loss2: 25.700086, consistency_loss3: 22.715307, consistency_loss4: 0.005207
+Run: 181 train consistency_loss2_pos: 25.678033, consistency_loss3_pos: 22.729133, consistency_loss4_pos: 0.005267
+Run: 181 train consistency_loss2_neg: 25.705166, consistency_loss3_neg: 22.712124, consistency_loss4_neg: 0.005193
+Run: 181 VAL ap_score: 0.669504 map_score: 0.697774 Time: 108.47
+Run: 182 train loss: 94.161194 Time: 292.50
+Run: 182 train pair similarity score: 0.080269
+Run: 182 train scores node align: -11.882429, scores kronecker align: -30.530806
+Run: 182 train consistency_loss2: 25.701480, consistency_loss3: 22.714478, consistency_loss4: 0.005177
+Run: 182 train consistency_loss2_pos: 25.678572, consistency_loss3_pos: 22.729240, consistency_loss4_pos: 0.005244
+Run: 182 train consistency_loss2_neg: 25.706761, consistency_loss3_neg: 22.711077, consistency_loss4_neg: 0.005161
+Run: 182 VAL ap_score: 0.679661 map_score: 0.697843 Time: 106.96
+Run: 183 train loss: 93.915884 Time: 290.05
+Run: 183 train pair similarity score: 0.080083
+Run: 183 train scores node align: -11.928029, scores kronecker align: -30.574478
+Run: 183 train consistency_loss2: 25.700194, consistency_loss3: 22.716845, consistency_loss4: 0.005140
+Run: 183 train consistency_loss2_pos: 25.677430, consistency_loss3_pos: 22.731090, consistency_loss4_pos: 0.005218
+Run: 183 train consistency_loss2_neg: 25.705439, consistency_loss3_neg: 22.713567, consistency_loss4_neg: 0.005122
+Run: 183 VAL ap_score: 0.678213 map_score: 0.687681 Time: 107.24
+Run: 184 train loss: 94.325840 Time: 290.65
+Run: 184 train pair similarity score: 0.080373
+Run: 184 train scores node align: -11.931831, scores kronecker align: -30.610095
+Run: 184 train consistency_loss2: 25.705224, consistency_loss3: 22.708697, consistency_loss4: 0.005222
+Run: 184 train consistency_loss2_pos: 25.681918, consistency_loss3_pos: 22.723482, consistency_loss4_pos: 0.005282
+Run: 184 train consistency_loss2_neg: 25.710594, consistency_loss3_neg: 22.705291, consistency_loss4_neg: 0.005208
+Run: 184 VAL ap_score: 0.657983 map_score: 0.687386 Time: 106.43
+Run: 185 train loss: 93.887686 Time: 293.48
+Run: 185 train pair similarity score: 0.080005
+Run: 185 train scores node align: -11.950561, scores kronecker align: -30.615884
+Run: 185 train consistency_loss2: 25.694618, consistency_loss3: 22.717609, consistency_loss4: 0.005193
+Run: 185 train consistency_loss2_pos: 25.672439, consistency_loss3_pos: 22.731756, consistency_loss4_pos: 0.005251
+Run: 185 train consistency_loss2_neg: 25.699735, consistency_loss3_neg: 22.714347, consistency_loss4_neg: 0.005179
+Run: 185 VAL ap_score: 0.633654 map_score: 0.688979 Time: 106.85
+Run: 186 train loss: 93.866680 Time: 293.37
+Run: 186 train pair similarity score: 0.079989
+Run: 186 train scores node align: -11.954585, scores kronecker align: -30.703823
+Run: 186 train consistency_loss2: 25.700178, consistency_loss3: 22.714900, consistency_loss4: 0.005189
+Run: 186 train consistency_loss2_pos: 25.676525, consistency_loss3_pos: 22.730716, consistency_loss4_pos: 0.005236
+Run: 186 train consistency_loss2_neg: 25.705642, consistency_loss3_neg: 22.711248, consistency_loss4_neg: 0.005178
+Run: 186 VAL ap_score: 0.661493 map_score: 0.681956 Time: 105.44
+Run: 187 train loss: 93.595078 Time: 293.01
+Run: 187 train pair similarity score: 0.079843
+Run: 187 train scores node align: -11.889540, scores kronecker align: -30.402267
+Run: 187 train consistency_loss2: 25.696576, consistency_loss3: 22.720366, consistency_loss4: 0.005089
+Run: 187 train consistency_loss2_pos: 25.672139, consistency_loss3_pos: 22.735965, consistency_loss4_pos: 0.005169
+Run: 187 train consistency_loss2_neg: 25.702217, consistency_loss3_neg: 22.716767, consistency_loss4_neg: 0.005071
+Run: 187 VAL ap_score: 0.638987 map_score: 0.685926 Time: 105.08
+Run: 188 train loss: 93.422732 Time: 292.97
+Run: 188 train pair similarity score: 0.079578
+Run: 188 train scores node align: -11.911487, scores kronecker align: -30.715591
+Run: 188 train consistency_loss2: 25.696581, consistency_loss3: 22.715751, consistency_loss4: 0.005198
+Run: 188 train consistency_loss2_pos: 25.675202, consistency_loss3_pos: 22.729414, consistency_loss4_pos: 0.005257
+Run: 188 train consistency_loss2_neg: 25.701524, consistency_loss3_neg: 22.712588, consistency_loss4_neg: 0.005185
+Run: 188 VAL ap_score: 0.611872 map_score: 0.681429 Time: 102.99
+Run: 189 train loss: 92.929291 Time: 288.16
+Run: 189 train pair similarity score: 0.079241
+Run: 189 train scores node align: -11.968280, scores kronecker align: -30.590725
+Run: 189 train consistency_loss2: 25.695916, consistency_loss3: 22.720140, consistency_loss4: 0.005087
+Run: 189 train consistency_loss2_pos: 25.673691, consistency_loss3_pos: 22.734503, consistency_loss4_pos: 0.005145
+Run: 189 train consistency_loss2_neg: 25.701046, consistency_loss3_neg: 22.716826, consistency_loss4_neg: 0.005073
+Run: 189 VAL ap_score: 0.631794 map_score: 0.682081 Time: 102.90
+Run: 190 train loss: 92.697877 Time: 288.06
+Run: 190 train pair similarity score: 0.079081
+Run: 190 train scores node align: -12.004344, scores kronecker align: -30.732272
+Run: 190 train consistency_loss2: 25.693695, consistency_loss3: 22.722597, consistency_loss4: 0.005037
+Run: 190 train consistency_loss2_pos: 25.669468, consistency_loss3_pos: 22.737657, consistency_loss4_pos: 0.005118
+Run: 190 train consistency_loss2_neg: 25.699286, consistency_loss3_neg: 22.719122, consistency_loss4_neg: 0.005018
+Run: 190 VAL ap_score: 0.669817 map_score: 0.690276 Time: 105.09
+Run: 191 train loss: 92.641895 Time: 296.30
+Run: 191 train pair similarity score: 0.078973
+Run: 191 train scores node align: -12.008723, scores kronecker align: -30.741215
+Run: 191 train consistency_loss2: 25.690660, consistency_loss3: 22.724043, consistency_loss4: 0.005094
+Run: 191 train consistency_loss2_pos: 25.665901, consistency_loss3_pos: 22.739931, consistency_loss4_pos: 0.005125
+Run: 191 train consistency_loss2_neg: 25.696374, consistency_loss3_neg: 22.720375, consistency_loss4_neg: 0.005087
+Run: 191 VAL ap_score: 0.650395 map_score: 0.677867 Time: 104.68
+Run: 192 train loss: 92.988052 Time: 299.01
+Run: 192 train pair similarity score: 0.079282
+Run: 192 train scores node align: -12.033059, scores kronecker align: -30.686528
+Run: 192 train consistency_loss2: 25.689706, consistency_loss3: 22.724904, consistency_loss4: 0.005099
+Run: 192 train consistency_loss2_pos: 25.665443, consistency_loss3_pos: 22.740497, consistency_loss4_pos: 0.005159
+Run: 192 train consistency_loss2_neg: 25.695300, consistency_loss3_neg: 22.721306, consistency_loss4_neg: 0.005085
+Run: 192 VAL ap_score: 0.671317 map_score: 0.690698 Time: 102.95
+Run: 193 train loss: 92.266455 Time: 294.99
+Run: 193 train pair similarity score: 0.078654
+Run: 193 train scores node align: -12.048000, scores kronecker align: -30.766905
+Run: 193 train consistency_loss2: 25.691019, consistency_loss3: 22.724136, consistency_loss4: 0.005072
+Run: 193 train consistency_loss2_pos: 25.667316, consistency_loss3_pos: 22.738947, consistency_loss4_pos: 0.005148
+Run: 193 train consistency_loss2_neg: 25.696486, consistency_loss3_neg: 22.720721, consistency_loss4_neg: 0.005055
+Run: 193 VAL ap_score: 0.639295 map_score: 0.694218 Time: 102.94
+Run: 194 train loss: 92.435154 Time: 296.86
+Run: 194 train pair similarity score: 0.078764
+Run: 194 train scores node align: -12.046256, scores kronecker align: -30.773682
+Run: 194 train consistency_loss2: 25.691972, consistency_loss3: 22.724089, consistency_loss4: 0.005116
+Run: 194 train consistency_loss2_pos: 25.670199, consistency_loss3_pos: 22.738329, consistency_loss4_pos: 0.005169
+Run: 194 train consistency_loss2_neg: 25.697005, consistency_loss3_neg: 22.720795, consistency_loss4_neg: 0.005103
+Run: 194 VAL ap_score: 0.652063 map_score: 0.671407 Time: 102.13
+Run: 195 train loss: 93.366663 Time: 295.85
+Run: 195 train pair similarity score: 0.079664
+Run: 195 train scores node align: -12.044091, scores kronecker align: -30.733026
+Run: 195 train consistency_loss2: 25.693163, consistency_loss3: 22.723509, consistency_loss4: 0.005061
+Run: 195 train consistency_loss2_pos: 25.671757, consistency_loss3_pos: 22.737682, consistency_loss4_pos: 0.005106
+Run: 195 train consistency_loss2_neg: 25.698107, consistency_loss3_neg: 22.720238, consistency_loss4_neg: 0.005050
+Run: 195 VAL ap_score: 0.620190 map_score: 0.681938 Time: 101.63
+Run: 196 train loss: 92.725935 Time: 296.51
+Run: 196 train pair similarity score: 0.079073
+Run: 196 train scores node align: -12.062782, scores kronecker align: -30.837883
+Run: 196 train consistency_loss2: 25.699106, consistency_loss3: 22.719740, consistency_loss4: 0.005071
+Run: 196 train consistency_loss2_pos: 25.677553, consistency_loss3_pos: 22.734308, consistency_loss4_pos: 0.005129
+Run: 196 train consistency_loss2_neg: 25.704075, consistency_loss3_neg: 22.716380, consistency_loss4_neg: 0.005057
+Run: 196 VAL ap_score: 0.620739 map_score: 0.661515 Time: 100.64
+Run: 197 train loss: 92.365159 Time: 298.60
+Run: 197 train pair similarity score: 0.078712
+Run: 197 train scores node align: -12.057313, scores kronecker align: -30.806161
+Run: 197 train consistency_loss2: 25.693447, consistency_loss3: 22.722410, consistency_loss4: 0.005104
+Run: 197 train consistency_loss2_pos: 25.670376, consistency_loss3_pos: 22.737452, consistency_loss4_pos: 0.005162
+Run: 197 train consistency_loss2_neg: 25.698761, consistency_loss3_neg: 22.718949, consistency_loss4_neg: 0.005091
+Run: 197 VAL ap_score: 0.652644 map_score: 0.668322 Time: 100.17
+Run: 198 train loss: 92.091712 Time: 300.53
+Run: 198 train pair similarity score: 0.078500
+Run: 198 train scores node align: -12.032285, scores kronecker align: -30.733157
+Run: 198 train consistency_loss2: 25.700663, consistency_loss3: 22.715075, consistency_loss4: 0.005067
+Run: 198 train consistency_loss2_pos: 25.677996, consistency_loss3_pos: 22.729261, consistency_loss4_pos: 0.005136
+Run: 198 train consistency_loss2_neg: 25.705893, consistency_loss3_neg: 22.711806, consistency_loss4_neg: 0.005052
+Run: 198 VAL ap_score: 0.677413 map_score: 0.701718 Time: 102.31
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 199 train loss: 92.686972 Time: 298.50
+Run: 199 train pair similarity score: 0.079058
+Run: 199 train scores node align: -12.063392, scores kronecker align: -30.789893
+Run: 199 train consistency_loss2: 25.696463, consistency_loss3: 22.721023, consistency_loss4: 0.005050
+Run: 199 train consistency_loss2_pos: 25.672757, consistency_loss3_pos: 22.736399, consistency_loss4_pos: 0.005096
+Run: 199 train consistency_loss2_neg: 25.701934, consistency_loss3_neg: 22.717477, consistency_loss4_neg: 0.005039
+Run: 199 VAL ap_score: 0.664891 map_score: 0.692411 Time: 100.57
+Run: 200 train loss: 93.502673 Time: 299.72
+Run: 200 train pair similarity score: 0.079642
+Run: 200 train scores node align: -12.023488, scores kronecker align: -30.770253
+Run: 200 train consistency_loss2: 25.695403, consistency_loss3: 22.717084, consistency_loss4: 0.005207
+Run: 200 train consistency_loss2_pos: 25.672229, consistency_loss3_pos: 22.732412, consistency_loss4_pos: 0.005247
+Run: 200 train consistency_loss2_neg: 25.700744, consistency_loss3_neg: 22.713557, consistency_loss4_neg: 0.005197
+Run: 200 VAL ap_score: 0.674502 map_score: 0.701220 Time: 100.04
+Run: 201 train loss: 92.474207 Time: 296.87
+Run: 201 train pair similarity score: 0.078914
+Run: 201 train scores node align: -11.962352, scores kronecker align: -30.735395
+Run: 201 train consistency_loss2: 25.694529, consistency_loss3: 22.723959, consistency_loss4: 0.005001
+Run: 201 train consistency_loss2_pos: 25.670731, consistency_loss3_pos: 22.739482, consistency_loss4_pos: 0.005044
+Run: 201 train consistency_loss2_neg: 25.700009, consistency_loss3_neg: 22.720393, consistency_loss4_neg: 0.004992
+Run: 201 VAL ap_score: 0.667731 map_score: 0.695027 Time: 100.58
+Run: 202 train loss: 94.076375 Time: 299.25
+Run: 202 train pair similarity score: 0.080307
+Run: 202 train scores node align: -12.012950, scores kronecker align: -30.899010
+Run: 202 train consistency_loss2: 25.688253, consistency_loss3: 22.725311, consistency_loss4: 0.005061
+Run: 202 train consistency_loss2_pos: 25.664191, consistency_loss3_pos: 22.741771, consistency_loss4_pos: 0.005077
+Run: 202 train consistency_loss2_neg: 25.693799, consistency_loss3_neg: 22.721520, consistency_loss4_neg: 0.005058
+Run: 202 VAL ap_score: 0.650331 map_score: 0.692678 Time: 99.35
+Run: 203 train loss: 92.889740 Time: 299.21
+Run: 203 train pair similarity score: 0.079271
+Run: 203 train scores node align: -12.092766, scores kronecker align: -31.041037
+Run: 203 train consistency_loss2: 25.694380, consistency_loss3: 22.724346, consistency_loss4: 0.005021
+Run: 203 train consistency_loss2_pos: 25.669398, consistency_loss3_pos: 22.741585, consistency_loss4_pos: 0.005045
+Run: 203 train consistency_loss2_neg: 25.700149, consistency_loss3_neg: 22.720370, consistency_loss4_neg: 0.005015
+Run: 203 VAL ap_score: 0.683947 map_score: 0.703148 Time: 100.78
+saving best validated model to ./nanl_consistency_45_losstype5_losslambda1_consistencylambda07/bestValidationModels/nanl_consistency_45_mutag_4586_2024-01-08_09:48:13.939128
+Run: 204 train loss: 91.734404 Time: 297.84
+Run: 204 train pair similarity score: 0.078136
+Run: 204 train scores node align: -12.095055, scores kronecker align: -30.909394
+Run: 204 train consistency_loss2: 25.690166, consistency_loss3: 22.722981, consistency_loss4: 0.005107
+Run: 204 train consistency_loss2_pos: 25.667361, consistency_loss3_pos: 22.738362, consistency_loss4_pos: 0.005142
+Run: 204 train consistency_loss2_neg: 25.695431, consistency_loss3_neg: 22.719430, consistency_loss4_neg: 0.005099
+Run: 204 VAL ap_score: 0.670113 map_score: 0.687384 Time: 102.21
+Run: 205 train loss: 92.466987 Time: 296.04
+Run: 205 train pair similarity score: 0.078822
+Run: 205 train scores node align: -12.121228, scores kronecker align: -30.906074
+Run: 205 train consistency_loss2: 25.691508, consistency_loss3: 22.724014, consistency_loss4: 0.005086
+Run: 205 train consistency_loss2_pos: 25.667925, consistency_loss3_pos: 22.739204, consistency_loss4_pos: 0.005139
+Run: 205 train consistency_loss2_neg: 25.696948, consistency_loss3_neg: 22.720512, consistency_loss4_neg: 0.005074
+Run: 205 VAL ap_score: 0.666045 map_score: 0.689873 Time: 103.72
+Run: 206 train loss: 92.367625 Time: 296.90
+Run: 206 train pair similarity score: 0.078753
+Run: 206 train scores node align: -12.087133, scores kronecker align: -31.017559
+Run: 206 train consistency_loss2: 25.697931, consistency_loss3: 22.722969, consistency_loss4: 0.005065
+Run: 206 train consistency_loss2_pos: 25.673376, consistency_loss3_pos: 22.739265, consistency_loss4_pos: 0.005094
+Run: 206 train consistency_loss2_neg: 25.703593, consistency_loss3_neg: 22.719214, consistency_loss4_neg: 0.005059
+Run: 206 VAL ap_score: 0.630942 map_score: 0.681668 Time: 105.03
+Run: 207 train loss: 93.724924 Time: 291.80
+Run: 207 train pair similarity score: 0.080029
+Run: 207 train scores node align: -12.122284, scores kronecker align: -31.078805
+Run: 207 train consistency_loss2: 25.686956, consistency_loss3: 22.728467, consistency_loss4: 0.005021
+Run: 207 train consistency_loss2_pos: 25.663769, consistency_loss3_pos: 22.743710, consistency_loss4_pos: 0.005085
+Run: 207 train consistency_loss2_neg: 25.692300, consistency_loss3_neg: 22.724956, consistency_loss4_neg: 0.005006
+Run: 207 VAL ap_score: 0.649264 map_score: 0.686724 Time: 103.24
+Run: 208 train loss: 91.655076 Time: 293.77
+Run: 208 train pair similarity score: 0.078172
+Run: 208 train scores node align: -12.181307, scores kronecker align: -31.111075
+Run: 208 train consistency_loss2: 25.688155, consistency_loss3: 22.727845, consistency_loss4: 0.005000
+Run: 208 train consistency_loss2_pos: 25.662397, consistency_loss3_pos: 22.744297, consistency_loss4_pos: 0.005051
+Run: 208 train consistency_loss2_neg: 25.694114, consistency_loss3_neg: 22.724034, consistency_loss4_neg: 0.004988
+Run: 208 VAL ap_score: 0.661729 map_score: 0.678275 Time: 104.01
+Run: 209 train loss: 91.558422 Time: 296.60
+Run: 209 train pair similarity score: 0.078063
+Run: 209 train scores node align: -12.163840, scores kronecker align: -31.333724
+Run: 209 train consistency_loss2: 25.688813, consistency_loss3: 22.728264, consistency_loss4: 0.005021
+Run: 209 train consistency_loss2_pos: 25.664238, consistency_loss3_pos: 22.744895, consistency_loss4_pos: 0.005060
+Run: 209 train consistency_loss2_neg: 25.694482, consistency_loss3_neg: 22.724428, consistency_loss4_neg: 0.005012
+Run: 209 VAL ap_score: 0.625080 map_score: 0.691747 Time: 101.64
+Run: 210 train loss: 92.217185 Time: 297.70
+Run: 210 train pair similarity score: 0.078661
+Run: 210 train scores node align: -12.132940, scores kronecker align: -31.031108
+Run: 210 train consistency_loss2: 25.689677, consistency_loss3: 22.729637, consistency_loss4: 0.005020
+Run: 210 train consistency_loss2_pos: 25.664972, consistency_loss3_pos: 22.745473, consistency_loss4_pos: 0.005082
+Run: 210 train consistency_loss2_neg: 25.695385, consistency_loss3_neg: 22.725981, consistency_loss4_neg: 0.005006
+Run: 210 VAL ap_score: 0.665512 map_score: 0.688382 Time: 100.04
+Run: 211 train loss: 91.418846 Time: 298.26
+Run: 211 train pair similarity score: 0.077984
+Run: 211 train scores node align: -12.132040, scores kronecker align: -31.176048
+Run: 211 train consistency_loss2: 25.692028, consistency_loss3: 22.730171, consistency_loss4: 0.004973
+Run: 211 train consistency_loss2_pos: 25.665911, consistency_loss3_pos: 22.746998, consistency_loss4_pos: 0.005000
+Run: 211 train consistency_loss2_neg: 25.698055, consistency_loss3_neg: 22.726291, consistency_loss4_neg: 0.004967
+Run: 211 VAL ap_score: 0.627354 map_score: 0.685116 Time: 102.73
+Run: 212 train loss: 92.971307 Time: 296.24
+Run: 212 train pair similarity score: 0.079445
+Run: 212 train scores node align: -12.183026, scores kronecker align: -31.249725
+Run: 212 train consistency_loss2: 25.692594, consistency_loss3: 22.730747, consistency_loss4: 0.004921
+Run: 212 train consistency_loss2_pos: 25.665478, consistency_loss3_pos: 22.748808, consistency_loss4_pos: 0.004956
+Run: 212 train consistency_loss2_neg: 25.698851, consistency_loss3_neg: 22.726580, consistency_loss4_neg: 0.004914
+Run: 212 VAL ap_score: 0.664328 map_score: 0.683801 Time: 102.21
+Run: 213 train loss: 92.399766 Time: 296.89
+Run: 213 train pair similarity score: 0.078898
+Run: 213 train scores node align: -12.204456, scores kronecker align: -31.280739
+Run: 213 train consistency_loss2: 25.685812, consistency_loss3: 22.733232, consistency_loss4: 0.004949
+Run: 213 train consistency_loss2_pos: 25.660671, consistency_loss3_pos: 22.749225, consistency_loss4_pos: 0.004991
+Run: 213 train consistency_loss2_neg: 25.691624, consistency_loss3_neg: 22.729537, consistency_loss4_neg: 0.004940
+Run: 213 VAL ap_score: 0.637593 map_score: 0.692798 Time: 101.30
+Run: 214 train loss: 92.892487 Time: 297.95
+Run: 214 train pair similarity score: 0.079212
+Run: 214 train scores node align: -12.145336, scores kronecker align: -31.189116
+Run: 214 train consistency_loss2: 25.690440, consistency_loss3: 22.723298, consistency_loss4: 0.005083
+Run: 214 train consistency_loss2_pos: 25.665901, consistency_loss3_pos: 22.739764, consistency_loss4_pos: 0.005111
+Run: 214 train consistency_loss2_neg: 25.696109, consistency_loss3_neg: 22.719495, consistency_loss4_neg: 0.005076
+Run: 214 VAL ap_score: 0.636697 map_score: 0.686542 Time: 102.98
+Run: 215 train loss: 91.383448 Time: 296.53
+Run: 215 train pair similarity score: 0.077896
+Run: 215 train scores node align: -12.174782, scores kronecker align: -31.105069
+Run: 215 train consistency_loss2: 25.692115, consistency_loss3: 22.723646, consistency_loss4: 0.005029
+Run: 215 train consistency_loss2_pos: 25.666028, consistency_loss3_pos: 22.740481, consistency_loss4_pos: 0.005080
+Run: 215 train consistency_loss2_neg: 25.698138, consistency_loss3_neg: 22.719758, consistency_loss4_neg: 0.005017
+Run: 215 VAL ap_score: 0.656232 map_score: 0.680048 Time: 101.57
+Run: 216 train loss: 92.799748 Time: 297.46
+Run: 216 train pair similarity score: 0.079125
+Run: 216 train scores node align: -12.197358, scores kronecker align: -31.160048
+Run: 216 train consistency_loss2: 25.688175, consistency_loss3: 22.726776, consistency_loss4: 0.005086
+Run: 216 train consistency_loss2_pos: 25.661232, consistency_loss3_pos: 22.744767, consistency_loss4_pos: 0.005091
+Run: 216 train consistency_loss2_neg: 25.694391, consistency_loss3_neg: 22.722624, consistency_loss4_neg: 0.005084
+Run: 216 VAL ap_score: 0.668312 map_score: 0.691641 Time: 101.79
+Run: 217 train loss: 90.977849 Time: 297.26
+Run: 217 train pair similarity score: 0.077606
+Run: 217 train scores node align: -12.192803, scores kronecker align: -30.898629
+Run: 217 train consistency_loss2: 25.691306, consistency_loss3: 22.726989, consistency_loss4: 0.004951
+Run: 217 train consistency_loss2_pos: 25.664810, consistency_loss3_pos: 22.743833, consistency_loss4_pos: 0.004992
+Run: 217 train consistency_loss2_neg: 25.697421, consistency_loss3_neg: 22.723102, consistency_loss4_neg: 0.004942
+Run: 217 VAL ap_score: 0.672597 map_score: 0.701555 Time: 102.58
+Run: 218 train loss: 91.461582 Time: 297.75
+Run: 218 train pair similarity score: 0.078021
+Run: 218 train scores node align: -12.238297, scores kronecker align: -31.058531
+Run: 218 train consistency_loss2: 25.691743, consistency_loss3: 22.728710, consistency_loss4: 0.004975
+Run: 218 train consistency_loss2_pos: 25.665331, consistency_loss3_pos: 22.746207, consistency_loss4_pos: 0.005010
+Run: 218 train consistency_loss2_neg: 25.697840, consistency_loss3_neg: 22.724673, consistency_loss4_neg: 0.004967
+Run: 218 VAL ap_score: 0.650789 map_score: 0.683306 Time: 100.61
+Run: 219 train loss: 92.593310 Time: 296.17
+Run: 219 train pair similarity score: 0.078959
+Run: 219 train scores node align: -12.183718, scores kronecker align: -31.133489
+Run: 219 train consistency_loss2: 25.693099, consistency_loss3: 22.726614, consistency_loss4: 0.005064
+Run: 219 train consistency_loss2_pos: 25.667462, consistency_loss3_pos: 22.744272, consistency_loss4_pos: 0.005071
+Run: 219 train consistency_loss2_neg: 25.699013, consistency_loss3_neg: 22.722540, consistency_loss4_neg: 0.005063
+Run: 219 VAL ap_score: 0.675240 map_score: 0.697649 Time: 98.89
+Run: 220 train loss: 93.043775 Time: 298.31
+Run: 220 train pair similarity score: 0.079367
+Run: 220 train scores node align: -12.258946, scores kronecker align: -31.017709
+Run: 220 train consistency_loss2: 25.694333, consistency_loss3: 22.723243, consistency_loss4: 0.005065
+Run: 220 train consistency_loss2_pos: 25.668731, consistency_loss3_pos: 22.740632, consistency_loss4_pos: 0.005068
+Run: 220 train consistency_loss2_neg: 25.700234, consistency_loss3_neg: 22.719242, consistency_loss4_neg: 0.005064
+Run: 220 VAL ap_score: 0.642958 map_score: 0.693571 Time: 99.59
+Run: 221 train loss: 92.329422 Time: 296.47
+Run: 221 train pair similarity score: 0.078701
+Run: 221 train scores node align: -12.205157, scores kronecker align: -31.051671
+Run: 221 train consistency_loss2: 25.690003, consistency_loss3: 22.726305, consistency_loss4: 0.005082
+Run: 221 train consistency_loss2_pos: 25.664941, consistency_loss3_pos: 22.742607, consistency_loss4_pos: 0.005121
+Run: 221 train consistency_loss2_neg: 25.695781, consistency_loss3_neg: 22.722548, consistency_loss4_neg: 0.005073
+Run: 221 VAL ap_score: 0.678555 map_score: 0.700284 Time: 98.96
+Run: 222 train loss: 91.504439 Time: 297.11
+Run: 222 train pair similarity score: 0.078024
+Run: 222 train scores node align: -12.223125, scores kronecker align: -30.964272
+Run: 222 train consistency_loss2: 25.687733, consistency_loss3: 22.729581, consistency_loss4: 0.005011
+Run: 222 train consistency_loss2_pos: 25.662848, consistency_loss3_pos: 22.746477, consistency_loss4_pos: 0.005049
+Run: 222 train consistency_loss2_neg: 25.693467, consistency_loss3_neg: 22.725690, consistency_loss4_neg: 0.005002
+Run: 222 VAL ap_score: 0.668173 map_score: 0.697139 Time: 98.91
+Run: 223 train loss: 92.305143 Time: 297.34
+Run: 223 train pair similarity score: 0.078646
+Run: 223 train scores node align: -12.247022, scores kronecker align: -30.889978
+Run: 223 train consistency_loss2: 25.694114, consistency_loss3: 22.722774, consistency_loss4: 0.005115
+Run: 223 train consistency_loss2_pos: 25.668367, consistency_loss3_pos: 22.741059, consistency_loss4_pos: 0.005117
+Run: 223 train consistency_loss2_neg: 25.700055, consistency_loss3_neg: 22.718553, consistency_loss4_neg: 0.005115
+Run: 223 VAL ap_score: 0.653223 map_score: 0.684909 Time: 98.38
+Run: 224 train loss: 91.382575 Time: 298.92
+Run: 224 train pair similarity score: 0.077976
+Run: 224 train scores node align: -12.304245, scores kronecker align: -31.119609
+Run: 224 train consistency_loss2: 25.687805, consistency_loss3: 22.732655, consistency_loss4: 0.004948
+Run: 224 train consistency_loss2_pos: 25.661397, consistency_loss3_pos: 22.751014, consistency_loss4_pos: 0.004948
+Run: 224 train consistency_loss2_neg: 25.693892, consistency_loss3_neg: 22.728425, consistency_loss4_neg: 0.004948
+Run: 224 VAL ap_score: 0.675585 map_score: 0.690243 Time: 101.30
+Run: 225 train loss: 91.816080 Time: 297.11
+Run: 225 train pair similarity score: 0.078323
+Run: 225 train scores node align: -12.280983, scores kronecker align: -31.004129
+Run: 225 train consistency_loss2: 25.685547, consistency_loss3: 22.732133, consistency_loss4: 0.004995
+Run: 225 train consistency_loss2_pos: 25.660274, consistency_loss3_pos: 22.749492, consistency_loss4_pos: 0.005022
+Run: 225 train consistency_loss2_neg: 25.691369, consistency_loss3_neg: 22.728133, consistency_loss4_neg: 0.004988
+Run: 225 VAL ap_score: 0.655666 map_score: 0.688135 Time: 100.58
+Run: 226 train loss: 92.367374 Time: 295.93
+Run: 226 train pair similarity score: 0.078722
+Run: 226 train scores node align: -12.205351, scores kronecker align: -31.056672
+Run: 226 train consistency_loss2: 25.693003, consistency_loss3: 22.723245, consistency_loss4: 0.005096
+Run: 226 train consistency_loss2_pos: 25.668547, consistency_loss3_pos: 22.739997, consistency_loss4_pos: 0.005121
+Run: 226 train consistency_loss2_neg: 25.698646, consistency_loss3_neg: 22.719380, consistency_loss4_neg: 0.005090
+Run: 226 VAL ap_score: 0.670611 map_score: 0.688930 Time: 101.31
+Run: 227 train loss: 91.159171 Time: 296.50
+Run: 227 train pair similarity score: 0.077656
+Run: 227 train scores node align: -12.212579, scores kronecker align: -31.096768
+Run: 227 train consistency_loss2: 25.685638, consistency_loss3: 22.731880, consistency_loss4: 0.005066
+Run: 227 train consistency_loss2_pos: 25.659868, consistency_loss3_pos: 22.748949, consistency_loss4_pos: 0.005091
+Run: 227 train consistency_loss2_neg: 25.691583, consistency_loss3_neg: 22.727944, consistency_loss4_neg: 0.005060
+Run: 227 VAL ap_score: 0.660905 map_score: 0.686605 Time: 102.32
+Run: 228 train loss: 91.275496 Time: 295.81
+Run: 228 train pair similarity score: 0.077769
+Run: 228 train scores node align: -12.240554, scores kronecker align: -31.159351
+Run: 228 train consistency_loss2: 25.691622, consistency_loss3: 22.726022, consistency_loss4: 0.005058
+Run: 228 train consistency_loss2_pos: 25.667396, consistency_loss3_pos: 22.742017, consistency_loss4_pos: 0.005108
+Run: 228 train consistency_loss2_neg: 25.697206, consistency_loss3_neg: 22.722340, consistency_loss4_neg: 0.005047
+Run: 228 VAL ap_score: 0.647140 map_score: 0.678009 Time: 104.00
+Run: 229 train loss: 91.386578 Time: 296.15
+Run: 229 train pair similarity score: 0.077856
+Run: 229 train scores node align: -12.258261, scores kronecker align: -31.194421
+Run: 229 train consistency_loss2: 25.690655, consistency_loss3: 22.725565, consistency_loss4: 0.005072
+Run: 229 train consistency_loss2_pos: 25.664376, consistency_loss3_pos: 22.743024, consistency_loss4_pos: 0.005117
+Run: 229 train consistency_loss2_neg: 25.696719, consistency_loss3_neg: 22.721539, consistency_loss4_neg: 0.005062
+Run: 229 VAL ap_score: 0.633300 map_score: 0.697148 Time: 105.53
+Run: 230 train loss: 91.417311 Time: 297.16
+Run: 230 train pair similarity score: 0.077923
+Run: 230 train scores node align: -12.263538, scores kronecker align: -31.059690
+Run: 230 train consistency_loss2: 25.689590, consistency_loss3: 22.727923, consistency_loss4: 0.005033
+Run: 230 train consistency_loss2_pos: 25.663983, consistency_loss3_pos: 22.745201, consistency_loss4_pos: 0.005059
+Run: 230 train consistency_loss2_neg: 25.695502, consistency_loss3_neg: 22.723939, consistency_loss4_neg: 0.005027
+Run: 230 VAL ap_score: 0.647602 map_score: 0.677897 Time: 106.05
+Run: 231 train loss: 91.748240 Time: 292.99
+Run: 231 train pair similarity score: 0.078193
+Run: 231 train scores node align: -12.272106, scores kronecker align: -31.315956
+Run: 231 train consistency_loss2: 25.687683, consistency_loss3: 22.726188, consistency_loss4: 0.005063
+Run: 231 train consistency_loss2_pos: 25.662666, consistency_loss3_pos: 22.742968, consistency_loss4_pos: 0.005089
+Run: 231 train consistency_loss2_neg: 25.693457, consistency_loss3_neg: 22.722314, consistency_loss4_neg: 0.005057
+Run: 231 VAL ap_score: 0.659927 map_score: 0.694126 Time: 107.52
+Run: 232 train loss: 91.676822 Time: 294.71
+Run: 232 train pair similarity score: 0.078152
+Run: 232 train scores node align: -12.283416, scores kronecker align: -31.147296
+Run: 232 train consistency_loss2: 25.688164, consistency_loss3: 22.728653, consistency_loss4: 0.005040
+Run: 232 train consistency_loss2_pos: 25.661620, consistency_loss3_pos: 22.745926, consistency_loss4_pos: 0.005078
+Run: 232 train consistency_loss2_neg: 25.694281, consistency_loss3_neg: 22.724673, consistency_loss4_neg: 0.005031
+Run: 232 VAL ap_score: 0.653780 map_score: 0.688770 Time: 107.78
+Run: 233 train loss: 91.454149 Time: 294.95
+Run: 233 train pair similarity score: 0.077908
+Run: 233 train scores node align: -12.285107, scores kronecker align: -31.212277
+Run: 233 train consistency_loss2: 25.688646, consistency_loss3: 22.726188, consistency_loss4: 0.005081
+Run: 233 train consistency_loss2_pos: 25.662523, consistency_loss3_pos: 22.744026, consistency_loss4_pos: 0.005103
+Run: 233 train consistency_loss2_neg: 25.694679, consistency_loss3_neg: 22.722071, consistency_loss4_neg: 0.005076
+Run: 233 VAL ap_score: 0.657964 map_score: 0.693428 Time: 104.62
+Run: 234 train loss: 92.127460 Time: 291.38
+Run: 234 train pair similarity score: 0.078483
+Run: 234 train scores node align: -12.267798, scores kronecker align: -31.185069
+Run: 234 train consistency_loss2: 25.690209, consistency_loss3: 22.727286, consistency_loss4: 0.005118
+Run: 234 train consistency_loss2_pos: 25.663145, consistency_loss3_pos: 22.745780, consistency_loss4_pos: 0.005129
+Run: 234 train consistency_loss2_neg: 25.696466, consistency_loss3_neg: 22.723010, consistency_loss4_neg: 0.005115
+Run: 234 VAL ap_score: 0.638002 map_score: 0.682241 Time: 104.97
+Run: 235 train loss: 91.668584 Time: 295.20
+Run: 235 train pair similarity score: 0.078091
+Run: 235 train scores node align: -12.335036, scores kronecker align: -31.236821
+Run: 235 train consistency_loss2: 25.688642, consistency_loss3: 22.730563, consistency_loss4: 0.005093
+Run: 235 train consistency_loss2_pos: 25.660145, consistency_loss3_pos: 22.749874, consistency_loss4_pos: 0.005106
+Run: 235 train consistency_loss2_neg: 25.695212, consistency_loss3_neg: 22.726115, consistency_loss4_neg: 0.005089
+Run: 235 VAL ap_score: 0.664750 map_score: 0.695746 Time: 102.98
+Run: 236 train loss: 91.289472 Time: 297.71
+Run: 236 train pair similarity score: 0.077836
+Run: 236 train scores node align: -12.348453, scores kronecker align: -31.318165
+Run: 236 train consistency_loss2: 25.685700, consistency_loss3: 22.732569, consistency_loss4: 0.005003
+Run: 236 train consistency_loss2_pos: 25.658545, consistency_loss3_pos: 22.750910, consistency_loss4_pos: 0.005026
+Run: 236 train consistency_loss2_neg: 25.691957, consistency_loss3_neg: 22.728341, consistency_loss4_neg: 0.004998
+Run: 236 VAL ap_score: 0.667357 map_score: 0.696803 Time: 101.32
+Run: 237 train loss: 91.508156 Time: 299.20
+Run: 237 train pair similarity score: 0.077956
+Run: 237 train scores node align: -12.244785, scores kronecker align: -31.134281
+Run: 237 train consistency_loss2: 25.693070, consistency_loss3: 22.727090, consistency_loss4: 0.005082
+Run: 237 train consistency_loss2_pos: 25.664995, consistency_loss3_pos: 22.745576, consistency_loss4_pos: 0.005102
+Run: 237 train consistency_loss2_neg: 25.699548, consistency_loss3_neg: 22.722827, consistency_loss4_neg: 0.005077
+Run: 237 VAL ap_score: 0.659404 map_score: 0.701975 Time: 99.70
+Run: 238 train loss: 90.725580 Time: 295.94
+Run: 238 train pair similarity score: 0.077250
+Run: 238 train scores node align: -12.298947, scores kronecker align: -31.182278
+Run: 238 train consistency_loss2: 25.693072, consistency_loss3: 22.726946, consistency_loss4: 0.005078
+Run: 238 train consistency_loss2_pos: 25.665530, consistency_loss3_pos: 22.745100, consistency_loss4_pos: 0.005104
+Run: 238 train consistency_loss2_neg: 25.699424, consistency_loss3_neg: 22.722762, consistency_loss4_neg: 0.005072
+Run: 238 VAL ap_score: 0.634666 map_score: 0.686982 Time: 97.57
+Run: 239 train loss: 91.470829 Time: 287.90
+Run: 239 train pair similarity score: 0.077932
+Run: 239 train scores node align: -12.317585, scores kronecker align: -31.072200
+Run: 239 train consistency_loss2: 25.686614, consistency_loss3: 22.729890, consistency_loss4: 0.005072
+Run: 239 train consistency_loss2_pos: 25.659469, consistency_loss3_pos: 22.747855, consistency_loss4_pos: 0.005100
+Run: 239 train consistency_loss2_neg: 25.692882, consistency_loss3_neg: 22.725741, consistency_loss4_neg: 0.005066
+Run: 239 VAL ap_score: 0.641016 map_score: 0.694291 Time: 100.16
+Run: 240 train loss: 91.030583 Time: 285.00
+Run: 240 train pair similarity score: 0.077544
+Run: 240 train scores node align: -12.272048, scores kronecker align: -31.133177
+Run: 240 train consistency_loss2: 25.686280, consistency_loss3: 22.731779, consistency_loss4: 0.005061
+Run: 240 train consistency_loss2_pos: 25.659155, consistency_loss3_pos: 22.750903, consistency_loss4_pos: 0.005094
+Run: 240 train consistency_loss2_neg: 25.692533, consistency_loss3_neg: 22.727373, consistency_loss4_neg: 0.005054
+Run: 240 VAL ap_score: 0.648730 map_score: 0.683310 Time: 101.24
+Run: 241 train loss: 91.031449 Time: 290.92
+Run: 241 train pair similarity score: 0.077457
+Run: 241 train scores node align: -12.365514, scores kronecker align: -31.261224
+Run: 241 train consistency_loss2: 25.689609, consistency_loss3: 22.726698, consistency_loss4: 0.005148
+Run: 241 train consistency_loss2_pos: 25.659839, consistency_loss3_pos: 22.746400, consistency_loss4_pos: 0.005189
+Run: 241 train consistency_loss2_neg: 25.696476, consistency_loss3_neg: 22.722157, consistency_loss4_neg: 0.005139
+Run: 241 VAL ap_score: 0.613815 map_score: 0.689792 Time: 97.75
+Run: 242 train loss: 91.544020 Time: 284.09
+Run: 242 train pair similarity score: 0.077969
+Run: 242 train scores node align: -12.317052, scores kronecker align: -31.000132
+Run: 242 train consistency_loss2: 25.695839, consistency_loss3: 22.723568, consistency_loss4: 0.005102
+Run: 242 train consistency_loss2_pos: 25.667644, consistency_loss3_pos: 22.742257, consistency_loss4_pos: 0.005122
+Run: 242 train consistency_loss2_neg: 25.702337, consistency_loss3_neg: 22.719264, consistency_loss4_neg: 0.005097
+Run: 242 VAL ap_score: 0.685541 map_score: 0.700158 Time: 99.12
+Run: 243 train loss: 91.298519 Time: 285.80
+Run: 243 train pair similarity score: 0.077768
+Run: 243 train scores node align: -12.352238, scores kronecker align: -31.184602
+Run: 243 train consistency_loss2: 25.688672, consistency_loss3: 22.729853, consistency_loss4: 0.005080
+Run: 243 train consistency_loss2_pos: 25.659502, consistency_loss3_pos: 22.749286, consistency_loss4_pos: 0.005093
+Run: 243 train consistency_loss2_neg: 25.695395, consistency_loss3_neg: 22.725378, consistency_loss4_neg: 0.005077
+Run: 243 VAL ap_score: 0.656677 map_score: 0.689496 Time: 97.28
+Run: 244 train loss: 91.461786 Time: 280.65
+Run: 244 train pair similarity score: 0.077943
+Run: 244 train scores node align: -12.306319, scores kronecker align: -31.212035
+Run: 244 train consistency_loss2: 25.684758, consistency_loss3: 22.733635, consistency_loss4: 0.005053
+Run: 244 train consistency_loss2_pos: 25.656814, consistency_loss3_pos: 22.751701, consistency_loss4_pos: 0.005100
+Run: 244 train consistency_loss2_neg: 25.691204, consistency_loss3_neg: 22.729468, consistency_loss4_neg: 0.005042
+Run: 244 VAL ap_score: 0.678700 map_score: 0.691382 Time: 101.09
+Run: 245 train loss: 90.437593 Time: 281.98
+Run: 245 train pair similarity score: 0.077108
+Run: 245 train scores node align: -12.352153, scores kronecker align: -31.320445
+Run: 245 train consistency_loss2: 25.683344, consistency_loss3: 22.738849, consistency_loss4: 0.004959
+Run: 245 train consistency_loss2_pos: 25.654835, consistency_loss3_pos: 22.757629, consistency_loss4_pos: 0.004981
+Run: 245 train consistency_loss2_neg: 25.689925, consistency_loss3_neg: 22.734515, consistency_loss4_neg: 0.004954
+Run: 245 VAL ap_score: 0.673917 map_score: 0.689734 Time: 98.34
+Run: 246 train loss: 91.690134 Time: 280.41
+Run: 246 train pair similarity score: 0.078077
+Run: 246 train scores node align: -12.359780, scores kronecker align: -31.332575
+Run: 246 train consistency_loss2: 25.687691, consistency_loss3: 22.732839, consistency_loss4: 0.005127
+Run: 246 train consistency_loss2_pos: 25.658724, consistency_loss3_pos: 22.752494, consistency_loss4_pos: 0.005142
+Run: 246 train consistency_loss2_neg: 25.694376, consistency_loss3_neg: 22.728307, consistency_loss4_neg: 0.005123
+Run: 246 VAL ap_score: 0.668834 map_score: 0.695988 Time: 98.79
+Run: 247 train loss: 92.117533 Time: 281.15
+Run: 247 train pair similarity score: 0.078530
+Run: 247 train scores node align: -12.296000, scores kronecker align: -30.976960
+Run: 247 train consistency_loss2: 25.683853, consistency_loss3: 22.733730, consistency_loss4: 0.005061
+Run: 247 train consistency_loss2_pos: 25.655468, consistency_loss3_pos: 22.752696, consistency_loss4_pos: 0.005096
+Run: 247 train consistency_loss2_neg: 25.690399, consistency_loss3_neg: 22.729360, consistency_loss4_neg: 0.005053
+Run: 247 VAL ap_score: 0.660136 map_score: 0.695126 Time: 100.95
+Run: 248 train loss: 90.964855 Time: 284.37
+Run: 248 train pair similarity score: 0.077547
+Run: 248 train scores node align: -12.364770, scores kronecker align: -31.229766
+Run: 248 train consistency_loss2: 25.686782, consistency_loss3: 22.735521, consistency_loss4: 0.004998
+Run: 248 train consistency_loss2_pos: 25.657969, consistency_loss3_pos: 22.755062, consistency_loss4_pos: 0.005018
+Run: 248 train consistency_loss2_neg: 25.693431, consistency_loss3_neg: 22.731011, consistency_loss4_neg: 0.004994
+Run: 248 VAL ap_score: 0.641619 map_score: 0.692252 Time: 101.17
+Run: 249 train loss: 91.564745 Time: 283.07
+Run: 249 train pair similarity score: 0.078000
+Run: 249 train scores node align: -12.386079, scores kronecker align: -31.358310
+Run: 249 train consistency_loss2: 25.682011, consistency_loss3: 22.735850, consistency_loss4: 0.005090
+Run: 249 train consistency_loss2_pos: 25.654482, consistency_loss3_pos: 22.754123, consistency_loss4_pos: 0.005127
+Run: 249 train consistency_loss2_neg: 25.688362, consistency_loss3_neg: 22.731638, consistency_loss4_neg: 0.005081
+Run: 249 VAL ap_score: 0.663003 map_score: 0.698412 Time: 100.15
+Run: 250 train loss: 90.993395 Time: 280.42
+Run: 250 train pair similarity score: 0.077419
+Run: 250 train scores node align: -12.381956, scores kronecker align: -31.197701
+Run: 250 train consistency_loss2: 25.690473, consistency_loss3: 22.731979, consistency_loss4: 0.005152
+Run: 250 train consistency_loss2_pos: 25.662366, consistency_loss3_pos: 22.750650, consistency_loss4_pos: 0.005170
+Run: 250 train consistency_loss2_neg: 25.696960, consistency_loss3_neg: 22.727674, consistency_loss4_neg: 0.005148
+Run: 250 VAL ap_score: 0.657452 map_score: 0.678152 Time: 99.90
+Run: 251 train loss: 90.218818 Time: 281.46
+Run: 251 train pair similarity score: 0.076788
+Run: 251 train scores node align: -12.345776, scores kronecker align: -31.168650
+Run: 251 train consistency_loss2: 25.685565, consistency_loss3: 22.737141, consistency_loss4: 0.005080
+Run: 251 train consistency_loss2_pos: 25.657645, consistency_loss3_pos: 22.756088, consistency_loss4_pos: 0.005105
+Run: 251 train consistency_loss2_neg: 25.692019, consistency_loss3_neg: 22.732763, consistency_loss4_neg: 0.005075
+Run: 251 VAL ap_score: 0.657105 map_score: 0.676742 Time: 103.77
+Run: 252 train loss: 91.107705 Time: 281.99
+Run: 252 train pair similarity score: 0.077407
+Run: 252 train scores node align: -12.353231, scores kronecker align: -31.037847
+Run: 252 train consistency_loss2: 25.686873, consistency_loss3: 22.729077, consistency_loss4: 0.005268
+Run: 252 train consistency_loss2_pos: 25.658101, consistency_loss3_pos: 22.748613, consistency_loss4_pos: 0.005307
+Run: 252 train consistency_loss2_neg: 25.693511, consistency_loss3_neg: 22.724569, consistency_loss4_neg: 0.005259
+Run: 252 VAL ap_score: 0.646511 map_score: 0.672821 Time: 98.64
+Run: 253 train loss: 91.100037 Time: 278.51
+Run: 253 train pair similarity score: 0.077566
+Run: 253 train scores node align: -12.332668, scores kronecker align: -31.107630
+Run: 253 train consistency_loss2: 25.685561, consistency_loss3: 22.735519, consistency_loss4: 0.005102
+Run: 253 train consistency_loss2_pos: 25.656470, consistency_loss3_pos: 22.755093, consistency_loss4_pos: 0.005125
+Run: 253 train consistency_loss2_neg: 25.692264, consistency_loss3_neg: 22.731013, consistency_loss4_neg: 0.005097
+Run: 253 VAL ap_score: 0.639393 map_score: 0.684445 Time: 97.71
+Run: 254 train loss: 90.448959 Time: 279.28
+Run: 254 train pair similarity score: 0.076962
+Run: 254 train scores node align: -12.361909, scores kronecker align: -31.127778
+Run: 254 train consistency_loss2: 25.682243, consistency_loss3: 22.737354, consistency_loss4: 0.005115
+Run: 254 train consistency_loss2_pos: 25.654328, consistency_loss3_pos: 22.756066, consistency_loss4_pos: 0.005132
+Run: 254 train consistency_loss2_neg: 25.688681, consistency_loss3_neg: 22.733045, consistency_loss4_neg: 0.005111
+Run: 254 VAL ap_score: 0.663497 map_score: 0.692749 Time: 99.82
