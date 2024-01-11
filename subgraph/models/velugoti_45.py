@@ -188,8 +188,8 @@ class OurMatchingModelVar45_GMN_encoding_NodeAndEdgePerm_SinkhornParamBig_HingeS
            dim=(1,2))
         scores_kronecker_edge_align = cudavar(self.av,torch.tensor(self.av.consistency_lambda)) * (-torch.sum(torch.maximum(stacked_qedge_emb - transport_plan_edge@stacked_cedge_emb,\
 cudavar(self.av,torch.tensor([0]))),dim=(1,2)))
-        final_score = scores_node_align
-        final_score += scores_kronecker_edge_align
+
+        final_score = scores_node_align + scores_kronecker_edge_align
 
 
         #STEP6: Consistency score calculation to be used in training
@@ -204,4 +204,8 @@ cudavar(self.av,torch.tensor([0]))),dim=(1,2)))
         consistency_loss3 = torch.abs(transport_plan_edge - consistency_loss3)
         consistency_loss3 = torch.sum(consistency_loss3, dim=(1,2))
 
-        return (final_score, consistency_loss2, consistency_loss3)
+        consistency_loss4 = pytorch_sinkhorn_iters(self.av, torch.add(stacked_all_node_map_scores, stacked_all_node_map_scores1))
+        consistency_loss4 = torch.abs(transport_plan_edge - consistency_loss4)
+        consistency_loss4 = torch.max(torch.max(consistency_loss4, dim=1).values, dim=1).values
+
+        return (final_score, consistency_loss2, consistency_loss3, scores_node_align, scores_kronecker_edge_align, consistency_loss4)
