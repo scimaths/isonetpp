@@ -145,7 +145,7 @@ def evaluate_improvement_nodes(av,model,sampler,lambd=1):
   values_np = np.array(norms_total)
 
   for time in range(values_np.shape[1]):
-    pickle.dump(values_np[:,time], open(f'histogram_dumps_2/model_{av.model_loc}_time_{time}', 'wb'))
+    pickle.dump(values_np[:,time], open(f'histogram_dumps/model_{av.model_loc}_time_{time}', 'wb'))
     sns.histplot(values_np[:,time], binwidth=0.1, binrange=(0, np.ceil(np.max(values_np))), kde=True, label=f'time = {time}', palette='pastel')
 
   # Adding labels and title
@@ -156,7 +156,7 @@ def evaluate_improvement_nodes(av,model,sampler,lambd=1):
   # Show legend
   plt.legend()
   plt.grid(True)
-  plt.savefig(f'histogram_plots_2/{av.model_loc}.png')
+  plt.savefig(f'histogram_plots/{av.model_loc}.png')
   plt.clf()
   
   return norms_total
