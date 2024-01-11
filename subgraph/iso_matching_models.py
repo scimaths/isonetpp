@@ -54,6 +54,11 @@ def train(av,config):
     model = Node_align_Node_loss(av,config,1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
+  elif av.TASK.startswith("gmn_match_hinge"):
+    logger.info("Loading model GMN Match Hinge")  
+    model = GMN_match_hinge(av,config,1).to(device)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"
   elif av.TASK.startswith("node_early_interaction_with_consistency"):
     logger.info("Loading model node_early_interaction_with_consistency")
     av.MAX_EDGES = max(max([g.number_of_edges() for g in train_data.query_graphs]),\
