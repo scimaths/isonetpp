@@ -119,7 +119,7 @@ def train(av,config):
   elif av.TASK.startswith("nanl_consistency_45"):
     logger.info("Loading model OurMatchingModelVar45_GMN_encoding_NodeAndEdgePerm_SinkhornParamBig_HingeScore")
     logger.info("This uses GMN encoder followed by parameterized sinkhorn with LRL and similarity computation using hinge scoring (H_q, PH_c) .We're taking edge perm from node perm kronecker product and the checking edge consistency with edge embeddings")
-    #One more hack. 
+    #One more hack.
     av.MAX_EDGES = max(max([g.number_of_edges() for g in train_data.query_graphs]),\
                    max([g.number_of_edges() for g in train_data.corpus_graphs]))
     model = OurMatchingModelVar45_GMN_encoding_NodeAndEdgePerm_SinkhornParamBig_HingeScore(av,config,1).to(device)
@@ -160,6 +160,7 @@ def train(av,config):
     n_batches = train_data.create_stratified_batches()
 
     epoch_loss = 0
+    epoch_loss_pair = 0
     epoch_consistency_loss2 = 0
     epoch_scores_node_align = 0
     epoch_scores_kronecker_edge_align = 0
@@ -222,8 +223,7 @@ def train(av,config):
       elif av.loss_type == 5:
           losses = pairwise_ranking_loss_similarity(predPos.unsqueeze(1),predNeg.unsqueeze(1), av.MARGIN) + \
                     (av.loss_lambda * consistency_loss4)
-      if av.output_type == 2:
-        logger.info("%f, %f, %f, %f", pairwise_ranking_loss_similarity(predPos.unsqueeze(1),predNeg.unsqueeze(1), av.MARGIN), consistency_loss2, consistency_loss3, consistency_loss4)
+          epoch_loss_pair += pairwise_ranking_loss_similarity(predPos.unsqueeze(1),predNeg.unsqueeze(1), av.MARGIN).item()
 
       losses.backward()
       optimizer.step()
@@ -231,6 +231,7 @@ def train(av,config):
 
     logger.info("Run: %d train loss: %f Time: %.2f",run,epoch_loss,time.time()-start_time)
     if av.output_type == 2:
+      logger.info("Run: %d train pair similarity score: %f",run, epoch_loss_pair/n_batches)
       logger.info("Run: %d train scores node align: %f, scores kronecker align: %f",run,epoch_scores_node_align/n_batches, epoch_scores_kronecker_edge_align/n_batches)
       logger.info("Run: %d train consistency_loss2: %f, consistency_loss3: %f, consistency_loss4: %f",run,epoch_consistency_loss2/n_batches, epoch_consistency_loss3/n_batches, epoch_consistency_loss4/n_batches)
       logger.info("Run: %d train consistency_loss2_pos: %f, consistency_loss3_pos: %f, consistency_loss4_pos: %f",run,epoch_consistency_loss2_pos/n_batches, epoch_consistency_loss3_pos/n_batches, epoch_consistency_loss4_pos/n_batches)
