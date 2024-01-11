@@ -1,0 +1,114 @@
+Command line
+/raid/infolab/vaibhav/isonetpp/subgraph/iso_matching_models.py
+--experiment_group=edge_early_clean_fixed
+--TASK=edge_early_interaction
+--time_updates=3
+--NOISE_FACTOR=0
+--MARGIN=0.5
+--filters_1=10
+--filters_2=10
+--filters_3=10
+--transform_dim=16
+--FEAT_TYPE=One
+--DATASET_NAME=ptc_mr
+--consistency_lambda=0
+--IPLUS_LAMBDA=0
+--no_of_query_subgraphs=300
+--MIN_QUERY_SUBGRAPH_SIZE=5
+--MAX_QUERY_SUBGRAPH_SIZE=15
+--MIN_CORPUS_SUBGRAPH_SIZE=16
+--MAX_CORPUS_SUBGRAPH_SIZE=20
+fringe_isonet= {'masking_for_msg_passing_count': 4}
+encoder= {'node_hidden_sizes': [10], 'node_feature_dim': 1, 'edge_hidden_sizes': None, 'edge_feature_dim': 1}
+aggregator= {'node_hidden_sizes': [10], 'graph_transform_sizes': [10], 'input_size': [10], 'gated': True, 'aggregation_type': 'sum'}
+graph_embedding_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'embedding'}
+graph_matching_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'matching', 'similarity': 'dotproduct'}
+model_type= embedding
+data= {'problem': 'graph_edit_distance', 'dataset_params': {'n_nodes_range': [20, 20], 'p_edge_range': [0.2, 0.2], 'n_changes_positive': 1, 'n_changes_negative': 2, 'validation_dataset_size': 1000}}
+training= {'batch_size': 128, 'learning_rate': 0.0001, 'mode': 'pair', 'loss': 'margin', 'margin': 0.5, 'graph_vec_regularizer_weight': 1e-06, 'clip_value': 10.0, 'n_training_steps': 500000, 'print_after': 100, 'eval_after': 10}
+evaluation= {'batch_size': 128}
+seed= 7366
+early_interaction= {'n_time_updates': 3, 'time_update_idx': 'k_t', 'prop_separate_params': None}
+node_early_interaction_interpretability= {'lambd': 1.0}
+loading train query graphs from ./velugoti_dataset/Datasets/splits/train/train_ptc_mr240k_query_subgraphs.pkl
+loading train relationships from ./velugoti_dataset/Datasets/splits/train/train_ptc_mr240k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from ./velugoti_dataset/Datasets/splits/ptc_mr240k_corpus_subgraphs.pkl
+loading val query graphs from ./velugoti_dataset/Datasets/splits/val/val_ptc_mr240k_query_subgraphs.pkl
+loading val relationships from ./velugoti_dataset/Datasets/splits/val/val_ptc_mr240k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from ./velugoti_dataset/Datasets/splits/ptc_mr240k_corpus_subgraphs.pkl
+Loading model EdgeEarlyInteraction
+This model implements early interaction for edges
+saving initial model to ./edge_early_clean_fixed/initialModels/edge_early_interaction_ptc_mr_7366_2024-01-06_14:13:54.972876
+no. of params in model: 3730
+Run: 0 train loss: 285.661664 Time: 656.06
+Run: 0 VAL ap_score: 0.443054 map_score: 0.457425 Time: 235.90
+saving best validated model to ./edge_early_clean_fixed/bestValidationModels/edge_early_interaction_ptc_mr_7366_2024-01-06_14:13:54.972876
+Run: 1 train loss: 192.956064 Time: 666.27
+Run: 1 VAL ap_score: 0.487414 map_score: 0.492529 Time: 238.32
+saving best validated model to ./edge_early_clean_fixed/bestValidationModels/edge_early_interaction_ptc_mr_7366_2024-01-06_14:13:54.972876
+Run: 2 train loss: 164.614381 Time: 604.49
+Run: 2 VAL ap_score: 0.458596 map_score: 0.455439 Time: 211.88
+Run: 3 train loss: 139.933723 Time: 588.51
+Run: 3 VAL ap_score: 0.536518 map_score: 0.554348 Time: 218.24
+saving best validated model to ./edge_early_clean_fixed/bestValidationModels/edge_early_interaction_ptc_mr_7366_2024-01-06_14:13:54.972876
+Run: 4 train loss: 124.142831 Time: 574.89
+Run: 4 VAL ap_score: 0.519165 map_score: 0.524874 Time: 226.99
+Run: 5 train loss: 115.378533 Time: 618.69
+Run: 5 VAL ap_score: 0.579329 map_score: 0.572327 Time: 244.42
+saving best validated model to ./edge_early_clean_fixed/bestValidationModels/edge_early_interaction_ptc_mr_7366_2024-01-06_14:13:54.972876
+Run: 6 train loss: 108.650562 Time: 607.74
+Run: 6 VAL ap_score: 0.589082 map_score: 0.576732 Time: 206.71
+saving best validated model to ./edge_early_clean_fixed/bestValidationModels/edge_early_interaction_ptc_mr_7366_2024-01-06_14:13:54.972876
+Run: 7 train loss: 102.926223 Time: 540.01
+Run: 7 VAL ap_score: 0.636630 map_score: 0.610822 Time: 198.65
+saving best validated model to ./edge_early_clean_fixed/bestValidationModels/edge_early_interaction_ptc_mr_7366_2024-01-06_14:13:54.972876
+Run: 8 train loss: 98.415385 Time: 533.14
+Run: 8 VAL ap_score: 0.607519 map_score: 0.592982 Time: 210.42
+Run: 9 train loss: 93.037950 Time: 640.24
+Run: 9 VAL ap_score: 0.662016 map_score: 0.638314 Time: 295.54
+saving best validated model to ./edge_early_clean_fixed/bestValidationModels/edge_early_interaction_ptc_mr_7366_2024-01-06_14:13:54.972876
+Run: 10 train loss: 85.944171 Time: 763.58
+Run: 10 VAL ap_score: 0.670032 map_score: 0.643936 Time: 265.58
+saving best validated model to ./edge_early_clean_fixed/bestValidationModels/edge_early_interaction_ptc_mr_7366_2024-01-06_14:13:54.972876
+Run: 11 train loss: 81.779659 Time: 748.60
+Run: 11 VAL ap_score: 0.670744 map_score: 0.651694 Time: 273.56
+saving best validated model to ./edge_early_clean_fixed/bestValidationModels/edge_early_interaction_ptc_mr_7366_2024-01-06_14:13:54.972876
+Run: 12 train loss: 77.951942 Time: 708.09
+Run: 12 VAL ap_score: 0.684907 map_score: 0.663938 Time: 266.77
+saving best validated model to ./edge_early_clean_fixed/bestValidationModels/edge_early_interaction_ptc_mr_7366_2024-01-06_14:13:54.972876
+Run: 13 train loss: 74.811113 Time: 710.02
+Run: 13 VAL ap_score: 0.692818 map_score: 0.664404 Time: 263.14
+saving best validated model to ./edge_early_clean_fixed/bestValidationModels/edge_early_interaction_ptc_mr_7366_2024-01-06_14:13:54.972876
+Run: 14 train loss: 72.442700 Time: 622.38
+Run: 14 VAL ap_score: 0.672407 map_score: 0.659651 Time: 230.38
+Run: 15 train loss: 70.717879 Time: 631.17
+Run: 15 VAL ap_score: 0.689106 map_score: 0.666459 Time: 241.99
+saving best validated model to ./edge_early_clean_fixed/bestValidationModels/edge_early_interaction_ptc_mr_7366_2024-01-06_14:13:54.972876
+Run: 16 train loss: 68.545964 Time: 608.44
+Run: 16 VAL ap_score: 0.697929 map_score: 0.666161 Time: 242.33
+Run: 17 train loss: 65.092922 Time: 567.14
+Run: 17 VAL ap_score: 0.702353 map_score: 0.678498 Time: 221.29
+saving best validated model to ./edge_early_clean_fixed/bestValidationModels/edge_early_interaction_ptc_mr_7366_2024-01-06_14:13:54.972876
+Run: 18 train loss: 63.975081 Time: 586.88
+Run: 18 VAL ap_score: 0.680798 map_score: 0.678977 Time: 217.93
+saving best validated model to ./edge_early_clean_fixed/bestValidationModels/edge_early_interaction_ptc_mr_7366_2024-01-06_14:13:54.972876
+Run: 19 train loss: 62.432769 Time: 585.64
+Run: 19 VAL ap_score: 0.715440 map_score: 0.690359 Time: 219.75
+saving best validated model to ./edge_early_clean_fixed/bestValidationModels/edge_early_interaction_ptc_mr_7366_2024-01-06_14:13:54.972876
+Run: 20 train loss: 60.550402 Time: 598.84
+Run: 20 VAL ap_score: 0.701120 map_score: 0.665690 Time: 217.34
+Run: 21 train loss: 59.652070 Time: 600.90
+Run: 21 VAL ap_score: 0.721565 map_score: 0.693931 Time: 219.43
+saving best validated model to ./edge_early_clean_fixed/bestValidationModels/edge_early_interaction_ptc_mr_7366_2024-01-06_14:13:54.972876
+Run: 22 train loss: 56.973389 Time: 636.41
+Run: 22 VAL ap_score: 0.719923 map_score: 0.701045 Time: 232.75
+saving best validated model to ./edge_early_clean_fixed/bestValidationModels/edge_early_interaction_ptc_mr_7366_2024-01-06_14:13:54.972876
+Run: 23 train loss: 56.264841 Time: 660.57
+Run: 23 VAL ap_score: 0.725267 map_score: 0.703307 Time: 237.38
+saving best validated model to ./edge_early_clean_fixed/bestValidationModels/edge_early_interaction_ptc_mr_7366_2024-01-06_14:13:54.972876
+Run: 24 train loss: 54.796881 Time: 643.72
+Run: 24 VAL ap_score: 0.728270 map_score: 0.705092 Time: 232.20
+saving best validated model to ./edge_early_clean_fixed/bestValidationModels/edge_early_interaction_ptc_mr_7366_2024-01-06_14:13:54.972876
+Run: 25 train loss: 53.720599 Time: 629.18
+Run: 25 VAL ap_score: 0.710976 map_score: 0.705495 Time: 188.18
+saving best validated model to ./edge_early_clean_fixed/bestValidationModels/edge_early_interaction_ptc_mr_7366_2024-01-06_14:13:54.972876
