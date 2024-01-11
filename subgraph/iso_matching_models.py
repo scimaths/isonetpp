@@ -26,6 +26,7 @@ from subgraph.models.graphsim import GraphSim
 from subgraph.models.neuromatch import NeuroMatch
 from subgraph.models.node_early_interaction import NodeEarlyInteraction
 from subgraph.models.edge_early_interaction import EdgeEarlyInteraction
+from subgraph.models.edge_early_interaction_with_delete import EdgeEarlyInteractionDelete
 from subgraph.models.node_edge_early_interaction_with_consistency import NodeEdgeEarlyInteractionWithConsistency
 from subgraph.models.node_edge_early_interaction_with_consistency_and_two_sinkhorns import NodeEdgeEarlyInteractionWithConsistencyAndTwoSinkhorns
 from subgraph.models.adding_to_q import AddingToQ
@@ -97,6 +98,14 @@ def train(av,config):
     av.MAX_EDGES = max(max([g.number_of_edges() for g in train_data.query_graphs]),\
                    max([g.number_of_edges() for g in train_data.corpus_graphs]))
     model = AddingToQ(av, config, 1).to(device)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"
+  elif av.TASK.startswith("edge_early_interaction_with_delete"):
+    logger.info("Loading model EdgeEarlyInteractionDelete")
+    logger.info("This model implements early interaction for edges delete")
+    av.MAX_EDGES = max(max([g.number_of_edges() for g in train_data.query_graphs]),\
+                   max([g.number_of_edges() for g in train_data.corpus_graphs]))
+    model = EdgeEarlyInteractionDelete(av, config, 1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
   elif av.TASK.startswith("edge_early_interaction"):
@@ -301,6 +310,7 @@ if __name__ == "__main__":
   ap.add_argument("--DATASET_NAME",                   type=str,   default="mutag")
   ap.add_argument('--lambd',                          type=float, default=1.0, nargs='?')
   ap.add_argument('--consistency_lambda',             type=float, default=1.0, nargs='?')
+  ap.add_argument('--interpretability_lambda',        type=float, default=1.0, nargs='?')
   ap.add_argument("--IPLUS_LAMBDA",                   type=float, default=1)
   ap.add_argument("--no_of_query_subgraphs",          type=int,   default=100)
   ap.add_argument("--no_of_corpus_subgraphs",         type=int,   default=800)
