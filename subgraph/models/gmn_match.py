@@ -85,12 +85,13 @@ class GMN_match_hinge(torch.nn.Module):
           batch_adj is unused
         """
         node_features, edge_features, from_idx, to_idx, graph_idx = self.get_graph(batch_data)
+        batch_data_sizes_flat = [item for sublist in batch_data_sizes for item in sublist]
     
         node_features_enc, edge_features_enc = self.encoder(node_features, edge_features)
         for i in range(self.config['graph_matching_net'] ['n_prop_layers']) :
             node_features_enc = self.prop_layer(node_features_enc, from_idx, to_idx,\
                                                 graph_idx,2*len(batch_data_sizes), \
-                                                self.similarity_func, edge_features_enc)
+                                                self.similarity_func, edge_features_enc, batch_data_sizes_flat=batch_data_sizes_flat, max_node_size=max(self.av.MAX_QUERY_SUBGRAPH_SIZE,self.av.MAX_CORPUS_SUBGRAPH_SIZE))
             
         graph_vectors = self.aggregator(node_features_enc,graph_idx,2*len(batch_data_sizes) )
         x, y = gmnutils.reshape_and_split_tensor(graph_vectors, 2)
