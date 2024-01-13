@@ -181,28 +181,30 @@ def batch_block_pair_attention_faster(data,
     if n_blocks % 2 != 0:
         raise ValueError('n_blocks (%d) must be a multiple of 2.' % n_blocks)
 
-    # data -> N x D
+    max_node_size += 1
+
+    # # data -> N x D
     partitionsT = torch.split(data, batch_data_sizes_flat)
     partitions_1 = torch.stack([F.pad(partition, pad=(0, 0, 0, max_node_size-len(partition))) for partition in partitionsT[0::2]])
-    mask_11 = torch.stack([F.pad(torch.ones_like(partition), pad=(0, 0, 0, max_node_size-len(partition))) for partition in partitionsT[0::2]])
-    mask_12 = torch.ones_like(partitions_1)
     partitions_2 = torch.stack([F.pad(partition, pad=(0, 0, 0, max_node_size-len(partition))) for partition in partitionsT[1::2]])
-    mask_21 = torch.stack([F.pad(torch.ones_like(partition), pad=(0, 0, 0, max_node_size-len(partition))) for partition in partitionsT[1::2]])
-    mask_22 = torch.ones_like(partitions_2)
+    dot_pdt_similarity = torch.bmm(partitions_1, torch.transpose(partitions_2, 1, 2))
 
-    # num_nodes1 x num_nodes2
-    dot_pdt_similarity_1 = torch.bmm(partitions_1, torch.transpose(partitions_2, 1, 2))
-    dot_pdt_similarity_2 = dot_pdt_similarity_1.clone()
-    mask_1 = (torch.bmm(mask_12, torch.transpose(mask_21, 1, 2)) == 0)
-    mask_2 = (torch.bmm(mask_11, torch.transpose(mask_22, 1, 2)) == 0)
+    # mask
+    mask_11 = torch.stack([F.pad(torch.ones_like(partition), pad=(0, 0, 0, max_node_size-len(partition))) for partition in partitionsT[0::2]])
+    mask_12 = torch.stack([F.pad(torch.zeros_like(partition), pad=(0, 0, 0, max_node_size-len(partition)), value=1) for partition in partitionsT[0::2]])
+    mask_21 = torch.stack([F.pad(torch.ones_like(partition), pad=(0, 0, 0, max_node_size-len(partition))) for partition in partitionsT[1::2]])
+    mask_22 = torch.stack([F.pad(torch.zeros_like(partition), pad=(0, 0, 0, max_node_size-len(partition)), value=1) for partition in partitionsT[1::2]])
+
+    mask = torch.bmm(mask_11, torch.transpose(mask_21, 1, 2))
+    mask += torch.bmm(mask_12, torch.transpose(mask_22, 1, 2))
+    mask = (1 - (mask//data.shape[1])).to(dtype=torch.bool)
 
     # mask to fill -inf
-    dot_pdt_similarity_1.masked_fill_(mask_1, -torch.inf)
-    dot_pdt_similarity_2.masked_fill_(mask_2, -torch.inf)
+    dot_pdt_similarity.masked_fill_(mask, -torch.inf)
 
     # softmax
-    softmax_1 = torch.softmax(dot_pdt_similarity_1, dim=2)
-    softmax_2 = torch.softmax(dot_pdt_similarity_2, dim=1)
+    softmax_1 = torch.softmax(dot_pdt_similarity, dim=2)
+    softmax_2 = torch.softmax(dot_pdt_similarity, dim=1)
 
     # final
     query_new = torch.bmm(softmax_1, partitions_2)
