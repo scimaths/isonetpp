@@ -26,7 +26,8 @@ else
     time_updates=$4
 fi
 
-datasets=('aids' 'mutag' 'ptc_fr' 'ptc_fm' 'ptc_mr' 'ptc_mm')
+datasets=('aids')
+# datasets=('aids' 'mutag' 'ptc_fr' 'ptc_fm' 'ptc_mr' 'ptc_mm')
 cuda=('0' '1' '6' '6' '7' '7')
 for ((idx=0; idx<${#datasets[@]}; idx++)); do
     dataset="${datasets[$idx]}"

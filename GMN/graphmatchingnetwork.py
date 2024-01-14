@@ -259,7 +259,9 @@ class GraphPropMatchingLayer(GraphPropLayer):
         cross_graph_attention = batch_block_pair_attention_faster(
             node_states, graph_idx, n_graphs, similarity=similarity, 
             batch_data_sizes_flat=batch_data_sizes_flat, max_node_size=max_node_size)
-        attention_input = node_states - cross_graph_attention
+        # cross_graph_attention = batch_block_pair_attention(
+        #     node_states, graph_idx, n_graphs, similarity=similarity)
+        # attention_input = node_states - cross_graph_attention
 
         return self._compute_node_update(node_states,
                                          [aggregated_messages, attention_input],
