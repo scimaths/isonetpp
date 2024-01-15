@@ -1,6 +1,7 @@
 from GMN.graphembeddingnetwork import GraphEmbeddingNet
 from GMN.graphembeddingnetwork import GraphPropLayer
 import torch
+import torch.nn.functional as F
 
 
 def pairwise_euclidean_similarity(x, y):
@@ -168,6 +169,50 @@ def batch_block_pair_attention(data,
 
     return results
 
+def batch_block_pair_attention_faster(data,
+                               block_idx,
+                               n_blocks,
+                               similarity='dotproduct',
+                               batch_data_sizes_flat=None,
+                               max_node_size=None):
+    if not isinstance(n_blocks, int):
+        raise ValueError('n_blocks (%s) has to be an integer.' % str(n_blocks))
+
+    if n_blocks % 2 != 0:
+        raise ValueError('n_blocks (%d) must be a multiple of 2.' % n_blocks)
+
+    max_node_size += 1
+
+    # # data -> N x D
+    partitionsT = torch.split(data, batch_data_sizes_flat)
+    partitions_1 = torch.stack([F.pad(partition, pad=(0, 0, 0, max_node_size-len(partition))) for partition in partitionsT[0::2]])
+    partitions_2 = torch.stack([F.pad(partition, pad=(0, 0, 0, max_node_size-len(partition))) for partition in partitionsT[1::2]])
+    dot_pdt_similarity = torch.bmm(partitions_1, torch.transpose(partitions_2, 1, 2))
+
+    # mask
+    mask_11 = torch.stack([F.pad(torch.ones_like(partition), pad=(0, 0, 0, max_node_size-len(partition))) for partition in partitionsT[0::2]])
+    mask_12 = torch.stack([F.pad(torch.zeros_like(partition), pad=(0, 0, 0, max_node_size-len(partition)), value=1) for partition in partitionsT[0::2]])
+    mask_21 = torch.stack([F.pad(torch.ones_like(partition), pad=(0, 0, 0, max_node_size-len(partition))) for partition in partitionsT[1::2]])
+    mask_22 = torch.stack([F.pad(torch.zeros_like(partition), pad=(0, 0, 0, max_node_size-len(partition)), value=1) for partition in partitionsT[1::2]])
+
+    mask = torch.bmm(mask_11, torch.transpose(mask_21, 1, 2))
+    mask += torch.bmm(mask_12, torch.transpose(mask_22, 1, 2))
+    mask = (1 - (mask//data.shape[1])).to(dtype=torch.bool)
+
+    # mask to fill -inf
+    dot_pdt_similarity.masked_fill_(mask, -torch.inf)
+
+    # softmax
+    softmax_1 = torch.softmax(dot_pdt_similarity, dim=2)
+    softmax_2 = torch.softmax(dot_pdt_similarity, dim=1)
+
+    # final
+    query_new = torch.bmm(softmax_1, partitions_2)
+    corpus_new = torch.bmm(torch.transpose(softmax_2, 1, 2), partitions_1)
+
+    results = torch.cat([query_new[i//2, :batch_data_sizes_flat[i]] if i%2==0 else corpus_new[i//2, :batch_data_sizes_flat[i]] for i in range(len(batch_data_sizes_flat))])
+
+    return results
 
 class GraphPropMatchingLayer(GraphPropLayer):
     """A graph propagation layer that also does cross graph matching.
@@ -185,7 +230,9 @@ class GraphPropMatchingLayer(GraphPropLayer):
                 n_graphs,
                 similarity='dotproduct',
                 edge_features=None,
-                node_features=None):
+                node_features=None,
+                batch_data_sizes_flat=None,
+                max_node_size=None):
         """Run one propagation step with cross-graph matching.
 
         Args:
@@ -209,9 +256,12 @@ class GraphPropMatchingLayer(GraphPropLayer):
         aggregated_messages = self._compute_aggregated_messages(
             node_states, from_idx, to_idx, edge_features=edge_features)
 
-        cross_graph_attention = batch_block_pair_attention(
-            node_states, graph_idx, n_graphs, similarity=similarity)
-        attention_input = node_states - cross_graph_attention
+        cross_graph_attention = batch_block_pair_attention_faster(
+            node_states, graph_idx, n_graphs, similarity=similarity, 
+            batch_data_sizes_flat=batch_data_sizes_flat, max_node_size=max_node_size)
+        # cross_graph_attention = batch_block_pair_attention(
+        #     node_states, graph_idx, n_graphs, similarity=similarity)
+        # attention_input = node_states - cross_graph_attention
 
         return self._compute_node_update(node_states,
                                          [aggregated_messages, attention_input],
