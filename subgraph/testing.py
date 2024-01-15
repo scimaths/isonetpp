@@ -206,7 +206,7 @@ ad = ap.parse_args()
 task_dict = {} 
 
 task_dict['node_edge_early_interaction'] = "Node Edge Early Interaction"
-#task_dict['edge_early_interaction'] = "Edge Early Interaction"
+task_dict['edge_early_interaction'] = "Edge Early Interaction"
 task_dict['edge_early_interaction_with_delete'] = "Delete Edge early"
 task_dict['node_early_interaction'] = "Node Early Interaction"
 task_dict['node_align_node_loss'] = "Node Align Node Loss"
