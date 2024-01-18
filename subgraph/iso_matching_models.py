@@ -60,6 +60,40 @@ def train(av,config):
     model = GMN_match_hinge(av,config,1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
+  elif av.TASK.startswith("graphsim"):
+    logger.info("Loading model GraphSim")  
+    logger.info("This is GraphSim model")  
+    model = GraphSim(av,config,1).to(device)
+    logger.info(model)
+    train_data.data_type = "pyg"
+    val_data.data_type = "pyg"
+  elif av.TASK.startswith("gotsim"):
+    logger.info("Loading IR_modified_GotSim")  
+    logger.info("This uses IR_modified_GotSim  model. ")  
+    model = GOTSim(av,config,1).to(device)
+    logger.info(model)
+    train_data.data_type = "pyg"
+    val_data.data_type = "pyg"
+  elif av.TASK.startswith("simgnn") :
+    logger.info("Loading model SimGNN")
+    logger.info("This loads the entire SimGNN model. Input feature is [1]. No node permutation is done after nx graph loading")
+    model = SimGNN(av,1).to(device)
+    train_data.data_type = "pyg"
+    val_data.data_type = "pyg"
+  elif av.TASK.startswith("gmn_embed_hinge"):
+    logger.info("Loading GMN_embed_hinge")  
+    logger.info("This uses GMN embedding model with hinge loss.No regularizer. ")  
+    model = GMN_embed_hinge(av,config,1).to(device)
+    logger.info(model)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"
+  elif av.TASK.startswith("neuromatch"): 
+    logger.info("Loading model neuromatch")   
+    logger.info("This is neuromatch model")   
+    model = NeuroMatch(1,av.neuromatch_hidden_dim,av).to(device) 
+    logger.info(model) 
+    train_data.data_type = "pyg" 
+    val_data.data_type = "pyg" 
   elif av.TASK.startswith("node_early_interaction_with_consistency"):
     logger.info("Loading model node_early_interaction_with_consistency")
     av.MAX_EDGES = max(max([g.number_of_edges() for g in train_data.query_graphs]),\
@@ -357,8 +391,6 @@ if __name__ == "__main__":
   config['graph_embedding_net'] ['node_state_dim'] = 10
   config['graph_embedding_net'] ['edge_hidden_sizes'] = [20]
   config['graph_embedding_net'] ['node_hidden_sizes'] = [10]
-  config['graph_embedding_net'] ['n_prop_layers'] = 5
-  config['graph_embedding_net'] ['n_prop_layers'] = 5
   config['early_interaction'] = {
     'n_time_updates': av.time_updates,
     'time_update_idx': av.time_update_idx,
@@ -374,6 +406,13 @@ if __name__ == "__main__":
   config['training']['margin']  = av.MARGIN
   config['evaluation']['batch_size']  = av.BATCH_SIZE
   config['model_type']  = "embedding"
+  config['graphsim'] = {} 
+  config['graphsim']['conv_kernel_size'] = [10,4,2]
+  config['graphsim']['linear_size'] = [24, 16]
+  config['graphsim']['gcn_size'] = [10,10,10]
+  config['graphsim']['conv_pool_size'] = [3,3,2]
+  config['graphsim']['conv_out_channels'] = [2,4,8]
+  config['graphsim']['dropout'] = av.dropout
 
   for (k, v) in config.items():
       logger.info("%s= %s" % (k, v))  
