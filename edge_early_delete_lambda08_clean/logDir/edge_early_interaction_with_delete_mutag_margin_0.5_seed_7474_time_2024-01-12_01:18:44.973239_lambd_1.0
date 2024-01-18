@@ -1,0 +1,777 @@
+Command line
+/raid/nlp/pulkit/isonetpp/subgraph/iso_matching_models.py
+--experiment_group=edge_early_delete_lambda08_clean
+--TASK=edge_early_interaction_with_delete
+--time_updates=3
+--NOISE_FACTOR=0
+--MARGIN=0.5
+--filters_1=10
+--filters_2=10
+--filters_3=10
+--transform_dim=16
+--FEAT_TYPE=One
+--DATASET_NAME=mutag
+--interpretability_lambda=0.8
+--no_of_query_subgraphs=300
+--MIN_QUERY_SUBGRAPH_SIZE=5
+--MAX_QUERY_SUBGRAPH_SIZE=15
+--MIN_CORPUS_SUBGRAPH_SIZE=16
+--MAX_CORPUS_SUBGRAPH_SIZE=20
+fringe_isonet= {'masking_for_msg_passing_count': 4}
+encoder= {'node_hidden_sizes': [10], 'node_feature_dim': 1, 'edge_hidden_sizes': None, 'edge_feature_dim': 1}
+aggregator= {'node_hidden_sizes': [10], 'graph_transform_sizes': [10], 'input_size': [10], 'gated': True, 'aggregation_type': 'sum'}
+graph_embedding_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'embedding'}
+graph_matching_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'matching', 'similarity': 'dotproduct'}
+model_type= embedding
+data= {'problem': 'graph_edit_distance', 'dataset_params': {'n_nodes_range': [20, 20], 'p_edge_range': [0.2, 0.2], 'n_changes_positive': 1, 'n_changes_negative': 2, 'validation_dataset_size': 1000}}
+training= {'batch_size': 128, 'learning_rate': 0.0001, 'mode': 'pair', 'loss': 'margin', 'margin': 0.5, 'graph_vec_regularizer_weight': 1e-06, 'clip_value': 10.0, 'n_training_steps': 500000, 'print_after': 100, 'eval_after': 10}
+evaluation= {'batch_size': 128}
+seed= 7474
+early_interaction= {'n_time_updates': 3, 'time_update_idx': 'k_t', 'prop_separate_params': None}
+node_early_interaction_interpretability= {'lambd': 1.0}
+loading train query graphs from ./velugoti_dataset/Datasets/splits/train/train_mutag240k_query_subgraphs.pkl
+loading train relationships from ./velugoti_dataset/Datasets/splits/train/train_mutag240k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from ./velugoti_dataset/Datasets/splits/mutag240k_corpus_subgraphs.pkl
+loading val query graphs from ./velugoti_dataset/Datasets/splits/val/val_mutag240k_query_subgraphs.pkl
+loading val relationships from ./velugoti_dataset/Datasets/splits/val/val_mutag240k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from ./velugoti_dataset/Datasets/splits/mutag240k_corpus_subgraphs.pkl
+Loading model EdgeEarlyInteractionDelete
+This model implements early interaction for edges delete
+saving initial model to ./edge_early_delete_lambda08_clean/initialModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+no. of params in model: 3730
+Run: 0 train loss: 356.401686 Time: 494.00
+Run: 0 VAL ap_score: 0.386545 map_score: 0.400325 Time: 196.12
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 1 train loss: 306.164951 Time: 498.39
+Run: 1 VAL ap_score: 0.351559 map_score: 0.449261 Time: 185.43
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 2 train loss: 239.215145 Time: 491.29
+Run: 2 VAL ap_score: 0.554221 map_score: 0.623291 Time: 183.49
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 3 train loss: 154.288552 Time: 478.69
+Run: 3 VAL ap_score: 0.602421 map_score: 0.652482 Time: 183.93
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 4 train loss: 132.506649 Time: 477.68
+Run: 4 VAL ap_score: 0.642258 map_score: 0.680549 Time: 182.17
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 5 train loss: 116.003511 Time: 478.26
+Run: 5 VAL ap_score: 0.629956 map_score: 0.625046 Time: 181.42
+Run: 6 train loss: 103.138457 Time: 474.46
+Run: 6 VAL ap_score: 0.682008 map_score: 0.675057 Time: 179.83
+Run: 7 train loss: 96.090862 Time: 486.40
+Run: 7 VAL ap_score: 0.654171 map_score: 0.712127 Time: 183.26
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 8 train loss: 90.925106 Time: 478.08
+Run: 8 VAL ap_score: 0.719781 map_score: 0.724203 Time: 184.76
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 9 train loss: 86.284269 Time: 475.17
+Run: 9 VAL ap_score: 0.733948 map_score: 0.722386 Time: 186.42
+Run: 10 train loss: 82.859903 Time: 487.01
+Run: 10 VAL ap_score: 0.730499 map_score: 0.707299 Time: 184.17
+Run: 11 train loss: 79.749108 Time: 486.76
+Run: 11 VAL ap_score: 0.748244 map_score: 0.731964 Time: 182.46
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 12 train loss: 77.727806 Time: 487.87
+Run: 12 VAL ap_score: 0.642911 map_score: 0.726189 Time: 184.67
+Run: 13 train loss: 73.673864 Time: 479.59
+Run: 13 VAL ap_score: 0.739028 map_score: 0.742171 Time: 184.68
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 14 train loss: 70.432679 Time: 480.69
+Run: 14 VAL ap_score: 0.735458 map_score: 0.750227 Time: 183.39
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 15 train loss: 69.142624 Time: 479.42
+Run: 15 VAL ap_score: 0.761375 map_score: 0.747475 Time: 180.08
+Run: 16 train loss: 66.118292 Time: 480.84
+Run: 16 VAL ap_score: 0.748737 map_score: 0.737930 Time: 183.02
+Run: 17 train loss: 65.231753 Time: 497.10
+Run: 17 VAL ap_score: 0.724834 map_score: 0.728958 Time: 187.89
+Run: 18 train loss: 63.552471 Time: 477.82
+Run: 18 VAL ap_score: 0.696881 map_score: 0.758377 Time: 180.48
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 19 train loss: 62.001870 Time: 480.65
+Run: 19 VAL ap_score: 0.748494 map_score: 0.754866 Time: 185.69
+Run: 20 train loss: 59.891780 Time: 459.51
+Run: 20 VAL ap_score: 0.738470 map_score: 0.742339 Time: 179.49
+Run: 21 train loss: 58.207456 Time: 465.32
+Run: 21 VAL ap_score: 0.701079 map_score: 0.755061 Time: 176.37
+Run: 22 train loss: 57.109623 Time: 467.44
+Run: 22 VAL ap_score: 0.738323 map_score: 0.759604 Time: 180.10
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 23 train loss: 56.289066 Time: 459.97
+Run: 23 VAL ap_score: 0.787421 map_score: 0.768630 Time: 179.17
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 24 train loss: 54.637787 Time: 466.36
+Run: 24 VAL ap_score: 0.777004 map_score: 0.777798 Time: 179.70
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 25 train loss: 55.241087 Time: 469.23
+Run: 25 VAL ap_score: 0.771520 map_score: 0.767282 Time: 176.16
+Run: 26 train loss: 53.165514 Time: 468.08
+Run: 26 VAL ap_score: 0.773252 map_score: 0.784759 Time: 190.87
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 27 train loss: 52.760449 Time: 480.31
+Run: 27 VAL ap_score: 0.751124 map_score: 0.761531 Time: 186.37
+Run: 28 train loss: 51.880782 Time: 487.65
+Run: 28 VAL ap_score: 0.802250 map_score: 0.784125 Time: 186.60
+Run: 29 train loss: 51.152364 Time: 497.79
+Run: 29 VAL ap_score: 0.762585 map_score: 0.784880 Time: 185.61
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 30 train loss: 49.893064 Time: 491.40
+Run: 30 VAL ap_score: 0.772570 map_score: 0.779112 Time: 180.96
+Run: 31 train loss: 49.675759 Time: 487.18
+Run: 31 VAL ap_score: 0.802229 map_score: 0.785753 Time: 183.32
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 32 train loss: 47.747322 Time: 489.29
+Run: 32 VAL ap_score: 0.797619 map_score: 0.794031 Time: 187.36
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 33 train loss: 48.704190 Time: 488.36
+Run: 33 VAL ap_score: 0.811445 map_score: 0.791933 Time: 185.74
+Run: 34 train loss: 46.099778 Time: 493.66
+Run: 34 VAL ap_score: 0.815141 map_score: 0.793849 Time: 181.43
+Run: 35 train loss: 46.992982 Time: 489.86
+Run: 35 VAL ap_score: 0.809005 map_score: 0.792948 Time: 183.49
+Run: 36 train loss: 46.400910 Time: 495.16
+Run: 36 VAL ap_score: 0.785855 map_score: 0.785151 Time: 183.64
+Run: 37 train loss: 44.791198 Time: 491.13
+Run: 37 VAL ap_score: 0.825379 map_score: 0.807717 Time: 188.44
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 38 train loss: 44.476186 Time: 493.29
+Run: 38 VAL ap_score: 0.809252 map_score: 0.810101 Time: 192.42
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 39 train loss: 45.048184 Time: 484.34
+Run: 39 VAL ap_score: 0.817800 map_score: 0.807102 Time: 191.08
+Run: 40 train loss: 41.931817 Time: 494.54
+Run: 40 VAL ap_score: 0.792867 map_score: 0.795417 Time: 187.13
+Run: 41 train loss: 42.890040 Time: 504.15
+Run: 41 VAL ap_score: 0.808090 map_score: 0.801635 Time: 180.40
+Run: 42 train loss: 42.803330 Time: 502.98
+Run: 42 VAL ap_score: 0.816566 map_score: 0.812235 Time: 192.65
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 43 train loss: 39.531897 Time: 494.56
+Run: 43 VAL ap_score: 0.831372 map_score: 0.818819 Time: 191.32
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 44 train loss: 40.436259 Time: 531.93
+Run: 44 VAL ap_score: 0.833881 map_score: 0.820038 Time: 234.71
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 45 train loss: 39.858631 Time: 666.08
+Run: 45 VAL ap_score: 0.832871 map_score: 0.821070 Time: 309.94
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 46 train loss: 39.399309 Time: 769.39
+Run: 46 VAL ap_score: 0.825549 map_score: 0.827775 Time: 177.47
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 47 train loss: 40.451700 Time: 468.69
+Run: 47 VAL ap_score: 0.821895 map_score: 0.821821 Time: 176.81
+Run: 48 train loss: 38.365349 Time: 471.11
+Run: 48 VAL ap_score: 0.827877 map_score: 0.814376 Time: 176.95
+Run: 49 train loss: 38.244786 Time: 483.43
+Run: 49 VAL ap_score: 0.711940 map_score: 0.791490 Time: 172.72
+Run: 50 train loss: 37.785057 Time: 483.78
+Run: 50 VAL ap_score: 0.807872 map_score: 0.820221 Time: 184.67
+Run: 51 train loss: 38.264358 Time: 503.84
+Run: 51 VAL ap_score: 0.810660 map_score: 0.809873 Time: 192.21
+Run: 52 train loss: 36.747842 Time: 497.54
+Run: 52 VAL ap_score: 0.805746 map_score: 0.823142 Time: 187.46
+Run: 53 train loss: 37.935096 Time: 507.00
+Run: 53 VAL ap_score: 0.785039 map_score: 0.826636 Time: 186.58
+Run: 54 train loss: 36.398567 Time: 489.14
+Run: 54 VAL ap_score: 0.790872 map_score: 0.817422 Time: 192.69
+Run: 55 train loss: 36.741812 Time: 492.58
+Run: 55 VAL ap_score: 0.829285 map_score: 0.828976 Time: 185.98
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 56 train loss: 36.306893 Time: 504.17
+Run: 56 VAL ap_score: 0.803913 map_score: 0.823973 Time: 186.64
+Run: 57 train loss: 35.611643 Time: 503.25
+Run: 57 VAL ap_score: 0.811366 map_score: 0.826532 Time: 188.34
+Run: 58 train loss: 36.052835 Time: 515.71
+Run: 58 VAL ap_score: 0.817731 map_score: 0.826530 Time: 190.12
+Run: 59 train loss: 35.275324 Time: 510.02
+Run: 59 VAL ap_score: 0.786725 map_score: 0.814019 Time: 184.62
+Run: 60 train loss: 35.320045 Time: 493.27
+Run: 60 VAL ap_score: 0.820740 map_score: 0.824180 Time: 190.57
+Run: 61 train loss: 35.560236 Time: 497.78
+Run: 61 VAL ap_score: 0.821481 map_score: 0.818564 Time: 183.65
+Run: 62 train loss: 36.132584 Time: 495.30
+Run: 62 VAL ap_score: 0.811812 map_score: 0.810820 Time: 194.13
+Run: 63 train loss: 35.368859 Time: 706.43
+Run: 63 VAL ap_score: 0.816887 map_score: 0.831199 Time: 313.49
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 64 train loss: 34.853366 Time: 741.91
+Run: 64 VAL ap_score: 0.828064 map_score: 0.823852 Time: 318.14
+Run: 65 train loss: 34.543356 Time: 740.34
+Run: 65 VAL ap_score: 0.799133 map_score: 0.820925 Time: 312.08
+Run: 66 train loss: 34.531631 Time: 482.52
+Run: 66 VAL ap_score: 0.797392 map_score: 0.829106 Time: 190.21
+Run: 67 train loss: 34.952897 Time: 483.35
+Run: 67 VAL ap_score: 0.823056 map_score: 0.835732 Time: 184.45
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 68 train loss: 33.943987 Time: 491.76
+Run: 68 VAL ap_score: 0.846001 map_score: 0.841953 Time: 221.81
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 69 train loss: 34.297587 Time: 805.16
+Run: 69 VAL ap_score: 0.853987 map_score: 0.842780 Time: 303.20
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 70 train loss: 32.744964 Time: 770.56
+Run: 70 VAL ap_score: 0.844613 map_score: 0.840868 Time: 318.20
+Run: 71 train loss: 33.949554 Time: 744.80
+Run: 71 VAL ap_score: 0.853054 map_score: 0.839156 Time: 189.88
+Run: 72 train loss: 33.453014 Time: 523.18
+Run: 72 VAL ap_score: 0.833268 map_score: 0.840017 Time: 195.59
+Run: 73 train loss: 33.393876 Time: 511.98
+Run: 73 VAL ap_score: 0.820036 map_score: 0.834976 Time: 200.47
+Run: 74 train loss: 35.008862 Time: 539.91
+Run: 74 VAL ap_score: 0.841297 map_score: 0.836943 Time: 197.82
+Run: 75 train loss: 32.900640 Time: 507.86
+Run: 75 VAL ap_score: 0.818748 map_score: 0.819728 Time: 197.59
+Run: 76 train loss: 33.485853 Time: 522.78
+Run: 76 VAL ap_score: 0.827224 map_score: 0.836071 Time: 197.60
+Run: 77 train loss: 33.446440 Time: 509.26
+Run: 77 VAL ap_score: 0.848529 map_score: 0.839719 Time: 190.49
+Run: 78 train loss: 33.433226 Time: 530.67
+Run: 78 VAL ap_score: 0.800846 map_score: 0.833342 Time: 195.33
+Run: 79 train loss: 32.526267 Time: 521.91
+Run: 79 VAL ap_score: 0.832831 map_score: 0.834988 Time: 186.05
+Run: 80 train loss: 32.996124 Time: 517.63
+Run: 80 VAL ap_score: 0.836393 map_score: 0.829553 Time: 183.05
+Run: 81 train loss: 32.763949 Time: 508.27
+Run: 81 VAL ap_score: 0.844039 map_score: 0.836400 Time: 182.94
+Run: 82 train loss: 30.816325 Time: 486.31
+Run: 82 VAL ap_score: 0.844665 map_score: 0.848586 Time: 187.85
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 83 train loss: 31.679528 Time: 504.46
+Run: 83 VAL ap_score: 0.853622 map_score: 0.845862 Time: 193.00
+Run: 84 train loss: 31.762836 Time: 499.31
+Run: 84 VAL ap_score: 0.837989 map_score: 0.837850 Time: 188.08
+Run: 85 train loss: 32.107865 Time: 508.22
+Run: 85 VAL ap_score: 0.847500 map_score: 0.841726 Time: 187.54
+Run: 86 train loss: 32.476668 Time: 512.45
+Run: 86 VAL ap_score: 0.838877 map_score: 0.838317 Time: 182.60
+Run: 87 train loss: 31.877414 Time: 507.40
+Run: 87 VAL ap_score: 0.861039 map_score: 0.847803 Time: 180.74
+Run: 88 train loss: 31.697129 Time: 491.25
+Run: 88 VAL ap_score: 0.841875 map_score: 0.846652 Time: 182.22
+Run: 89 train loss: 31.373804 Time: 496.40
+Run: 89 VAL ap_score: 0.819275 map_score: 0.836170 Time: 186.85
+Run: 90 train loss: 32.201242 Time: 505.97
+Run: 90 VAL ap_score: 0.833001 map_score: 0.842171 Time: 186.34
+Run: 91 train loss: 30.783011 Time: 492.07
+Run: 91 VAL ap_score: 0.848391 map_score: 0.839799 Time: 187.28
+Run: 92 train loss: 30.903583 Time: 486.94
+Run: 92 VAL ap_score: 0.819476 map_score: 0.822888 Time: 183.24
+Run: 93 train loss: 30.652460 Time: 494.33
+Run: 93 VAL ap_score: 0.844216 map_score: 0.839362 Time: 187.73
+Run: 94 train loss: 30.555155 Time: 509.30
+Run: 94 VAL ap_score: 0.859083 map_score: 0.851506 Time: 185.10
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 95 train loss: 30.784341 Time: 512.70
+Run: 95 VAL ap_score: 0.846068 map_score: 0.849443 Time: 190.44
+Run: 96 train loss: 31.043983 Time: 681.22
+Run: 96 VAL ap_score: 0.825775 map_score: 0.826445 Time: 271.01
+Run: 97 train loss: 31.009828 Time: 636.97
+Run: 97 VAL ap_score: 0.837689 map_score: 0.848438 Time: 233.80
+Run: 98 train loss: 29.861029 Time: 631.83
+Run: 98 VAL ap_score: 0.841124 map_score: 0.837592 Time: 250.22
+Run: 99 train loss: 30.744096 Time: 549.16
+Run: 99 VAL ap_score: 0.859215 map_score: 0.845263 Time: 195.33
+Run: 100 train loss: 30.165763 Time: 556.31
+Run: 100 VAL ap_score: 0.857195 map_score: 0.843858 Time: 375.98
+Run: 101 train loss: 30.814608 Time: 661.03
+Run: 101 VAL ap_score: 0.867921 map_score: 0.860693 Time: 279.95
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 102 train loss: 29.528062 Time: 629.08
+Run: 102 VAL ap_score: 0.841111 map_score: 0.851856 Time: 242.64
+Run: 103 train loss: 31.087082 Time: 663.05
+Run: 103 VAL ap_score: 0.834809 map_score: 0.857037 Time: 244.86
+Run: 104 train loss: 28.931343 Time: 564.25
+Run: 104 VAL ap_score: 0.825378 map_score: 0.848296 Time: 201.37
+Run: 105 train loss: 29.832998 Time: 599.34
+Run: 105 VAL ap_score: 0.860547 map_score: 0.863133 Time: 229.49
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 106 train loss: 29.300901 Time: 563.15
+Run: 106 VAL ap_score: 0.857531 map_score: 0.859844 Time: 195.37
+Run: 107 train loss: 28.926357 Time: 562.16
+Run: 107 VAL ap_score: 0.839826 map_score: 0.850903 Time: 207.05
+Run: 108 train loss: 29.059021 Time: 561.85
+Run: 108 VAL ap_score: 0.855821 map_score: 0.860128 Time: 200.12
+Run: 109 train loss: 28.546406 Time: 528.94
+Run: 109 VAL ap_score: 0.864706 map_score: 0.858238 Time: 186.29
+Run: 110 train loss: 29.562820 Time: 523.95
+Run: 110 VAL ap_score: 0.850707 map_score: 0.857358 Time: 192.91
+Run: 111 train loss: 28.130638 Time: 538.64
+Run: 111 VAL ap_score: 0.850284 map_score: 0.854924 Time: 203.30
+Run: 112 train loss: 29.151126 Time: 644.55
+Run: 112 VAL ap_score: 0.843270 map_score: 0.858233 Time: 366.27
+Run: 113 train loss: 28.367012 Time: 837.99
+Run: 113 VAL ap_score: 0.871287 map_score: 0.856334 Time: 222.66
+Run: 114 train loss: 28.609712 Time: 624.02
+Run: 114 VAL ap_score: 0.852356 map_score: 0.839889 Time: 239.03
+Run: 115 train loss: 28.307942 Time: 646.32
+Run: 115 VAL ap_score: 0.835816 map_score: 0.850403 Time: 237.44
+Run: 116 train loss: 27.722295 Time: 641.76
+Run: 116 VAL ap_score: 0.820230 map_score: 0.855304 Time: 238.25
+Run: 117 train loss: 27.894596 Time: 873.81
+Run: 117 VAL ap_score: 0.824393 map_score: 0.836655 Time: 374.03
+Run: 118 train loss: 28.387438 Time: 897.78
+Run: 118 VAL ap_score: 0.826473 map_score: 0.838446 Time: 375.80
+Run: 119 train loss: 29.750353 Time: 914.60
+Run: 119 VAL ap_score: 0.857584 map_score: 0.850972 Time: 393.91
+Run: 120 train loss: 26.895626 Time: 925.68
+Run: 120 VAL ap_score: 0.853124 map_score: 0.852940 Time: 381.93
+Run: 121 train loss: 27.086038 Time: 904.15
+Run: 121 VAL ap_score: 0.776650 map_score: 0.831131 Time: 387.36
+Run: 122 train loss: 28.175418 Time: 912.20
+Run: 122 VAL ap_score: 0.857159 map_score: 0.854917 Time: 389.23
+Run: 123 train loss: 26.878050 Time: 926.58
+Run: 123 VAL ap_score: 0.853961 map_score: 0.850716 Time: 383.10
+Run: 124 train loss: 27.203509 Time: 938.38
+Run: 124 VAL ap_score: 0.855754 map_score: 0.850364 Time: 369.89
+Run: 125 train loss: 27.592434 Time: 921.93
+Run: 125 VAL ap_score: 0.852302 map_score: 0.857022 Time: 393.18
+Run: 126 train loss: 26.650887 Time: 926.52
+Run: 126 VAL ap_score: 0.842485 map_score: 0.852321 Time: 390.38
+Run: 127 train loss: 26.633056 Time: 965.52
+Run: 127 VAL ap_score: 0.828470 map_score: 0.850211 Time: 401.54
+Run: 128 train loss: 26.869809 Time: 1011.54
+Run: 128 VAL ap_score: 0.820302 map_score: 0.830344 Time: 429.26
+Run: 129 train loss: 26.711123 Time: 987.92
+Run: 129 VAL ap_score: 0.867758 map_score: 0.867978 Time: 421.94
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 130 train loss: 26.473402 Time: 1021.97
+Run: 130 VAL ap_score: 0.873487 map_score: 0.862035 Time: 422.97
+Run: 131 train loss: 26.882074 Time: 951.97
+Run: 131 VAL ap_score: 0.833896 map_score: 0.831605 Time: 273.96
+Run: 132 train loss: 26.310072 Time: 723.39
+Run: 132 VAL ap_score: 0.880307 map_score: 0.866697 Time: 269.80
+Run: 133 train loss: 26.801521 Time: 725.39
+Run: 133 VAL ap_score: 0.880027 map_score: 0.860793 Time: 272.35
+Run: 134 train loss: 26.244208 Time: 700.84
+Run: 134 VAL ap_score: 0.870486 map_score: 0.856874 Time: 269.61
+Run: 135 train loss: 26.470096 Time: 726.79
+Run: 135 VAL ap_score: 0.873328 map_score: 0.862770 Time: 279.48
+Run: 136 train loss: 26.075158 Time: 719.93
+Run: 136 VAL ap_score: 0.851183 map_score: 0.852905 Time: 280.54
+Run: 137 train loss: 26.791117 Time: 702.12
+Run: 137 VAL ap_score: 0.833514 map_score: 0.848479 Time: 291.03
+Run: 138 train loss: 26.603626 Time: 717.22
+Run: 138 VAL ap_score: 0.861087 map_score: 0.857922 Time: 288.02
+Run: 139 train loss: 26.809393 Time: 743.21
+Run: 139 VAL ap_score: 0.868985 map_score: 0.856200 Time: 301.44
+Run: 140 train loss: 26.864102 Time: 1033.99
+Run: 140 VAL ap_score: 0.868862 map_score: 0.854407 Time: 421.18
+Run: 141 train loss: 26.606129 Time: 1019.68
+Run: 141 VAL ap_score: 0.846498 map_score: 0.848070 Time: 435.91
+Run: 142 train loss: 26.384127 Time: 1015.69
+Run: 142 VAL ap_score: 0.870143 map_score: 0.861246 Time: 442.26
+Run: 143 train loss: 25.764430 Time: 1019.14
+Run: 143 VAL ap_score: 0.811593 map_score: 0.837542 Time: 413.51
+Run: 144 train loss: 24.975910 Time: 1066.58
+Run: 144 VAL ap_score: 0.854872 map_score: 0.848232 Time: 470.23
+Run: 145 train loss: 25.752399 Time: 1075.00
+Run: 145 VAL ap_score: 0.871050 map_score: 0.857428 Time: 439.53
+Run: 146 train loss: 26.041254 Time: 1020.34
+Run: 146 VAL ap_score: 0.872017 map_score: 0.868279 Time: 409.36
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 147 train loss: 25.648470 Time: 976.43
+Run: 147 VAL ap_score: 0.854162 map_score: 0.853854 Time: 413.49
+Run: 148 train loss: 26.130448 Time: 995.70
+Run: 148 VAL ap_score: 0.859641 map_score: 0.859532 Time: 414.05
+Run: 149 train loss: 25.395222 Time: 992.78
+Run: 149 VAL ap_score: 0.828832 map_score: 0.856560 Time: 445.98
+Run: 150 train loss: 25.601764 Time: 969.76
+Run: 150 VAL ap_score: 0.876141 map_score: 0.865429 Time: 409.83
+Run: 151 train loss: 25.519610 Time: 989.26
+Run: 151 VAL ap_score: 0.814466 map_score: 0.858319 Time: 433.95
+Run: 152 train loss: 25.166294 Time: 1007.87
+Run: 152 VAL ap_score: 0.850312 map_score: 0.841378 Time: 400.05
+Run: 153 train loss: 25.434392 Time: 998.85
+Run: 153 VAL ap_score: 0.865633 map_score: 0.861812 Time: 420.56
+Run: 154 train loss: 25.410348 Time: 981.28
+Run: 154 VAL ap_score: 0.818816 map_score: 0.848157 Time: 430.92
+Run: 155 train loss: 25.957221 Time: 1027.47
+Run: 155 VAL ap_score: 0.864468 map_score: 0.864064 Time: 269.26
+Run: 156 train loss: 25.034006 Time: 667.88
+Run: 156 VAL ap_score: 0.827717 map_score: 0.858301 Time: 253.40
+Run: 157 train loss: 24.984211 Time: 678.94
+Run: 157 VAL ap_score: 0.861741 map_score: 0.863950 Time: 255.44
+Run: 158 train loss: 25.679693 Time: 669.34
+Run: 158 VAL ap_score: 0.872459 map_score: 0.864685 Time: 259.49
+Run: 159 train loss: 24.386289 Time: 698.54
+Run: 159 VAL ap_score: 0.855014 map_score: 0.861740 Time: 259.18
+Run: 160 train loss: 26.040458 Time: 710.54
+Run: 160 VAL ap_score: 0.846006 map_score: 0.854275 Time: 276.76
+Run: 161 train loss: 25.017961 Time: 676.74
+Run: 161 VAL ap_score: 0.874563 map_score: 0.864583 Time: 258.85
+Run: 162 train loss: 25.509046 Time: 682.46
+Run: 162 VAL ap_score: 0.873998 map_score: 0.865312 Time: 267.23
+Run: 163 train loss: 25.175250 Time: 694.43
+Run: 163 VAL ap_score: 0.874689 map_score: 0.861424 Time: 267.39
+Run: 164 train loss: 24.821063 Time: 683.97
+Run: 164 VAL ap_score: 0.868568 map_score: 0.868778 Time: 258.75
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 165 train loss: 24.981454 Time: 682.60
+Run: 165 VAL ap_score: 0.874107 map_score: 0.867103 Time: 262.24
+Run: 166 train loss: 25.686033 Time: 708.84
+Run: 166 VAL ap_score: 0.880203 map_score: 0.872799 Time: 250.68
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 167 train loss: 25.089089 Time: 643.88
+Run: 167 VAL ap_score: 0.841028 map_score: 0.862710 Time: 230.49
+Run: 168 train loss: 24.963388 Time: 623.83
+Run: 168 VAL ap_score: 0.861051 map_score: 0.866941 Time: 225.14
+Run: 169 train loss: 24.683886 Time: 629.62
+Run: 169 VAL ap_score: 0.850194 map_score: 0.862485 Time: 231.55
+Run: 170 train loss: 24.950255 Time: 640.91
+Run: 170 VAL ap_score: 0.862748 map_score: 0.866628 Time: 225.50
+Run: 171 train loss: 25.287971 Time: 631.58
+Run: 171 VAL ap_score: 0.879460 map_score: 0.859324 Time: 220.91
+Run: 172 train loss: 24.830836 Time: 598.08
+Run: 172 VAL ap_score: 0.868560 map_score: 0.867859 Time: 220.38
+Run: 173 train loss: 23.756546 Time: 585.97
+Run: 173 VAL ap_score: 0.844753 map_score: 0.865533 Time: 208.20
+Run: 174 train loss: 25.133573 Time: 589.97
+Run: 174 VAL ap_score: 0.868825 map_score: 0.862438 Time: 219.57
+Run: 175 train loss: 24.282931 Time: 623.89
+Run: 175 VAL ap_score: 0.864388 map_score: 0.859160 Time: 239.11
+Run: 176 train loss: 24.928198 Time: 641.11
+Run: 176 VAL ap_score: 0.885150 map_score: 0.872276 Time: 238.66
+Run: 177 train loss: 25.037751 Time: 630.32
+Run: 177 VAL ap_score: 0.862600 map_score: 0.851816 Time: 244.60
+Run: 178 train loss: 24.656087 Time: 664.35
+Run: 178 VAL ap_score: 0.868213 map_score: 0.868070 Time: 280.02
+Run: 179 train loss: 25.563377 Time: 760.57
+Run: 179 VAL ap_score: 0.870092 map_score: 0.863165 Time: 285.76
+Run: 180 train loss: 23.930640 Time: 759.20
+Run: 180 VAL ap_score: 0.857507 map_score: 0.851624 Time: 286.23
+Run: 181 train loss: 25.052255 Time: 729.92
+Run: 181 VAL ap_score: 0.868411 map_score: 0.874147 Time: 253.93
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 182 train loss: 24.453483 Time: 581.11
+Run: 182 VAL ap_score: 0.865315 map_score: 0.867021 Time: 241.70
+Run: 183 train loss: 24.411597 Time: 599.48
+Run: 183 VAL ap_score: 0.875139 map_score: 0.861501 Time: 224.69
+Run: 184 train loss: 23.975405 Time: 605.70
+Run: 184 VAL ap_score: 0.862017 map_score: 0.856389 Time: 238.62
+Run: 185 train loss: 24.819621 Time: 622.43
+Run: 185 VAL ap_score: 0.841325 map_score: 0.859000 Time: 233.85
+Run: 186 train loss: 24.888911 Time: 629.04
+Run: 186 VAL ap_score: 0.862212 map_score: 0.864401 Time: 235.92
+Run: 187 train loss: 24.392621 Time: 609.67
+Run: 187 VAL ap_score: 0.872017 map_score: 0.871561 Time: 233.91
+Run: 188 train loss: 24.146575 Time: 620.04
+Run: 188 VAL ap_score: 0.868510 map_score: 0.869591 Time: 228.59
+Run: 189 train loss: 24.673281 Time: 593.00
+Run: 189 VAL ap_score: 0.883634 map_score: 0.870798 Time: 237.61
+Run: 190 train loss: 24.378105 Time: 596.87
+Run: 190 VAL ap_score: 0.843554 map_score: 0.865138 Time: 231.77
+Run: 191 train loss: 24.658152 Time: 606.84
+Run: 191 VAL ap_score: 0.856297 map_score: 0.870354 Time: 238.64
+Run: 192 train loss: 24.519265 Time: 621.09
+Run: 192 VAL ap_score: 0.856896 map_score: 0.868505 Time: 246.53
+Run: 193 train loss: 24.161933 Time: 644.75
+Run: 193 VAL ap_score: 0.876130 map_score: 0.870156 Time: 247.12
+Run: 194 train loss: 23.534075 Time: 635.96
+Run: 194 VAL ap_score: 0.878107 map_score: 0.872320 Time: 238.37
+Run: 195 train loss: 24.605136 Time: 647.96
+Run: 195 VAL ap_score: 0.876555 map_score: 0.869729 Time: 235.12
+Run: 196 train loss: 23.655075 Time: 619.61
+Run: 196 VAL ap_score: 0.891290 map_score: 0.876723 Time: 237.40
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 197 train loss: 24.833117 Time: 657.79
+Run: 197 VAL ap_score: 0.855696 map_score: 0.855603 Time: 225.21
+Run: 198 train loss: 23.424026 Time: 494.80
+Run: 198 VAL ap_score: 0.870312 map_score: 0.857710 Time: 208.66
+Run: 199 train loss: 24.420236 Time: 517.89
+Run: 199 VAL ap_score: 0.862550 map_score: 0.867624 Time: 210.05
+Run: 200 train loss: 24.095450 Time: 541.43
+Run: 200 VAL ap_score: 0.866419 map_score: 0.862143 Time: 221.63
+Run: 201 train loss: 23.980706 Time: 587.27
+Run: 201 VAL ap_score: 0.876053 map_score: 0.865673 Time: 221.35
+Run: 202 train loss: 23.982623 Time: 584.54
+Run: 202 VAL ap_score: 0.854955 map_score: 0.846989 Time: 209.88
+Run: 203 train loss: 23.715948 Time: 574.68
+Run: 203 VAL ap_score: 0.861890 map_score: 0.861909 Time: 220.75
+Run: 204 train loss: 24.254311 Time: 579.07
+Run: 204 VAL ap_score: 0.880294 map_score: 0.867977 Time: 219.70
+Run: 205 train loss: 24.454934 Time: 581.49
+Run: 205 VAL ap_score: 0.885198 map_score: 0.868963 Time: 212.14
+Run: 206 train loss: 23.526055 Time: 581.45
+Run: 206 VAL ap_score: 0.870311 map_score: 0.865707 Time: 224.61
+Run: 207 train loss: 23.906777 Time: 578.32
+Run: 207 VAL ap_score: 0.854632 map_score: 0.859722 Time: 212.41
+Run: 208 train loss: 24.080802 Time: 592.45
+Run: 208 VAL ap_score: 0.861611 map_score: 0.863332 Time: 215.79
+Run: 209 train loss: 23.450223 Time: 579.15
+Run: 209 VAL ap_score: 0.876876 map_score: 0.859621 Time: 216.15
+Run: 210 train loss: 24.375584 Time: 578.33
+Run: 210 VAL ap_score: 0.860932 map_score: 0.862698 Time: 214.53
+Run: 211 train loss: 23.276575 Time: 574.99
+Run: 211 VAL ap_score: 0.883212 map_score: 0.862593 Time: 212.11
+Run: 212 train loss: 23.392583 Time: 568.74
+Run: 212 VAL ap_score: 0.886132 map_score: 0.870500 Time: 216.29
+Run: 213 train loss: 23.218040 Time: 576.38
+Run: 213 VAL ap_score: 0.870993 map_score: 0.875268 Time: 225.36
+Run: 214 train loss: 23.625090 Time: 589.60
+Run: 214 VAL ap_score: 0.873137 map_score: 0.871467 Time: 225.46
+Run: 215 train loss: 23.298107 Time: 593.22
+Run: 215 VAL ap_score: 0.854900 map_score: 0.868294 Time: 211.46
+Run: 216 train loss: 22.909761 Time: 587.32
+Run: 216 VAL ap_score: 0.843004 map_score: 0.857864 Time: 219.31
+Run: 217 train loss: 23.841268 Time: 552.19
+Run: 217 VAL ap_score: 0.863721 map_score: 0.873658 Time: 206.74
+Run: 218 train loss: 24.039257 Time: 557.65
+Run: 218 VAL ap_score: 0.854219 map_score: 0.848492 Time: 219.12
+Run: 219 train loss: 23.501125 Time: 556.92
+Run: 219 VAL ap_score: 0.882705 map_score: 0.873617 Time: 204.28
+Run: 220 train loss: 23.635028 Time: 519.14
+Run: 220 VAL ap_score: 0.865397 map_score: 0.864844 Time: 196.76
+Run: 221 train loss: 24.084534 Time: 529.32
+Run: 221 VAL ap_score: 0.881494 map_score: 0.875606 Time: 192.18
+Run: 222 train loss: 23.399834 Time: 529.43
+Run: 222 VAL ap_score: 0.871415 map_score: 0.862298 Time: 184.94
+Run: 223 train loss: 23.321252 Time: 524.06
+Run: 223 VAL ap_score: 0.882279 map_score: 0.871166 Time: 187.33
+Run: 224 train loss: 23.060400 Time: 532.94
+Run: 224 VAL ap_score: 0.849706 map_score: 0.866041 Time: 187.34
+Run: 225 train loss: 23.611019 Time: 509.05
+Run: 225 VAL ap_score: 0.880619 map_score: 0.870499 Time: 186.48
+Run: 226 train loss: 23.996002 Time: 518.91
+Run: 226 VAL ap_score: 0.877528 map_score: 0.873567 Time: 192.65
+Run: 227 train loss: 23.103113 Time: 502.07
+Run: 227 VAL ap_score: 0.884485 map_score: 0.869107 Time: 168.55
+Run: 228 train loss: 22.862423 Time: 493.96
+Run: 228 VAL ap_score: 0.884261 map_score: 0.873159 Time: 163.60
+Run: 229 train loss: 22.908454 Time: 492.64
+Run: 229 VAL ap_score: 0.869463 map_score: 0.868690 Time: 173.02
+Run: 230 train loss: 23.772624 Time: 478.19
+Run: 230 VAL ap_score: 0.884051 map_score: 0.872128 Time: 162.09
+Run: 231 train loss: 22.636143 Time: 461.36
+Run: 231 VAL ap_score: 0.845275 map_score: 0.869098 Time: 164.48
+Run: 232 train loss: 23.162887 Time: 456.72
+Run: 232 VAL ap_score: 0.875372 map_score: 0.875716 Time: 161.48
+Run: 233 train loss: 23.467434 Time: 461.20
+Run: 233 VAL ap_score: 0.882304 map_score: 0.870974 Time: 167.48
+Run: 234 train loss: 23.022284 Time: 464.94
+Run: 234 VAL ap_score: 0.854337 map_score: 0.869964 Time: 161.16
+Run: 235 train loss: 22.986077 Time: 448.54
+Run: 235 VAL ap_score: 0.873049 map_score: 0.876603 Time: 161.21
+Run: 236 train loss: 23.327147 Time: 459.72
+Run: 236 VAL ap_score: 0.882337 map_score: 0.875472 Time: 167.50
+Run: 237 train loss: 23.162984 Time: 461.91
+Run: 237 VAL ap_score: 0.865423 map_score: 0.867054 Time: 166.37
+Run: 238 train loss: 23.231567 Time: 467.32
+Run: 238 VAL ap_score: 0.873579 map_score: 0.875939 Time: 163.84
+Run: 239 train loss: 22.960461 Time: 459.99
+Run: 239 VAL ap_score: 0.880452 map_score: 0.865518 Time: 164.02
+Run: 240 train loss: 22.369135 Time: 453.44
+Run: 240 VAL ap_score: 0.859939 map_score: 0.863617 Time: 148.93
+Run: 241 train loss: 23.108612 Time: 450.44
+Run: 241 VAL ap_score: 0.868534 map_score: 0.875031 Time: 151.48
+Run: 242 train loss: 23.301948 Time: 401.45
+Run: 242 VAL ap_score: 0.871560 map_score: 0.865521 Time: 144.36
+Run: 243 train loss: 22.080145 Time: 384.95
+Run: 243 VAL ap_score: 0.871187 map_score: 0.870789 Time: 140.31
+Run: 244 train loss: 23.383667 Time: 395.24
+Run: 244 VAL ap_score: 0.842810 map_score: 0.863501 Time: 142.07
+Run: 245 train loss: 22.767177 Time: 390.15
+Run: 245 VAL ap_score: 0.870682 map_score: 0.866474 Time: 133.14
+Run: 246 train loss: 22.945289 Time: 377.20
+Run: 246 VAL ap_score: 0.866834 map_score: 0.865565 Time: 138.10
+Run: 247 train loss: 23.307125 Time: 375.35
+Run: 247 VAL ap_score: 0.866678 map_score: 0.877304 Time: 135.22
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 248 train loss: 22.320848 Time: 386.58
+Run: 248 VAL ap_score: 0.896028 map_score: 0.881153 Time: 145.63
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 249 train loss: 22.226988 Time: 420.19
+Run: 249 VAL ap_score: 0.897047 map_score: 0.881877 Time: 139.69
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 250 train loss: 23.139296 Time: 390.93
+Run: 250 VAL ap_score: 0.882112 map_score: 0.874936 Time: 135.75
+Run: 251 train loss: 22.858842 Time: 385.09
+Run: 251 VAL ap_score: 0.894565 map_score: 0.877069 Time: 152.21
+Run: 252 train loss: 23.042478 Time: 420.13
+Run: 252 VAL ap_score: 0.895775 map_score: 0.876963 Time: 141.18
+Run: 253 train loss: 21.713893 Time: 400.69
+Run: 253 VAL ap_score: 0.888969 map_score: 0.874731 Time: 142.18
+Run: 254 train loss: 22.299870 Time: 387.31
+Run: 254 VAL ap_score: 0.894271 map_score: 0.878127 Time: 136.59
+Run: 255 train loss: 22.558060 Time: 382.97
+Run: 255 VAL ap_score: 0.872224 map_score: 0.873913 Time: 135.27
+Run: 256 train loss: 23.114789 Time: 381.43
+Run: 256 VAL ap_score: 0.860327 map_score: 0.874112 Time: 133.94
+Run: 257 train loss: 22.323316 Time: 382.18
+Run: 257 VAL ap_score: 0.884923 map_score: 0.870140 Time: 138.10
+Run: 258 train loss: 22.636232 Time: 377.01
+Run: 258 VAL ap_score: 0.885649 map_score: 0.875198 Time: 136.91
+Run: 259 train loss: 22.799825 Time: 382.54
+Run: 259 VAL ap_score: 0.881674 map_score: 0.883928 Time: 133.49
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 260 train loss: 23.060566 Time: 379.00
+Run: 260 VAL ap_score: 0.891792 map_score: 0.878005 Time: 134.11
+Run: 261 train loss: 21.423749 Time: 385.44
+Run: 261 VAL ap_score: 0.883332 map_score: 0.877374 Time: 136.38
+Run: 262 train loss: 22.814822 Time: 380.21
+Run: 262 VAL ap_score: 0.853289 map_score: 0.872713 Time: 135.60
+Run: 263 train loss: 23.392153 Time: 383.42
+Run: 263 VAL ap_score: 0.877445 map_score: 0.877319 Time: 135.24
+Run: 264 train loss: 22.725023 Time: 377.29
+Run: 264 VAL ap_score: 0.866334 map_score: 0.879645 Time: 129.56
+Run: 265 train loss: 22.571508 Time: 366.28
+Run: 265 VAL ap_score: 0.850071 map_score: 0.859539 Time: 130.17
+Run: 266 train loss: 22.393155 Time: 366.52
+Run: 266 VAL ap_score: 0.881735 map_score: 0.866637 Time: 132.01
+Run: 267 train loss: 22.524693 Time: 366.62
+Run: 267 VAL ap_score: 0.875714 map_score: 0.872041 Time: 128.94
+Run: 268 train loss: 21.800769 Time: 364.62
+Run: 268 VAL ap_score: 0.847931 map_score: 0.878354 Time: 124.60
+Run: 269 train loss: 23.023389 Time: 361.18
+Run: 269 VAL ap_score: 0.893677 map_score: 0.884044 Time: 127.13
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 270 train loss: 22.570827 Time: 370.97
+Run: 270 VAL ap_score: 0.884076 map_score: 0.877354 Time: 131.74
+Run: 271 train loss: 23.247578 Time: 361.51
+Run: 271 VAL ap_score: 0.882025 map_score: 0.874920 Time: 129.78
+Run: 272 train loss: 22.040481 Time: 363.64
+Run: 272 VAL ap_score: 0.872324 map_score: 0.862658 Time: 129.73
+Run: 273 train loss: 22.277479 Time: 365.78
+Run: 273 VAL ap_score: 0.875789 map_score: 0.872840 Time: 128.42
+Run: 274 train loss: 22.770190 Time: 374.20
+Run: 274 VAL ap_score: 0.884546 map_score: 0.872948 Time: 133.90
+Run: 275 train loss: 21.942601 Time: 361.42
+Run: 275 VAL ap_score: 0.850825 map_score: 0.870326 Time: 137.21
+Run: 276 train loss: 22.037144 Time: 391.30
+Run: 276 VAL ap_score: 0.866932 map_score: 0.878526 Time: 134.50
+Run: 277 train loss: 22.578692 Time: 378.88
+Run: 277 VAL ap_score: 0.878349 map_score: 0.867864 Time: 132.39
+Run: 278 train loss: 22.555315 Time: 387.48
+Run: 278 VAL ap_score: 0.868650 map_score: 0.873252 Time: 132.48
+Run: 279 train loss: 22.930191 Time: 384.77
+Run: 279 VAL ap_score: 0.854983 map_score: 0.875762 Time: 136.82
+Run: 280 train loss: 22.899741 Time: 386.73
+Run: 280 VAL ap_score: 0.897202 map_score: 0.881504 Time: 139.38
+Run: 281 train loss: 21.415152 Time: 408.86
+Run: 281 VAL ap_score: 0.867213 map_score: 0.881545 Time: 146.30
+Run: 282 train loss: 21.752845 Time: 394.30
+Run: 282 VAL ap_score: 0.880962 map_score: 0.880104 Time: 125.76
+Run: 283 train loss: 23.040912 Time: 369.01
+Run: 283 VAL ap_score: 0.897381 map_score: 0.878085 Time: 128.81
+Run: 284 train loss: 21.681243 Time: 372.74
+Run: 284 VAL ap_score: 0.865437 map_score: 0.869552 Time: 167.53
+Run: 285 train loss: 21.917088 Time: 538.58
+Run: 285 VAL ap_score: 0.892922 map_score: 0.879814 Time: 132.49
+Run: 286 train loss: 22.265272 Time: 373.47
+Run: 286 VAL ap_score: 0.896244 map_score: 0.871726 Time: 130.26
+Run: 287 train loss: 22.392063 Time: 381.10
+Run: 287 VAL ap_score: 0.869779 map_score: 0.867556 Time: 129.12
+Run: 288 train loss: 23.439783 Time: 385.32
+Run: 288 VAL ap_score: 0.895175 map_score: 0.882011 Time: 134.16
+Run: 289 train loss: 22.037805 Time: 383.11
+Run: 289 VAL ap_score: 0.865772 map_score: 0.869932 Time: 136.22
+Run: 290 train loss: 22.300484 Time: 383.61
+Run: 290 VAL ap_score: 0.861926 map_score: 0.873514 Time: 131.30
+Run: 291 train loss: 22.132118 Time: 382.11
+Run: 291 VAL ap_score: 0.886456 map_score: 0.876787 Time: 136.13
+Run: 292 train loss: 21.691971 Time: 382.61
+Run: 292 VAL ap_score: 0.883977 map_score: 0.874465 Time: 135.05
+Run: 293 train loss: 21.304309 Time: 381.78
+Run: 293 VAL ap_score: 0.904069 map_score: 0.885098 Time: 133.09
+saving best validated model to ./edge_early_delete_lambda08_clean/bestValidationModels/edge_early_interaction_with_delete_mutag_7474_2024-01-12_01:18:44.973239
+Run: 294 train loss: 22.079602 Time: 389.47
+Run: 294 VAL ap_score: 0.890219 map_score: 0.873228 Time: 198.02
+Run: 295 train loss: 21.889068 Time: 571.95
+Run: 295 VAL ap_score: 0.892884 map_score: 0.874619 Time: 219.21
+Run: 296 train loss: 23.626079 Time: 489.17
+Run: 296 VAL ap_score: 0.862258 map_score: 0.873416 Time: 187.30
+Run: 297 train loss: 21.571685 Time: 495.61
+Run: 297 VAL ap_score: 0.883231 map_score: 0.874055 Time: 189.87
+Run: 298 train loss: 21.267653 Time: 494.57
+Run: 298 VAL ap_score: 0.875821 map_score: 0.873601 Time: 163.81
+Run: 299 train loss: 21.986305 Time: 319.20
+Run: 299 VAL ap_score: 0.889155 map_score: 0.876446 Time: 100.55
+Run: 300 train loss: 21.859826 Time: 315.61
+Run: 300 VAL ap_score: 0.888285 map_score: 0.872288 Time: 99.37
+Run: 301 train loss: 22.596013 Time: 308.31
+Run: 301 VAL ap_score: 0.872615 map_score: 0.879655 Time: 93.32
+Run: 302 train loss: 21.352998 Time: 452.14
+Run: 302 VAL ap_score: 0.885157 map_score: 0.873717 Time: 217.36
+Run: 303 train loss: 21.898402 Time: 515.94
+Run: 303 VAL ap_score: 0.850960 map_score: 0.870741 Time: 229.18
+Run: 304 train loss: 21.574332 Time: 514.81
+Run: 304 VAL ap_score: 0.886270 map_score: 0.872502 Time: 212.81
+Run: 305 train loss: 22.709418 Time: 512.99
+Run: 305 VAL ap_score: 0.861314 map_score: 0.844548 Time: 216.92
+Run: 306 train loss: 21.142067 Time: 509.22
+Run: 306 VAL ap_score: 0.875969 map_score: 0.878195 Time: 214.64
+Run: 307 train loss: 22.245174 Time: 512.56
+Run: 307 VAL ap_score: 0.889203 map_score: 0.877990 Time: 214.53
+Run: 308 train loss: 21.394749 Time: 509.64
+Run: 308 VAL ap_score: 0.849898 map_score: 0.869945 Time: 207.66
+Run: 309 train loss: 22.233815 Time: 508.38
+Run: 309 VAL ap_score: 0.887324 map_score: 0.874736 Time: 209.29
+Run: 310 train loss: 21.865654 Time: 497.68
+Run: 310 VAL ap_score: 0.891724 map_score: 0.878023 Time: 199.30
+Run: 311 train loss: 21.221667 Time: 497.90
+Run: 311 VAL ap_score: 0.880862 map_score: 0.875626 Time: 196.88
+Run: 312 train loss: 21.141328 Time: 499.95
+Run: 312 VAL ap_score: 0.902230 map_score: 0.881663 Time: 211.99
+Run: 313 train loss: 21.252587 Time: 494.16
+Run: 313 VAL ap_score: 0.851585 map_score: 0.878803 Time: 199.95
+Run: 314 train loss: 21.768205 Time: 497.19
+Run: 314 VAL ap_score: 0.860702 map_score: 0.874376 Time: 199.48
+Run: 315 train loss: 21.907446 Time: 504.50
+Run: 315 VAL ap_score: 0.839309 map_score: 0.867835 Time: 202.79
+Run: 316 train loss: 21.413252 Time: 492.93
+Run: 316 VAL ap_score: 0.884826 map_score: 0.874302 Time: 194.65
+Run: 317 train loss: 21.521477 Time: 363.13
+Run: 317 VAL ap_score: 0.894055 map_score: 0.882562 Time: 78.50
+Run: 318 train loss: 21.537335 Time: 255.23
+Run: 318 VAL ap_score: 0.882216 map_score: 0.877875 Time: 78.96
+Run: 319 train loss: 21.888637 Time: 255.79
+Run: 319 VAL ap_score: 0.883886 map_score: 0.879505 Time: 78.36
+Run: 320 train loss: 22.364459 Time: 254.62
+Run: 320 VAL ap_score: 0.888775 map_score: 0.880515 Time: 78.78
+Run: 321 train loss: 21.490965 Time: 254.50
+Run: 321 VAL ap_score: 0.886489 map_score: 0.881803 Time: 78.19
+Run: 322 train loss: 21.423243 Time: 254.64
+Run: 322 VAL ap_score: 0.880360 map_score: 0.868843 Time: 78.89
+Run: 323 train loss: 21.046067 Time: 254.19
+Run: 323 VAL ap_score: 0.898568 map_score: 0.883487 Time: 75.91
+Run: 324 train loss: 21.872689 Time: 248.54
+Run: 324 VAL ap_score: 0.889586 map_score: 0.880097 Time: 77.30
+Run: 325 train loss: 21.037588 Time: 251.16
+Run: 325 VAL ap_score: 0.867891 map_score: 0.872316 Time: 76.39
+Run: 326 train loss: 22.543689 Time: 251.08
+Run: 326 VAL ap_score: 0.873848 map_score: 0.875923 Time: 77.28
+Run: 327 train loss: 22.174310 Time: 250.34
+Run: 327 VAL ap_score: 0.893630 map_score: 0.877717 Time: 77.61
+Run: 328 train loss: 21.785789 Time: 250.91
+Run: 328 VAL ap_score: 0.880833 map_score: 0.867569 Time: 73.43
+Run: 329 train loss: 22.036322 Time: 251.81
+Run: 329 VAL ap_score: 0.850336 map_score: 0.863810 Time: 76.44
+Run: 330 train loss: 21.733442 Time: 255.74
+Run: 330 VAL ap_score: 0.878052 map_score: 0.879595 Time: 76.54
+Run: 331 train loss: 20.992759 Time: 252.34
+Run: 331 VAL ap_score: 0.881868 map_score: 0.869940 Time: 77.49
+Run: 332 train loss: 22.785958 Time: 252.33
+Run: 332 VAL ap_score: 0.888277 map_score: 0.872605 Time: 78.51
+Run: 333 train loss: 20.805154 Time: 254.70
+Run: 333 VAL ap_score: 0.878203 map_score: 0.878983 Time: 77.76
+Run: 334 train loss: 21.526302 Time: 252.61
+Run: 334 VAL ap_score: 0.866283 map_score: 0.877320 Time: 78.18
+Run: 335 train loss: 21.330392 Time: 253.41
+Run: 335 VAL ap_score: 0.881636 map_score: 0.878523 Time: 75.40
+Run: 336 train loss: 22.618569 Time: 252.91
+Run: 336 VAL ap_score: 0.829643 map_score: 0.866843 Time: 77.12
+Run: 337 train loss: 21.732626 Time: 254.59
+Run: 337 VAL ap_score: 0.870999 map_score: 0.874087 Time: 78.01
+Run: 338 train loss: 21.064880 Time: 254.65
+Run: 338 VAL ap_score: 0.889168 map_score: 0.876173 Time: 77.69
+Run: 339 train loss: 22.483616 Time: 255.83
+Run: 339 VAL ap_score: 0.892435 map_score: 0.880833 Time: 77.10
+Run: 340 train loss: 21.421440 Time: 253.43
+Run: 340 VAL ap_score: 0.885609 map_score: 0.880675 Time: 77.41
+Run: 341 train loss: 21.276899 Time: 251.83
+Run: 341 VAL ap_score: 0.879109 map_score: 0.878672 Time: 77.14
+Run: 342 train loss: 21.489289 Time: 252.73
+Run: 342 VAL ap_score: 0.854139 map_score: 0.863088 Time: 78.92
+Run: 343 train loss: 21.649385 Time: 253.21
+Run: 343 VAL ap_score: 0.873531 map_score: 0.874644 Time: 78.20
+Run: 344 train loss: 21.041350 Time: 254.25
+Run: 344 VAL ap_score: 0.898166 map_score: 0.883045 Time: 77.66
