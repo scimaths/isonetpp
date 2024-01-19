@@ -156,6 +156,11 @@ def get_result(av,model_loc,state_dict):
       model = im.NodeEdgeEarlyInteractionWithConsistencyAndTwoSinkhorns(av,config,1).to(device)
       test_data.data_type = "gmn"
       val_data.data_type = "gmn"
+    elif model_loc.startswith("edge_early_interaction_with_delete"):
+      config = load_config(av)
+      model = im.EdgeEarlyInteractionDelete(av,config,1).to(device)
+      test_data.data_type = "gmn"
+      val_data.data_type = "gmn" 
     elif model_loc.startswith("edge_early_interaction"):
       config = load_config(av)
       model = im.EdgeEarlyInteraction(av,config,1).to(device)
@@ -207,6 +212,7 @@ task_dict = {}
 
 task_dict['node_edge_early_interaction'] = "Node Edge Early Interaction"
 task_dict['edge_early_interaction'] = "Edge Early Interaction"
+task_dict['edge_early_interaction_with_delete'] = "Delete Edge early"
 task_dict['node_early_interaction'] = "Node Early Interaction"
 task_dict['node_align_node_loss'] = "Node Align Node Loss"
 task_dict['isonet'] = "ISONET"
@@ -248,4 +254,3 @@ for model_loc in sorted(os.listdir(test_model_dir)):
     # print(scores[model][dataset][seed])
     pickle.dump(scores, open(f'{ad.save_loc}.pkl', 'wb'))
 
-print(scores)
