@@ -96,11 +96,9 @@ class EdgeEarlyInteractionBaseline(torch.nn.Module):
         max_set_size_arange[1:, ] += cumulative_sizes[:-1].unsqueeze(1)
         edge_indices = max_set_size_arange[edge_presence_mask]
 
+        node_features_enc = torch.clone(encoded_node_features)
+        edge_features_enc = torch.clone(encoded_edge_features)
         for prop_idx in range(1, n_prop_update_steps + 1):
-
-            node_features_enc = torch.clone(encoded_node_features)
-            edge_features_enc = torch.clone(encoded_edge_features)
-
             combined_features = self.fc_combine_interaction(torch.cat([edge_features_enc, edge_feature_store], dim=1))
 
             node_features_enc = self.prop_layer(node_features_enc, from_idx, to_idx, combined_features)

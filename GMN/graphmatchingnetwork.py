@@ -212,7 +212,7 @@ def batch_block_pair_attention_faster(data,
 
     results = torch.cat([query_new[i//2, :batch_data_sizes_flat[i]] if i%2==0 else corpus_new[i//2, :batch_data_sizes_flat[i]] for i in range(len(batch_data_sizes_flat))])
 
-    return results
+    return results, [softmax_1, softmax_2]
 
 class GraphPropMatchingLayer(GraphPropLayer):
     """A graph propagation layer that also does cross graph matching.
@@ -232,7 +232,9 @@ class GraphPropMatchingLayer(GraphPropLayer):
                 edge_features=None,
                 node_features=None,
                 batch_data_sizes_flat=None,
-                max_node_size=None):
+                max_node_size=None,
+                attention_past=None,
+                return_attention=False):
         """Run one propagation step with cross-graph matching.
 
         Args:
@@ -255,17 +257,41 @@ class GraphPropMatchingLayer(GraphPropLayer):
         """
         aggregated_messages = self._compute_aggregated_messages(
             node_states, from_idx, to_idx, edge_features=edge_features)
+        
+        if attention_past is not None:
+          partitionsT = torch.split(node_states, batch_data_sizes_flat)
+          partitions_1 = torch.stack([F.pad(partition, pad=(0, 0, 0, max_node_size+1-len(partition))) for partition in partitionsT[0::2]])
+          partitions_2 = torch.stack([F.pad(partition, pad=(0, 0, 0, max_node_size+1-len(partition))) for partition in partitionsT[1::2]])
+          query_new = torch.bmm(attention_past[0], partitions_2)
+          corpus_new = torch.bmm(torch.transpose(attention_past[1], 1, 2), partitions_1)
+          results = torch.cat([query_new[i//2, :batch_data_sizes_flat[i]] if i%2==0 else corpus_new[i//2, :batch_data_sizes_flat[i]] for i in range(len(batch_data_sizes_flat))])
+          attention_input = node_states - results
 
-        cross_graph_attention = batch_block_pair_attention_faster(
+          if return_attention:
+            _, attention_matrices = batch_block_pair_attention_faster(
+              node_states, graph_idx, n_graphs, similarity=similarity, 
+              batch_data_sizes_flat=batch_data_sizes_flat, max_node_size=max_node_size)
+            return self._compute_node_update(node_states,
+                                         [aggregated_messages, attention_input],
+                                         node_features=node_features), attention_matrices
+          else:
+            return self._compute_node_update(node_states,
+                                          [aggregated_messages, attention_input],
+                                          node_features=node_features)
+        else:
+          cross_graph_attention, attention_matrices = batch_block_pair_attention_faster(
             node_states, graph_idx, n_graphs, similarity=similarity, 
             batch_data_sizes_flat=batch_data_sizes_flat, max_node_size=max_node_size)
-        # cross_graph_attention = batch_block_pair_attention(
-        #     node_states, graph_idx, n_graphs, similarity=similarity)
-        attention_input = node_states - cross_graph_attention
-
-        return self._compute_node_update(node_states,
-                                         [aggregated_messages, attention_input],
-                                         node_features=node_features)
+          attention_input = node_states - cross_graph_attention
+          if return_attention:
+            return self._compute_node_update(node_states,
+                                          [aggregated_messages, attention_input],
+                                          node_features=node_features), attention_matrices
+          else:
+            return self._compute_node_update(node_states,
+                                          [aggregated_messages, attention_input],
+                                          node_features=node_features)
+                                  
 
 
 class GraphMatchingNet(GraphEmbeddingNet):
