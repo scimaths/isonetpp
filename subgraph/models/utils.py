@@ -3,7 +3,8 @@ from subgraph.utils import cudavar
 
 def pytorch_sample_gumbel(av,shape, eps=1e-20):
   #Sample from Gumbel(0, 1)
-  U = cudavar(av,torch.rand(shape).float())
+  device = 'cuda:0' if av.has_cuda and av.want_cuda else 'cpu'
+  U = torch.rand(shape, dtype=torch.float32, device=device)
   return -torch.log(eps - torch.log(U + eps))
 
 def pytorch_sinkhorn_iters(av, log_alpha,temp=0.1,noise_factor=1.0, n_iters = 20):

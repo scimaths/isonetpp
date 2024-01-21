@@ -27,13 +27,17 @@ from subgraph.models.neuromatch import NeuroMatch
 from subgraph.models.node_early_interaction import NodeEarlyInteraction
 from subgraph.models.edge_early_interaction import EdgeEarlyInteraction
 from subgraph.models.edge_early_interaction_with_delete import EdgeEarlyInteractionDelete
+from subgraph.models.edge_early_interaction_baseline import EdgeEarlyInteractionBaseline
+from subgraph.models.node_early_interaction_baseline import NodeEarlyInteractionBaseline
 from subgraph.models.node_edge_early_interaction_with_consistency import NodeEdgeEarlyInteractionWithConsistency
 from subgraph.models.node_edge_early_interaction_with_consistency_and_two_sinkhorns import NodeEdgeEarlyInteractionWithConsistencyAndTwoSinkhorns
 from subgraph.models.adding_to_q import AddingToQ
 from subgraph.models.velugoti_39 import OurMatchingModelVar39_GMN_encoding_NodePerm_SinkhornParamBig_HingeScore_EdgePermConsistency
 from subgraph.models.velugoti_45 import OurMatchingModelVar45_GMN_encoding_NodeAndEdgePerm_SinkhornParamBig_HingeScore
 from subgraph.models.isonet import ISONET, ISONET_Sym
-from subgraph.models.gmn_match import GMN_match, GMN_match_hinge
+from subgraph.models.gmn_match import GMN_match, GMN_match_hinge, GMN_match_hinge_baseline
+from subgraph.models.gmn_match_hinge_scoring import GMN_match_hinge_scoring
+from subgraph.models.gmn_match_hinge_lrl import GMN_match_hinge_lrl, GMN_match_hinge_hinge_similarity
 from subgraph.models.node_align_node_loss import Node_align_Node_loss
 from subgraph.models.node_align_edge_loss import Node_align_Edge_loss
 from subgraph.models.hungarian_node_align import Hungarian_Node_align_Node_loss
@@ -53,6 +57,26 @@ def train(av,config):
     logger.info("Loading model NodeAlignNodeLoss")  
     logger.info("This uses GMN encoder followed by parameterized sinkhorn with LRL and similarity computation using hinge scoring (H_q, PH_c)")  
     model = Node_align_Node_loss(av,config,1).to(device)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"
+  elif av.TASK.startswith("gmn_match_hinge_lrl"):
+    logger.info("Loading model GMN Match Hinge lrl")  
+    model = GMN_match_hinge_lrl(av,config,1).to(device)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"  
+  elif av.TASK.startswith("gmn_match_hinge_hinge_similarity"):
+    logger.info("Loading model GMN Match Hinge hinge_similarity")  
+    model = GMN_match_hinge_hinge_similarity(av,config,1).to(device)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"  
+  elif av.TASK.startswith("gmn_match_hinge_scoring"):
+    logger.info("Loading model GMN Match Hinge baseline scoring")  
+    model = GMN_match_hinge_scoring(av,config,1).to(device)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"
+  elif av.TASK.startswith("gmn_match_hinge_baseline"):
+    logger.info("Loading model GMN Match Hinge baseline")  
+    model = GMN_match_hinge_baseline(av,config,1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
   elif av.TASK.startswith("gmn_match_hinge"):
@@ -120,6 +144,12 @@ def train(av,config):
     model = NodeEarlyInteractionInterpretability(av,config,1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
+  elif av.TASK.startswith("node_early_interaction_baseline"):
+    logger.info("Loading model NodeEarlyInteractionBaseline")
+    logger.info("This model implements early interaction for nodes baseline")
+    model = NodeEarlyInteractionBaseline(av, config, 1).to(device)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"
   elif av.TASK.startswith("node_early_interaction"):
     logger.info("Loading model NodeEarlyInteraction")
     logger.info("This model implements early interaction for nodes")
@@ -140,6 +170,14 @@ def train(av,config):
     av.MAX_EDGES = max(max([g.number_of_edges() for g in train_data.query_graphs]),\
                    max([g.number_of_edges() for g in train_data.corpus_graphs]))
     model = EdgeEarlyInteractionDelete(av, config, 1).to(device)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"
+  elif av.TASK.startswith("edge_early_interaction_baseline"):
+    logger.info("Loading model EdgeEarlyInteractionBaseline")
+    logger.info("This model implements early interaction for edges baseline")
+    av.MAX_EDGES = max(max([g.number_of_edges() for g in train_data.query_graphs]),\
+                   max([g.number_of_edges() for g in train_data.corpus_graphs]))
+    model = EdgeEarlyInteractionBaseline(av, config, 1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
   elif av.TASK.startswith("edge_early_interaction"):
