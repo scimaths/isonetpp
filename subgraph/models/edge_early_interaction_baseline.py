@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-from subgraph.utils import cudavar
+# from subgraph.utils import cudavar
 from subgraph.models.utils import pytorch_sinkhorn_iters
 import GMN.graphembeddingnetwork as gmngen
 
@@ -8,6 +8,7 @@ class EdgeEarlyInteractionBaseline(torch.nn.Module):
     def __init__(self, av, config, input_dim):
         super(EdgeEarlyInteractionBaseline, self).__init__()
         self.av = av
+        self.device = 'cuda:0' if self.av.has_cuda and self.av.want_cuda else 'cpu'
         self.config = config
         self.input_dim = input_dim
         self.build_masking_utility()
@@ -17,12 +18,12 @@ class EdgeEarlyInteractionBaseline(torch.nn.Module):
     def build_masking_utility(self):
         self.max_set_size = self.av.MAX_EDGES
         #this mask pattern sets bottom last few rows to 0 based on padding needs
-        self.graph_size_to_mask_map = [torch.cat((torch.tensor([1]).repeat(x,1).repeat(1,self.av.transform_dim), \
-        torch.tensor([0]).repeat(self.max_set_size-x,1).repeat(1,self.av.transform_dim))) for x in range(0,self.max_set_size+1)]
+        self.graph_size_to_mask_map = [torch.cat((torch.tensor([1], device=self.device).repeat(x,1).repeat(1,self.av.transform_dim), \
+        torch.tensor([0], device=self.device).repeat(self.max_set_size-x,1).repeat(1,self.av.transform_dim))) for x in range(0,self.max_set_size+1)]
         # Mask pattern sets top left (k)*(k) square to 1 inside arrays of size n*n. Rest elements are 0
-        self.set_size_to_mask_map = [torch.cat((torch.repeat_interleave(torch.tensor([1,0]),torch.tensor([x,self.max_set_size-x])).repeat(x,1),
-                             torch.repeat_interleave(torch.tensor([1,0]),torch.tensor([0,self.max_set_size])).repeat(self.max_set_size-x,1)))
-                             for x in range(0,self.max_set_size+1)]
+        # self.set_size_to_mask_map = [torch.cat((torch.repeat_interleave(torch.tensor([1,0]),torch.tensor([x,self.max_set_size-x])).repeat(x,1),
+        #                      torch.repeat_interleave(torch.tensor([1,0]),torch.tensor([0,self.max_set_size])).repeat(self.max_set_size-x,1)))
+        #                      for x in range(0,self.max_set_size+1)]
 
 
     def fetch_edge_counts(self,to_idx,from_idx,graph_idx,num_graphs):
@@ -30,8 +31,8 @@ class EdgeEarlyInteractionBaseline(torch.nn.Module):
         #and no. of nodes is not equal to no. of edges
         #so a hack to obtain no of edges in each graph from available info
         from GMN.segment import unsorted_segment_sum
-        tt = unsorted_segment_sum(cudavar(self.av,torch.ones(len(to_idx))), to_idx, len(graph_idx))
-        tt1 = unsorted_segment_sum(cudavar(self.av,torch.ones(len(from_idx))), from_idx, len(graph_idx))
+        tt = unsorted_segment_sum(torch.ones(len(to_idx), device=self.device), to_idx, len(graph_idx))
+        tt1 = unsorted_segment_sum(torch.ones(len(from_idx), device=self.device), from_idx, len(graph_idx))
         edge_counts = unsorted_segment_sum(tt, graph_idx, num_graphs)
         edge_counts1 = unsorted_segment_sum(tt1, graph_idx, num_graphs)
         assert(edge_counts == edge_counts1).all()
@@ -40,11 +41,11 @@ class EdgeEarlyInteractionBaseline(torch.nn.Module):
 
     def get_graph(self, batch):
         graph = batch
-        node_features = cudavar(self.av,torch.from_numpy(graph.node_features))
-        edge_features = cudavar(self.av,torch.from_numpy(graph.edge_features))
-        from_idx = cudavar(self.av,torch.from_numpy(graph.from_idx).long())
-        to_idx = cudavar(self.av,torch.from_numpy(graph.to_idx).long())
-        graph_idx = cudavar(self.av,torch.from_numpy(graph.graph_idx).long())
+        node_features = torch.tensor(graph.node_features, device=self.device)
+        edge_features = torch.tensor(graph.edge_features, device=self.device)
+        from_idx = torch.tensor(graph.from_idx, dtype=torch.int64, device=self.device)
+        to_idx = torch.tensor(graph.to_idx, dtype=torch.int64, device=self.device)
+        graph_idx = torch.tensor(graph.graph_idx, dtype=torch.int64, device=self.device)
         return node_features, edge_features, from_idx, to_idx, graph_idx    
 
     def build_layers(self):
@@ -69,7 +70,7 @@ class EdgeEarlyInteractionBaseline(torch.nn.Module):
 
     def forward(self, batch_data, batch_data_sizes, batch_adj):
         qgraph_sizes, cgraph_sizes = zip(*batch_data_sizes)
-        qgraph_sizes = cudavar(self.av, torch.tensor(qgraph_sizes))
+        qgraph_sizes = torch.tensor(qgraph_sizes, device=self.device)
         device = qgraph_sizes.device
         cgraph_sizes = torch.tensor(cgraph_sizes, device=device)
         batch_data_sizes_flat = [item for sublist in batch_data_sizes for item in sublist]
@@ -122,8 +123,8 @@ class EdgeEarlyInteractionBaseline(torch.nn.Module):
             transformed_qedge_final_emb = self.fc_transform2(self.relu1(self.fc_transform1(stacked_qedge_store_emb)))
             transformed_cedge_final_emb = self.fc_transform2(self.relu1(self.fc_transform1(stacked_cedge_store_emb)))
 
-            qgraph_mask = cudavar(self.av, torch.stack([self.graph_size_to_mask_map[i] for i in qgraph_edge_sizes]))
-            cgraph_mask = cudavar(self.av, torch.stack([self.graph_size_to_mask_map[i] for i in cgraph_edge_sizes]))
+            qgraph_mask = torch.stack([self.graph_size_to_mask_map[i] for i in qgraph_edge_sizes])
+            cgraph_mask = torch.stack([self.graph_size_to_mask_map[i] for i in cgraph_edge_sizes])
             masked_qedge_final_emb = torch.mul(qgraph_mask,transformed_qedge_final_emb)
             masked_cedge_final_emb = torch.mul(cgraph_mask,transformed_cedge_final_emb)
 
@@ -144,7 +145,7 @@ class EdgeEarlyInteractionBaseline(torch.nn.Module):
 
         scores = -torch.sum(torch.maximum(
             stacked_qedge_store_emb - transport_plan@stacked_cedge_store_emb,
-            cudavar(self.av,torch.tensor([0]))),
+            torch.tensor([0], device=self.device)),
            dim=(1,2))
         
         return scores

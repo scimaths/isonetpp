@@ -146,9 +146,9 @@ def get_result(av,model_loc,state_dict):
       model = im.GMN_match_hinge(av,config,1).to(device)
       test_data.data_type = "gmn"
       val_data.data_type = "gmn"
-    elif model_loc.startswith("node_early_interaction_with_consistency"):
+    elif model_loc.startswith("node_early_interaction_baseline"):
       config = load_config(av)
-      model = im.NodeEarlyInteractionWithConsistency(av,config,1).to(device)
+      model = im.NodeEarlyInteractionBaseline(av,config,1).to(device)
       test_data.data_type = "gmn"
       val_data.data_type = "gmn"
     elif model_loc.startswith("node_edge_early_interaction_with_consistency_and_two_sinkhorns"):
@@ -212,8 +212,8 @@ task_dict = {}
 
 task_dict['node_edge_early_interaction'] = "Node Edge Early Interaction"
 task_dict['edge_early_interaction'] = "Edge Early Interaction"
-task_dict['edge_early_interaction_with_delete'] = "Delete Edge early"
-task_dict['node_early_interaction'] = "Node Early Interaction"
+task_dict['edge_early_interaction_baseline'] = "Delete Edge early"
+task_dict['node_early_interaction_baseline'] = "Node Early Interaction"
 task_dict['node_align_node_loss'] = "Node Align Node Loss"
 task_dict['isonet'] = "ISONET"
 task_dict['nanl_consistency'] = "NANL+Consistency"
