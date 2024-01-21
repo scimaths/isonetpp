@@ -257,7 +257,7 @@ class GraphPropMatchingLayer(GraphPropLayer):
         """
         aggregated_messages = self._compute_aggregated_messages(
             node_states, from_idx, to_idx, edge_features=edge_features)
-        
+
         if attention_past is not None:
           partitionsT = torch.split(node_states, batch_data_sizes_flat)
           partitions_1 = torch.stack([F.pad(partition, pad=(0, 0, 0, max_node_size+1-len(partition))) for partition in partitionsT[0::2]])
@@ -291,7 +291,7 @@ class GraphPropMatchingLayer(GraphPropLayer):
             return self._compute_node_update(node_states,
                                           [aggregated_messages, attention_input],
                                           node_features=node_features)
-                                  
+
 
 
 class GraphMatchingNet(GraphEmbeddingNet):

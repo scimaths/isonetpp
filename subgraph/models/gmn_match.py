@@ -142,7 +142,7 @@ class GMN_match_hinge_baseline(torch.nn.Module):
 
         encoded_node_features, encoded_edge_features = self.encoder(node_features, edge_features)
         num_nodes, node_feature_dim = encoded_node_features.shape
-        attention_past = None  
+        attention_past = None
 
         for time_idx in range(n_time_update_steps):
             node_features_enc = torch.clone(encoded_node_features)
