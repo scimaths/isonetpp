@@ -29,10 +29,6 @@ class GMN_match_hinge_scoring(torch.nn.Module):
         self.graph_size_to_mask_map = [torch.cat((torch.tensor([1]).repeat(x,1).repeat(1,self.av.transform_dim), \
         torch.tensor([0]).repeat(self.max_node_size-x,1).repeat(1,self.av.transform_dim))) for x in range(0,self.max_node_size+1)]
 
-        self.fc_transform1 = torch.nn.Linear(self.av.filters_3, self.av.transform_dim)
-        self.relu1 = torch.nn.ReLU()
-        self.fc_transform2 = torch.nn.Linear(self.av.transform_dim, self.av.transform_dim)
-        
     def get_graph(self, batch):
         graph = batch
         node_features = torch.tensor(graph.node_features, device=self.device)
@@ -70,7 +66,7 @@ class GMN_match_hinge_scoring(torch.nn.Module):
         attention_matrix = torch.softmax(attention_matrix, dim=2)
 
         scores = -torch.sum(torch.maximum(
-            stacked_qedge_store_emb - attention_matrix@stacked_cedge_store_emb,
+            stacked_qnode_emb - attention_matrix@stacked_cnode_emb,
             torch.tensor([0], device=self.device)),
            dim=(1,2))
         return scores

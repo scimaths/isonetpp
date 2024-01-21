@@ -37,6 +37,7 @@ from subgraph.models.velugoti_45 import OurMatchingModelVar45_GMN_encoding_NodeA
 from subgraph.models.isonet import ISONET, ISONET_Sym
 from subgraph.models.gmn_match import GMN_match, GMN_match_hinge, GMN_match_hinge_baseline
 from subgraph.models.gmn_match_hinge_scoring import GMN_match_hinge_scoring
+from subgraph.models.gmn_match_hinge_lrl import GMN_match_hinge_lrl, GMN_match_hinge_hinge_similarity
 from subgraph.models.node_align_node_loss import Node_align_Node_loss
 from subgraph.models.node_align_edge_loss import Node_align_Edge_loss
 from subgraph.models.hungarian_node_align import Hungarian_Node_align_Node_loss
@@ -58,6 +59,16 @@ def train(av,config):
     model = Node_align_Node_loss(av,config,1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
+  elif av.TASK.startswith("gmn_match_hinge_lrl"):
+    logger.info("Loading model GMN Match Hinge lrl")  
+    model = GMN_match_hinge_lrl(av,config,1).to(device)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"  
+  elif av.TASK.startswith("gmn_match_hinge_hinge_similarity"):
+    logger.info("Loading model GMN Match Hinge hinge_similarity")  
+    model = GMN_match_hinge_hinge_similarity(av,config,1).to(device)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"  
   elif av.TASK.startswith("gmn_match_hinge_scoring"):
     logger.info("Loading model GMN Match Hinge baseline scoring")  
     model = GMN_match_hinge_scoring(av,config,1).to(device)
@@ -73,6 +84,40 @@ def train(av,config):
     model = GMN_match_hinge(av,config,1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
+  elif av.TASK.startswith("graphsim"):
+    logger.info("Loading model GraphSim")  
+    logger.info("This is GraphSim model")  
+    model = GraphSim(av,config,1).to(device)
+    logger.info(model)
+    train_data.data_type = "pyg"
+    val_data.data_type = "pyg"
+  elif av.TASK.startswith("gotsim"):
+    logger.info("Loading IR_modified_GotSim")  
+    logger.info("This uses IR_modified_GotSim  model. ")  
+    model = GOTSim(av,config,1).to(device)
+    logger.info(model)
+    train_data.data_type = "pyg"
+    val_data.data_type = "pyg"
+  elif av.TASK.startswith("simgnn") :
+    logger.info("Loading model SimGNN")
+    logger.info("This loads the entire SimGNN model. Input feature is [1]. No node permutation is done after nx graph loading")
+    model = SimGNN(av,1).to(device)
+    train_data.data_type = "pyg"
+    val_data.data_type = "pyg"
+  elif av.TASK.startswith("gmn_embed_hinge"):
+    logger.info("Loading GMN_embed_hinge")  
+    logger.info("This uses GMN embedding model with hinge loss.No regularizer. ")  
+    model = GMN_embed_hinge(av,config,1).to(device)
+    logger.info(model)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"
+  elif av.TASK.startswith("neuromatch"): 
+    logger.info("Loading model neuromatch")   
+    logger.info("This is neuromatch model")   
+    model = NeuroMatch(1,av.neuromatch_hidden_dim,av).to(device) 
+    logger.info(model) 
+    train_data.data_type = "pyg" 
+    val_data.data_type = "pyg" 
   elif av.TASK.startswith("node_early_interaction_with_consistency"):
     logger.info("Loading model node_early_interaction_with_consistency")
     av.MAX_EDGES = max(max([g.number_of_edges() for g in train_data.query_graphs]),\
@@ -97,14 +142,6 @@ def train(av,config):
   elif av.TASK.startswith("node_early_interaction_interpretability"):
     logger.info("Loading model node_early_interaction_interpretability")  
     model = NodeEarlyInteractionInterpretability(av,config,1).to(device)
-    train_data.data_type = "gmn"
-    val_data.data_type = "gmn"
-  elif av.TASK.startswith("node_early_interaction_with_delete"):
-    logger.info("Loading model NodeEarlyInteractionDelete")
-    logger.info("This model implements early interaction for nodes delete")
-    av.MAX_EDGES = max(max([g.number_of_edges() for g in train_data.query_graphs]),\
-                   max([g.number_of_edges() for g in train_data.corpus_graphs]))
-    model = NodeEarlyInteractionDelete(av, config, 1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
   elif av.TASK.startswith("node_early_interaction_baseline"):
@@ -392,8 +429,6 @@ if __name__ == "__main__":
   config['graph_embedding_net'] ['node_state_dim'] = 10
   config['graph_embedding_net'] ['edge_hidden_sizes'] = [20]
   config['graph_embedding_net'] ['node_hidden_sizes'] = [10]
-  config['graph_embedding_net'] ['n_prop_layers'] = 5
-  config['graph_embedding_net'] ['n_prop_layers'] = 5
   config['early_interaction'] = {
     'n_time_updates': av.time_updates,
     'time_update_idx': av.time_update_idx,
@@ -409,6 +444,13 @@ if __name__ == "__main__":
   config['training']['margin']  = av.MARGIN
   config['evaluation']['batch_size']  = av.BATCH_SIZE
   config['model_type']  = "embedding"
+  config['graphsim'] = {} 
+  config['graphsim']['conv_kernel_size'] = [10,4,2]
+  config['graphsim']['linear_size'] = [24, 16]
+  config['graphsim']['gcn_size'] = [10,10,10]
+  config['graphsim']['conv_pool_size'] = [3,3,2]
+  config['graphsim']['conv_out_channels'] = [2,4,8]
+  config['graphsim']['dropout'] = av.dropout
 
   for (k, v) in config.items():
       logger.info("%s= %s" % (k, v))  
