@@ -37,6 +37,7 @@ from subgraph.models.velugoti_45 import OurMatchingModelVar45_GMN_encoding_NodeA
 from subgraph.models.isonet import ISONET, ISONET_Sym
 from subgraph.models.gmn_match import GMN_match, GMN_match_hinge, GMN_match_hinge_baseline
 from subgraph.models.gmn_match_hinge_scoring import GMN_match_hinge_scoring
+from subgraph.models.gmn_match_hinge_lrl import GMN_match_hinge_lrl, GMN_match_hinge_hinge_similarity
 from subgraph.models.node_align_node_loss import Node_align_Node_loss
 from subgraph.models.node_align_edge_loss import Node_align_Edge_loss
 from subgraph.models.hungarian_node_align import Hungarian_Node_align_Node_loss
@@ -58,6 +59,16 @@ def train(av,config):
     model = Node_align_Node_loss(av,config,1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
+  elif av.TASK.startswith("gmn_match_hinge_lrl"):
+    logger.info("Loading model GMN Match Hinge lrl")  
+    model = GMN_match_hinge_lrl(av,config,1).to(device)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"  
+  elif av.TASK.startswith("gmn_match_hinge_hinge_similarity"):
+    logger.info("Loading model GMN Match Hinge hinge_similarity")  
+    model = GMN_match_hinge_hinge_similarity(av,config,1).to(device)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"  
   elif av.TASK.startswith("gmn_match_hinge_scoring"):
     logger.info("Loading model GMN Match Hinge baseline scoring")  
     model = GMN_match_hinge_scoring(av,config,1).to(device)

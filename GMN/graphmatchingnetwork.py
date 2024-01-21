@@ -172,7 +172,6 @@ def batch_block_pair_attention(data,
 def batch_block_pair_attention_faster(data,
                                block_idx,
                                n_blocks,
-                               similarity='dotproduct',
                                batch_data_sizes_flat=None,
                                max_node_size=None):
     if not isinstance(n_blocks, int):
@@ -234,7 +233,8 @@ class GraphPropMatchingLayer(GraphPropLayer):
                 batch_data_sizes_flat=None,
                 max_node_size=None,
                 attention_past=None,
-                return_attention=False):
+                return_attention=False,
+                cross_attention_module=None):
         """Run one propagation step with cross-graph matching.
 
         Args:
@@ -268,9 +268,14 @@ class GraphPropMatchingLayer(GraphPropLayer):
           attention_input = node_states - results
 
           if return_attention:
-            _, attention_matrices = batch_block_pair_attention_faster(
-              node_states, graph_idx, n_graphs, similarity=similarity, 
-              batch_data_sizes_flat=batch_data_sizes_flat, max_node_size=max_node_size)
+            if cross_attention_module:
+              _, attention_matrices = cross_attention_module(
+                node_states, graph_idx, n_graphs, 
+                batch_data_sizes_flat=batch_data_sizes_flat)
+            else:
+              _, attention_matrices = batch_block_pair_attention_faster(
+                node_states, graph_idx, n_graphs, 
+                batch_data_sizes_flat=batch_data_sizes_flat, max_node_size=max_node_size)
             return self._compute_node_update(node_states,
                                          [aggregated_messages, attention_input],
                                          node_features=node_features), attention_matrices
@@ -279,9 +284,14 @@ class GraphPropMatchingLayer(GraphPropLayer):
                                           [aggregated_messages, attention_input],
                                           node_features=node_features)
         else:
-          cross_graph_attention, attention_matrices = batch_block_pair_attention_faster(
-            node_states, graph_idx, n_graphs, similarity=similarity, 
-            batch_data_sizes_flat=batch_data_sizes_flat, max_node_size=max_node_size)
+          if cross_attention_module:
+            cross_graph_attention, attention_matrices = cross_attention_module(
+              node_states, graph_idx, n_graphs, 
+              batch_data_sizes_flat=batch_data_sizes_flat)
+          else:
+            cross_graph_attention, attention_matrices = batch_block_pair_attention_faster(
+              node_states, graph_idx, n_graphs,
+              batch_data_sizes_flat=batch_data_sizes_flat, max_node_size=max_node_size)
           attention_input = node_states - cross_graph_attention
           if return_attention:
             return self._compute_node_update(node_states,
