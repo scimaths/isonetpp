@@ -5,88 +5,8 @@ from subgraph.utils import cudavar
 from GMN.loss import euclidean_distance
 import GMN.graphmatchingnetwork as gmngmn
 import GMN.graphembeddingnetwork as gmngen
-from subgraph.models.gmn_match_hinge_lrl import CrossAttention
-from subgraph.models.utils import pytorch_sinkhorn_iters
 
-class CrossAttention(torch.nn.Module):
-    def __init__(self, av, type_, dim, max_node_size, use_sinkhorn=False):
-        super(CrossAttention, self).__init__()
-        self.av = av
-        self.device = 'cuda:0' if self.av.has_cuda and self.av.want_cuda else 'cpu'
-        self.type = type_
-        self.dim = dim
-        self.max_node_size = max_node_size + 1
-        self.use_sinkhorn = use_sinkhorn
-        self.build_layers()
-        self.graph_size_to_mask_map = [torch.cat((torch.tensor([1], device=self.device).repeat(x,1).repeat(1,self.av.transform_dim), \
-        torch.tensor([0], device=self.device).repeat(self.max_node_size-x,1).repeat(1,self.av.transform_dim))) for x in range(0,self.max_node_size+1)]
-        
-    def build_layers(self):
-        if self.type == 'lrl':
-            self.fc_transform1 = torch.nn.Linear(self.dim, self.av.transform_dim)
-            self.relu1 = torch.nn.ReLU()
-            self.fc_transform2 = torch.nn.Linear(self.av.transform_dim, self.av.transform_dim)
-        elif self.type == 'hinge':
-            self.relu1 = torch.nn.ReLU()
-
-    def forward(self, data, batch_data_sizes_flat):
-
-        partitionsT = torch.split(data, batch_data_sizes_flat)
-        partitions_1 = torch.stack([F.pad(partition, pad=(0, 0, 0, self.max_node_size-len(partition))) for partition in partitionsT[0::2]])
-        partitions_2 = torch.stack([F.pad(partition, pad=(0, 0, 0, self.max_node_size-len(partition))) for partition in partitionsT[1::2]])
-
-        # mask
-        mask_11 = torch.stack([F.pad(torch.ones_like(partition), pad=(0, 0, 0, self.max_node_size-len(partition))) for partition in partitionsT[0::2]])
-        mask_12 = torch.stack([F.pad(torch.zeros_like(partition), pad=(0, 0, 0, self.max_node_size-len(partition)), value=1) for partition in partitionsT[0::2]])
-        mask_21 = torch.stack([F.pad(torch.ones_like(partition), pad=(0, 0, 0, self.max_node_size-len(partition))) for partition in partitionsT[1::2]])
-        mask_22 = torch.stack([F.pad(torch.zeros_like(partition), pad=(0, 0, 0, self.max_node_size-len(partition)), value=1) for partition in partitionsT[1::2]])
-
-        mask = torch.bmm(mask_11, torch.transpose(mask_21, 1, 2))
-        mask += torch.bmm(mask_12, torch.transpose(mask_22, 1, 2))
-        mask = (1 - (mask//data.shape[1])).to(dtype=torch.bool)
-
-        # transform
-        if self.type == 'lrl':
-            transformed_partitions_1 = self.fc_transform2(self.relu1(self.fc_transform1(partitions_1)))
-            transformed_partitions_2 = self.fc_transform2(self.relu1(self.fc_transform1(partitions_2)))
-            transform_mask_1 = torch.stack([self.graph_size_to_mask_map[i] for i in batch_data_sizes_flat[0::2]])
-            transform_mask_2 = torch.stack([self.graph_size_to_mask_map[i] for i in batch_data_sizes_flat[1::2]])
-            transformed_partitions_1 = torch.mul(transform_mask_1, transformed_partitions_1)
-            transformed_partitions_2 = torch.mul(transform_mask_2, transformed_partitions_2)
-            dot_pdt_similarity = torch.bmm(transformed_partitions_1, torch.transpose(transformed_partitions_2, 1, 2))
-        elif self.type == 'hinge':
-            batch_size = partitions_1.shape[0]
-            transformed_partitions_1 = partitions_1.repeat(1, 1, self.max_node_size).reshape(batch_size, self.max_node_size*self.max_node_size, data.shape[1])
-            transformed_partitions_2 = partitions_2.repeat(1, self.max_node_size, 1)
-            dot_pdt_similarity = torch.sum(-self.relu1(transformed_partitions_1 - transformed_partitions_2), dim=2).reshape(batch_size, self.max_node_size, self.max_node_size)
-        else:
-            dot_pdt_similarity = torch.bmm(partitions_1, torch.transpose(partitions_2, 1, 2))
-
-        if self.use_sinkhorn:
-            # transport plan
-            transport_plan = pytorch_sinkhorn_iters(self.av, dot_pdt_similarity)
-            
-            # final
-            query_new = torch.bmm(transport_plan, partitions_2)
-            corpus_new = torch.bmm(torch.transpose(transport_plan, 1, 2), partitions_1)
-        else:
-            # softmax
-            # mask to fill -inf
-            dot_pdt_similarity.masked_fill_(mask, -torch.inf)
-            softmax_1 = torch.softmax(dot_pdt_similarity, dim=2)
-            softmax_2 = torch.softmax(dot_pdt_similarity, dim=1)
-
-            # final
-            query_new = torch.bmm(softmax_1, partitions_2)
-            corpus_new = torch.bmm(torch.transpose(softmax_2, 1, 2), partitions_1)
-
-        results = torch.cat([query_new[i//2, :batch_data_sizes_flat[i]] if i%2==0 else corpus_new[i//2, :batch_data_sizes_flat[i]] for i in range(len(batch_data_sizes_flat))])
-
-        return results, [softmax_1, softmax_2]
-
-
-
-class GMN_match_hinge_lrl(torch.nn.Module):
+class GMN_match_hinge_lrl_sinkhorn(torch.nn.Module):
     def __init__(self, av,config,input_dim):
         super(GMN_match_hinge_lrl, self).__init__()
         self.av = av
@@ -106,7 +26,7 @@ class GMN_match_hinge_lrl(torch.nn.Module):
         self.aggregator = gmngen.GraphAggregator(**self.config['aggregator'])
 
         self.max_node_size = max(self.av.MAX_QUERY_SUBGRAPH_SIZE,self.av.MAX_CORPUS_SUBGRAPH_SIZE)
-        self.lrl_cross_attention_module = CrossAttention(self.av, 'lrl', prop_config['node_state_dim'], self.max_node_size)
+        self.lrl_cross_attention_module = CrossAttention(self.av, 'lrl', prop_config['node_state_dim'], self.max_node_size, use_sinkhorn=True)
         
         self.graph_size_to_mask_map = [torch.cat((torch.tensor([1]).repeat(x,1).repeat(1,self.av.transform_dim), \
         torch.tensor([0]).repeat(self.max_node_size-x,1).repeat(1,self.av.transform_dim))) for x in range(0,self.max_node_size+1)]
@@ -141,7 +61,7 @@ class GMN_match_hinge_lrl(torch.nn.Module):
         scores = -torch.sum(torch.nn.ReLU()(x-y),dim=-1)
         return scores
 
-class GMN_match_hinge_lrl_scoring(torch.nn.Module):
+class GMN_match_hinge_lrl_scoring_sinkhorn(torch.nn.Module):
     def __init__(self, av,config,input_dim):
         super(GMN_match_hinge_lrl_scoring, self).__init__()
         self.av = av
@@ -161,7 +81,7 @@ class GMN_match_hinge_lrl_scoring(torch.nn.Module):
         self.aggregator = gmngen.GraphAggregator(**self.config['aggregator'])
 
         self.max_node_size = max(self.av.MAX_QUERY_SUBGRAPH_SIZE,self.av.MAX_CORPUS_SUBGRAPH_SIZE)
-        self.lrl_cross_attention_module = CrossAttention(self.av, 'lrl', prop_config['node_state_dim'], self.max_node_size)
+        self.lrl_cross_attention_module = CrossAttention(self.av, 'lrl', prop_config['node_state_dim'], self.max_node_size, use_sinkhorn=True)
         
         self.graph_size_to_mask_map = [torch.cat((torch.tensor([1]).repeat(x,1).repeat(1,self.av.transform_dim), \
         torch.tensor([0]).repeat(self.max_node_size-x,1).repeat(1,self.av.transform_dim))) for x in range(0,self.max_node_size+1)]
@@ -209,7 +129,7 @@ class GMN_match_hinge_lrl_scoring(torch.nn.Module):
         
         return scores
 
-class GMN_match_hinge_hinge_similarity(torch.nn.Module):
+class GMN_match_hinge_hinge_similarity_sinkhorn(torch.nn.Module):
     def __init__(self, av,config,input_dim):
         super(GMN_match_hinge_hinge_similarity, self).__init__()
         self.av = av
@@ -229,7 +149,7 @@ class GMN_match_hinge_hinge_similarity(torch.nn.Module):
         self.aggregator = gmngen.GraphAggregator(**self.config['aggregator'])
 
         self.max_node_size = max(self.av.MAX_QUERY_SUBGRAPH_SIZE,self.av.MAX_CORPUS_SUBGRAPH_SIZE)
-        self.hinge_cross_attention_module = CrossAttention(self.av, 'hinge', prop_config['node_state_dim'], self.max_node_size)
+        self.hinge_cross_attention_module = CrossAttention(self.av, 'hinge', prop_config['node_state_dim'], self.max_node_size, use_sinkhorn=True)
         
         self.graph_size_to_mask_map = [torch.cat((torch.tensor([1]).repeat(x,1).repeat(1,self.av.transform_dim), \
         torch.tensor([0]).repeat(self.max_node_size-x,1).repeat(1,self.av.transform_dim))) for x in range(0,self.max_node_size+1)]
@@ -264,7 +184,7 @@ class GMN_match_hinge_hinge_similarity(torch.nn.Module):
         scores = -torch.sum(torch.nn.ReLU()(x-y),dim=-1)
         return scores
 
-class GMN_match_hinge_hinge_similarity_scoring(torch.nn.Module):
+class GMN_match_hinge_hinge_similarity_scoring_sinkhorn(torch.nn.Module):
     def __init__(self, av,config,input_dim):
         super(GMN_match_hinge_hinge_similarity_scoring, self).__init__()
         self.av = av
@@ -284,7 +204,7 @@ class GMN_match_hinge_hinge_similarity_scoring(torch.nn.Module):
         self.aggregator = gmngen.GraphAggregator(**self.config['aggregator'])
 
         self.max_node_size = max(self.av.MAX_QUERY_SUBGRAPH_SIZE,self.av.MAX_CORPUS_SUBGRAPH_SIZE)
-        self.hinge_cross_attention_module = CrossAttention(self.av, 'hinge', prop_config['node_state_dim'], self.max_node_size)
+        self.hinge_cross_attention_module = CrossAttention(self.av, 'hinge', prop_config['node_state_dim'], self.max_node_size, use_sinkhorn=True)
         
         self.graph_size_to_mask_map = [torch.cat((torch.tensor([1]).repeat(x,1).repeat(1,self.av.transform_dim), \
         torch.tensor([0]).repeat(self.max_node_size-x,1).repeat(1,self.av.transform_dim))) for x in range(0,self.max_node_size+1)]
