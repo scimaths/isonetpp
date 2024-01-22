@@ -59,12 +59,7 @@ def train(av,config):
     logger.info("This uses GMN encoder followed by parameterized sinkhorn with LRL and similarity computation using hinge scoring (H_q, PH_c)")  
     model = Node_align_Node_loss(av,config,1).to(device)
     train_data.data_type = "gmn"
-    val_data.data_type = "gmn"
-  elif av.TASK.startswith("lrl_scoring_sinkhorn_test"):
-    logger.info("Loading model lrl_scoring_sinkhorn_test")  
-    model = lrl_scoring_sinkhorn_test(av,config,1).to(device)
-    train_data.data_type = "gmn"
-    val_data.data_type = "gmn"  
+    val_data.data_type = "gmn" 
   elif av.TASK.startswith("gmn_match_hinge_lrl_scoring_sinkhorn"):
     logger.info("Loading model GMN Match Hinge lrl_scoring")  
     model = GMN_match_hinge_lrl_scoring_sinkhorn(av,config,1).to(device)
