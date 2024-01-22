@@ -38,7 +38,7 @@ from subgraph.models.isonet import ISONET, ISONET_Sym
 from subgraph.models.gmn_match import GMN_match, GMN_match_hinge, GMN_match_hinge_baseline
 from subgraph.models.gmn_match_hinge_scoring import GMN_match_hinge_scoring, GMN_match_hinge_scoring_sinkhorn
 from subgraph.models.gmn_match_hinge_lrl import GMN_match_hinge_lrl, GMN_match_hinge_lrl_scoring, GMN_match_hinge_hinge_similarity, GMN_match_hinge_hinge_similarity_scoring
-from subgraph.models.gmn_match_hinge_lrl_sinkhorn import GMN_match_hinge_lrl_sinkhorn, GMN_match_hinge_lrl_scoring_sinkhorn, GMN_match_hinge_hinge_similarity_sinkhorn, GMN_match_hinge_hinge_similarity_scoring_sinkhorn
+from subgraph.models.gmn_match_hinge_lrl_sinkhorn import GMN_match_hinge_lrl_sinkhorn, GMN_match_hinge_lrl_scoring_sinkhorn, GMN_match_hinge_hinge_similarity_sinkhorn, GMN_match_hinge_hinge_similarity_scoring_sinkhorn, lrl_scoring_sinkhorn_test
 from subgraph.models.node_align_node_loss import Node_align_Node_loss
 from subgraph.models.node_align_edge_loss import Node_align_Edge_loss
 from subgraph.models.hungarian_node_align import Hungarian_Node_align_Node_loss
@@ -60,6 +60,11 @@ def train(av,config):
     model = Node_align_Node_loss(av,config,1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
+  elif av.TASK.startswith("lrl_scoring_sinkhorn_test"):
+    logger.info("Loading model lrl_scoring_sinkhorn_test")  
+    model = lrl_scoring_sinkhorn_test(av,config,1).to(device)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"  
   elif av.TASK.startswith("gmn_match_hinge_lrl_scoring_sinkhorn"):
     logger.info("Loading model GMN Match Hinge lrl_scoring")  
     model = GMN_match_hinge_lrl_scoring_sinkhorn(av,config,1).to(device)

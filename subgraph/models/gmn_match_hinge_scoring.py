@@ -77,7 +77,7 @@ class GMN_match_hinge_scoring(torch.nn.Module):
 
 class GMN_match_hinge_scoring_sinkhorn(torch.nn.Module):
     def __init__(self, av,config,input_dim):
-        super(GMN_match_hinge_scoring, self).__init__()
+        super(GMN_match_hinge_scoring_sinkhorn, self).__init__()
         self.av = av
         self.device = 'cuda:0' if self.av.has_cuda and self.av.want_cuda else 'cpu'
         self.config = config

@@ -5,7 +5,6 @@ from subgraph.utils import cudavar
 from GMN.loss import euclidean_distance
 import GMN.graphmatchingnetwork as gmngmn
 import GMN.graphembeddingnetwork as gmngen
-from subgraph.models.gmn_match_hinge_lrl import CrossAttention
 from subgraph.models.utils import pytorch_sinkhorn_iters
 
 class CrossAttention(torch.nn.Module):
