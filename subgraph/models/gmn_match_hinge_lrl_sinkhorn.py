@@ -120,10 +120,10 @@ class GMN_match_hinge_lrl_scoring_sinkhorn(torch.nn.Module):
         stacked_cnode_emb = torch.stack([F.pad(x, pad=(0,0,0,self.max_node_size+1-x.shape[0])) \
                                          for x in node_feature_enc_corpus])
 
-        _, attention_matrix = self.lrl_cross_attention_module(node_features_enc, batch_data_sizes_flat)
+        _, transport_plan = self.lrl_cross_attention_module(node_features_enc, batch_data_sizes_flat)
 
         scores = -torch.sum(torch.maximum(
-            stacked_qnode_emb - attention_matrix[0]@stacked_cnode_emb,
+            stacked_qnode_emb - transport_plan@stacked_cnode_emb,
             torch.tensor([0], device=self.device)),
            dim=(1,2))
         
@@ -243,10 +243,10 @@ class GMN_match_hinge_hinge_similarity_scoring_sinkhorn(torch.nn.Module):
         stacked_cnode_emb = torch.stack([F.pad(x, pad=(0,0,0,self.max_node_size+1-x.shape[0])) \
                                          for x in node_feature_enc_corpus])
 
-        _, attention_matrix = self.hinge_cross_attention_module(node_features_enc, batch_data_sizes_flat)
+        _, transport_plan = self.hinge_cross_attention_module(node_features_enc, batch_data_sizes_flat)
 
         scores = -torch.sum(torch.maximum(
-            stacked_qnode_emb - attention_matrix[0]@stacked_cnode_emb,
+            stacked_qnode_emb - transport_plan@stacked_cnode_emb,
             torch.tensor([0], device=self.device)),
            dim=(1,2))
         return scores
