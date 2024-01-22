@@ -269,9 +269,7 @@ class GraphPropMatchingLayer(GraphPropLayer):
 
           if return_attention:
             if cross_attention_module:
-              _, attention_matrices = cross_attention_module(
-                node_states, graph_idx, n_graphs, 
-                batch_data_sizes_flat=batch_data_sizes_flat)
+              _, attention_matrices = cross_attention_module(node_states, batch_data_sizes_flat)
             else:
               _, attention_matrices = batch_block_pair_attention_faster(
                 node_states, graph_idx, n_graphs, 
@@ -285,9 +283,7 @@ class GraphPropMatchingLayer(GraphPropLayer):
                                           node_features=node_features)
         else:
           if cross_attention_module:
-            cross_graph_attention, attention_matrices = cross_attention_module(
-              node_states, graph_idx, n_graphs, 
-              batch_data_sizes_flat=batch_data_sizes_flat)
+            cross_graph_attention, attention_matrices = cross_attention_module(node_states, batch_data_sizes_flat)
           else:
             cross_graph_attention, attention_matrices = batch_block_pair_attention_faster(
               node_states, graph_idx, n_graphs,

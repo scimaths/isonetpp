@@ -146,6 +146,36 @@ def get_result(av,model_loc,state_dict):
       model = im.GMN_match_hinge(av,config,1).to(device)
       test_data.data_type = "gmn"
       val_data.data_type = "gmn"
+    elif av.TASK.startswith("graphsim"):
+      config = load_config(av)
+      model = im.GraphSim(av,config,1).to(device)
+      test_data.data_type = "pyg"
+      val_data.data_type = "pyg"
+    elif av.TASK.startswith("gotsim"):
+      config = load_config(av)
+      model = im.GOTSim(av,config,1).to(device)
+      test_data.data_type = "pyg"
+      val_data.data_type = "pyg"
+    elif av.TASK.startswith("simgnn") :
+      config = load_config(av)
+      model = im.SimGNN(av,1).to(device)
+      test_data.data_type = "pyg"
+      val_data.data_type = "pyg"
+    elif av.TASK.startswith("gmn_embed_hinge"):
+      config = load_config(av)
+      model = im.GMN_embed_hinge(av,config,1).to(device)
+      test_data.data_type = "gmn"
+      val_data.data_type = "gmn"
+    elif av.TASK.startswith("neuromatch"): 
+      config = load_config(av)
+      model = im.NeuroMatch(1,av.neuromatch_hidden_dim,av).to(device)
+      test_data.data_type = "pyg"
+      val_data.data_type = "pyg"
+    elif model_loc.startswith("node_early_interaction_with_consistency"):
+      config = load_config(av)
+      model = im.NodeEarlyInteractionWithConsistency(av,config,1).to(device)
+      test_data.data_type = "gmn"
+      val_data.data_type = "gmn"
     elif model_loc.startswith("node_early_interaction_baseline"):
       config = load_config(av)
       model = im.NodeEarlyInteractionBaseline(av,config,1).to(device)
@@ -219,6 +249,9 @@ task_dict['isonet'] = "ISONET"
 task_dict['nanl_consistency'] = "NANL+Consistency"
 task_dict['nanl_consistency_45'] = "NANL+Consistency"
 task_dict['gmn_match_hinge'] = "GMN Match Hinge"
+task_dict['simgnn'] = "simgnn"
+task_dict['neuromatch'] = "neuromatch"
+task_dict['gotsim'] = "gotsim"
 datasets = ["aids", "mutag", "ptc_fr", "ptc_fm", "ptc_mr", "ptc_mm"]
 test_model_dir = ad.model_dir
 

@@ -24,8 +24,10 @@ class GMN_match_hinge_scoring(torch.nn.Module):
         prop_config.pop('similarity',None)        
         self.prop_layer = gmngmn.GraphPropMatchingLayer(**prop_config)      
         self.aggregator = gmngen.GraphAggregator(**self.config['aggregator'])
-        
+
         self.max_node_size = max(self.av.MAX_QUERY_SUBGRAPH_SIZE,self.av.MAX_CORPUS_SUBGRAPH_SIZE)
+        self.cross_attention_module = CrossAttention(self.av, 'none', prop_config['node_state_dim'], self.max_node_size)
+        
         self.graph_size_to_mask_map = [torch.cat((torch.tensor([1]).repeat(x,1).repeat(1,self.av.transform_dim), \
         torch.tensor([0]).repeat(self.max_node_size-x,1).repeat(1,self.av.transform_dim))) for x in range(0,self.max_node_size+1)]
 
@@ -51,22 +53,23 @@ class GMN_match_hinge_scoring(torch.nn.Module):
                                                 graph_idx,2*len(batch_data_sizes), \
                                                 self.similarity_func, edge_features_enc, 
                                                 batch_data_sizes_flat=batch_data_sizes_flat, 
-                                                max_node_size=self.max_node_size)
+                                                max_node_size=self.max_node_size,
+                                                cross_attention_module=self.cross_attention_module)
 
         node_feature_enc_split = torch.split(node_features_enc, batch_data_sizes_flat, dim=0)
         node_feature_enc_query = node_feature_enc_split[0::2]
         node_feature_enc_corpus = node_feature_enc_split[1::2]
 
-        stacked_qnode_emb = torch.stack([F.pad(x, pad=(0,0,0,self.max_node_size-x.shape[0])) \
+        stacked_qnode_emb = torch.stack([F.pad(x, pad=(0,0,0,self.max_node_size+1-x.shape[0])) \
                                          for x in node_feature_enc_query])
-        stacked_cnode_emb = torch.stack([F.pad(x, pad=(0,0,0,self.max_node_size-x.shape[0])) \
+        stacked_cnode_emb = torch.stack([F.pad(x, pad=(0,0,0,self.max_node_size+1-x.shape[0])) \
                                          for x in node_feature_enc_corpus])
 
-        attention_matrix = torch.matmul(stacked_qnode_emb, stacked_cnode_emb.permute(0,2,1))
-        attention_matrix = torch.softmax(attention_matrix, dim=2)
+        _, attention_matrix = self.cross_attention_module(node_features_enc, batch_data_sizes_flat)
 
         scores = -torch.sum(torch.maximum(
-            stacked_qnode_emb - attention_matrix@stacked_cnode_emb,
+            stacked_qnode_emb - attention_matrix[0]@stacked_cnode_emb,
             torch.tensor([0], device=self.device)),
            dim=(1,2))
+        
         return scores
