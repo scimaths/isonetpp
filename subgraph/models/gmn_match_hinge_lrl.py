@@ -78,6 +78,7 @@ class CrossAttention(torch.nn.Module):
             # softmax
             # mask to fill -inf
             dot_pdt_similarity.masked_fill_(mask, -torch.inf)
+            log_alpha = torch.div(dot_pdt_similarity,self.av.temp_gmn_scoring)
             softmax_1 = torch.softmax(dot_pdt_similarity, dim=2)
             softmax_2 = torch.softmax(dot_pdt_similarity, dim=1)
 

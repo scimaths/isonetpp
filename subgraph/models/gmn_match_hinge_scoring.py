@@ -91,7 +91,8 @@ class GMN_match_hinge_colbert(torch.nn.Module):
         prop_config = self.config['graph_matching_net'].copy()
         prop_config.pop('n_prop_layers',None)
         prop_config.pop('share_prop_params',None)
-        prop_config.pop('similarity',None)        
+        prop_config.pop('similarity',None)    
+        agg_config = self.config['aggregator']
         self.prop_layer = gmngmn.GraphPropMatchingLayer(**prop_config)      
 
         self.max_node_size = max(self.av.MAX_QUERY_SUBGRAPH_SIZE,self.av.MAX_CORPUS_SUBGRAPH_SIZE)
