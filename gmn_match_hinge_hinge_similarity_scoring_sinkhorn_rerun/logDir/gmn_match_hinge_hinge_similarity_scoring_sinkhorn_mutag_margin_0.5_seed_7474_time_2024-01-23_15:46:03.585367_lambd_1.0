@@ -1,0 +1,112 @@
+Command line
+/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/subgraph/iso_matching_models.py
+--experiment_group=gmn_match_hinge_hinge_similarity_scoring_sinkhorn_rerun
+--TASK=gmn_match_hinge_hinge_similarity_scoring_sinkhorn
+--MARGIN=0.5
+--filters_1=10
+--filters_2=10
+--filters_3=10
+--NOISE_FACTOR=0
+--transform_dim=16
+--FEAT_TYPE=One
+--DATASET_NAME=mutag
+--no_of_query_subgraphs=300
+--MIN_QUERY_SUBGRAPH_SIZE=5
+--MAX_QUERY_SUBGRAPH_SIZE=15
+--MIN_CORPUS_SUBGRAPH_SIZE=16
+--MAX_CORPUS_SUBGRAPH_SIZE=20
+fringe_isonet= {'masking_for_msg_passing_count': 4}
+encoder= {'node_hidden_sizes': [10], 'node_feature_dim': 1, 'edge_hidden_sizes': None, 'edge_feature_dim': 1}
+aggregator= {'node_hidden_sizes': [10], 'graph_transform_sizes': [10], 'input_size': [10], 'gated': True, 'aggregation_type': 'sum'}
+graph_embedding_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'embedding'}
+graph_matching_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'matching', 'similarity': 'dotproduct'}
+model_type= embedding
+data= {'problem': 'graph_edit_distance', 'dataset_params': {'n_nodes_range': [20, 20], 'p_edge_range': [0.2, 0.2], 'n_changes_positive': 1, 'n_changes_negative': 2, 'validation_dataset_size': 1000}}
+training= {'batch_size': 128, 'learning_rate': 0.0001, 'mode': 'pair', 'loss': 'margin', 'margin': 0.5, 'graph_vec_regularizer_weight': 1e-06, 'clip_value': 10.0, 'n_training_steps': 500000, 'print_after': 100, 'eval_after': 10}
+evaluation= {'batch_size': 128}
+seed= 7474
+early_interaction= {'n_time_updates': 3, 'time_update_idx': 'k_t', 'prop_separate_params': None}
+node_early_interaction_interpretability= {'lambd': 1.0}
+graphsim= {'conv_kernel_size': [10, 4, 2], 'linear_size': [24, 16], 'gcn_size': [10, 10, 10], 'conv_pool_size': [3, 3, 2], 'conv_out_channels': [2, 4, 8], 'dropout': 0}
+loading train query graphs from ./velugoti_dataset/Datasets/splits/train/train_mutag240k_query_subgraphs.pkl
+loading train relationships from ./velugoti_dataset/Datasets/splits/train/train_mutag240k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from ./velugoti_dataset/Datasets/splits/mutag240k_corpus_subgraphs.pkl
+loading val query graphs from ./velugoti_dataset/Datasets/splits/val/val_mutag240k_query_subgraphs.pkl
+loading val relationships from ./velugoti_dataset/Datasets/splits/val/val_mutag240k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from ./velugoti_dataset/Datasets/splits/mutag240k_corpus_subgraphs.pkl
+Loading model GMN Match Hinge hinge_similarity
+saving initial model to ./gmn_match_hinge_hinge_similarity_scoring_sinkhorn_rerun/initialModels/gmn_match_hinge_hinge_similarity_scoring_sinkhorn_mutag_7474_2024-01-23_15:46:03.585367
+no. of params in model: 1720
+Run: 0 train loss: 300.051807 Time: 460.30
+Run: 0 VAL ap_score: 0.462613 map_score: 0.506418 Time: 144.58
+saving best validated model to ./gmn_match_hinge_hinge_similarity_scoring_sinkhorn_rerun/bestValidationModels/gmn_match_hinge_hinge_similarity_scoring_sinkhorn_mutag_7474_2024-01-23_15:46:03.585367
+Run: 1 train loss: 190.257020 Time: 489.85
+Run: 1 VAL ap_score: 0.555628 map_score: 0.576990 Time: 193.43
+saving best validated model to ./gmn_match_hinge_hinge_similarity_scoring_sinkhorn_rerun/bestValidationModels/gmn_match_hinge_hinge_similarity_scoring_sinkhorn_mutag_7474_2024-01-23_15:46:03.585367
+Run: 2 train loss: 152.226030 Time: 518.29
+Run: 2 VAL ap_score: 0.611352 map_score: 0.611265 Time: 146.81
+saving best validated model to ./gmn_match_hinge_hinge_similarity_scoring_sinkhorn_rerun/bestValidationModels/gmn_match_hinge_hinge_similarity_scoring_sinkhorn_mutag_7474_2024-01-23_15:46:03.585367
+Run: 3 train loss: 133.234076 Time: 448.50
+Run: 3 VAL ap_score: 0.652024 map_score: 0.655071 Time: 144.38
+saving best validated model to ./gmn_match_hinge_hinge_similarity_scoring_sinkhorn_rerun/bestValidationModels/gmn_match_hinge_hinge_similarity_scoring_sinkhorn_mutag_7474_2024-01-23_15:46:03.585367
+Run: 4 train loss: 124.479488 Time: 483.02
+Run: 4 VAL ap_score: 0.660490 map_score: 0.652826 Time: 143.54
+Run: 5 train loss: 116.963402 Time: 467.36
+Run: 5 VAL ap_score: 0.640189 map_score: 0.669173 Time: 145.14
+saving best validated model to ./gmn_match_hinge_hinge_similarity_scoring_sinkhorn_rerun/bestValidationModels/gmn_match_hinge_hinge_similarity_scoring_sinkhorn_mutag_7474_2024-01-23_15:46:03.585367
+Run: 6 train loss: 108.846914 Time: 444.10
+Run: 6 VAL ap_score: 0.645157 map_score: 0.660675 Time: 144.15
+Run: 7 train loss: 104.056677 Time: 455.16
+Run: 7 VAL ap_score: 0.659122 map_score: 0.700923 Time: 145.07
+saving best validated model to ./gmn_match_hinge_hinge_similarity_scoring_sinkhorn_rerun/bestValidationModels/gmn_match_hinge_hinge_similarity_scoring_sinkhorn_mutag_7474_2024-01-23_15:46:03.585367
+Run: 8 train loss: 101.324568 Time: 447.59
+Run: 8 VAL ap_score: 0.527555 map_score: 0.638000 Time: 142.94
+Run: 9 train loss: 96.821383 Time: 454.37
+Run: 9 VAL ap_score: 0.701209 map_score: 0.702322 Time: 143.80
+saving best validated model to ./gmn_match_hinge_hinge_similarity_scoring_sinkhorn_rerun/bestValidationModels/gmn_match_hinge_hinge_similarity_scoring_sinkhorn_mutag_7474_2024-01-23_15:46:03.585367
+Run: 10 train loss: 93.844171 Time: 447.62
+Run: 10 VAL ap_score: 0.715762 map_score: 0.717269 Time: 144.52
+saving best validated model to ./gmn_match_hinge_hinge_similarity_scoring_sinkhorn_rerun/bestValidationModels/gmn_match_hinge_hinge_similarity_scoring_sinkhorn_mutag_7474_2024-01-23_15:46:03.585367
+Run: 11 train loss: 92.860124 Time: 447.05
+Run: 11 VAL ap_score: 0.731518 map_score: 0.718913 Time: 143.19
+saving best validated model to ./gmn_match_hinge_hinge_similarity_scoring_sinkhorn_rerun/bestValidationModels/gmn_match_hinge_hinge_similarity_scoring_sinkhorn_mutag_7474_2024-01-23_15:46:03.585367
+Run: 12 train loss: 89.353112 Time: 452.08
+Run: 12 VAL ap_score: 0.690137 map_score: 0.712596 Time: 143.83
+Run: 13 train loss: 86.667203 Time: 447.48
+Run: 13 VAL ap_score: 0.742217 map_score: 0.724853 Time: 143.78
+saving best validated model to ./gmn_match_hinge_hinge_similarity_scoring_sinkhorn_rerun/bestValidationModels/gmn_match_hinge_hinge_similarity_scoring_sinkhorn_mutag_7474_2024-01-23_15:46:03.585367
+Run: 14 train loss: 84.793692 Time: 444.22
+Run: 14 VAL ap_score: 0.734215 map_score: 0.721122 Time: 143.16
+Run: 15 train loss: 84.775793 Time: 443.00
+Run: 15 VAL ap_score: 0.741574 map_score: 0.719370 Time: 142.46
+Run: 16 train loss: 83.261941 Time: 441.74
+Run: 16 VAL ap_score: 0.755072 map_score: 0.738126 Time: 143.58
+saving best validated model to ./gmn_match_hinge_hinge_similarity_scoring_sinkhorn_rerun/bestValidationModels/gmn_match_hinge_hinge_similarity_scoring_sinkhorn_mutag_7474_2024-01-23_15:46:03.585367
+Run: 17 train loss: 83.108404 Time: 446.88
+Run: 17 VAL ap_score: 0.751682 map_score: 0.729978 Time: 144.39
+Run: 18 train loss: 81.715343 Time: 447.21
+Run: 18 VAL ap_score: 0.752734 map_score: 0.732934 Time: 143.40
+Run: 19 train loss: 79.889730 Time: 478.80
+Run: 19 VAL ap_score: 0.764982 map_score: 0.744196 Time: 143.16
+saving best validated model to ./gmn_match_hinge_hinge_similarity_scoring_sinkhorn_rerun/bestValidationModels/gmn_match_hinge_hinge_similarity_scoring_sinkhorn_mutag_7474_2024-01-23_15:46:03.585367
+Run: 20 train loss: 79.052718 Time: 444.85
+Run: 20 VAL ap_score: 0.746004 map_score: 0.735714 Time: 144.11
+Run: 21 train loss: 78.663400 Time: 443.15
+Run: 21 VAL ap_score: 0.726253 map_score: 0.720715 Time: 145.76
+Run: 22 train loss: 77.538746 Time: 448.00
+Run: 22 VAL ap_score: 0.750200 map_score: 0.730429 Time: 143.59
+Run: 23 train loss: 77.048188 Time: 446.71
+Run: 23 VAL ap_score: 0.744113 map_score: 0.720771 Time: 144.12
+Run: 24 train loss: 77.048146 Time: 470.36
+Run: 24 VAL ap_score: 0.738825 map_score: 0.732615 Time: 144.06
+Run: 25 train loss: 75.966113 Time: 454.10
+Run: 25 VAL ap_score: 0.766688 map_score: 0.741799 Time: 143.87
+Run: 26 train loss: 76.454639 Time: 448.67
+Run: 26 VAL ap_score: 0.756740 map_score: 0.733974 Time: 143.73
+Run: 27 train loss: 74.293909 Time: 451.29
+Run: 27 VAL ap_score: 0.749505 map_score: 0.734431 Time: 143.52
+Run: 28 train loss: 73.925138 Time: 448.54
+Run: 28 VAL ap_score: 0.750101 map_score: 0.745724 Time: 144.80
+saving best validated model to ./gmn_match_hinge_hinge_similarity_scoring_sinkhorn_rerun/bestValidationModels/gmn_match_hinge_hinge_similarity_scoring_sinkhorn_mutag_7474_2024-01-23_15:46:03.585367
+Run: 29 train loss: 72.616146 Time: 444.03
+Run: 29 VAL ap_score: 0.742309 map_score: 0.732915 Time: 144.71

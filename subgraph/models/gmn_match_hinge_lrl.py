@@ -85,6 +85,8 @@ class CrossAttention(torch.nn.Module):
             query_new = torch.bmm(softmax_1, partitions_2)
             corpus_new = torch.bmm(torch.transpose(softmax_2, 1, 2), partitions_1)
 
+            results = torch.cat([query_new[i//2, :batch_data_sizes_flat[i]] if i%2==0 else corpus_new[i//2, :batch_data_sizes_flat[i]] for i in range(len(batch_data_sizes_flat))])
+            
             return results, [softmax_1, softmax_2]
 
 

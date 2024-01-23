@@ -252,6 +252,7 @@ task_dict['gmn_match_hinge'] = "GMN Match Hinge"
 task_dict['simgnn'] = "simgnn"
 task_dict['neuromatch'] = "neuromatch"
 task_dict['gotsim'] = "gotsim"
+task_dict['gmn_embed_hinge'] = "gmn_embed_hinge"
 datasets = ["aids", "mutag", "ptc_fr", "ptc_fm", "ptc_mr", "ptc_mm"]
 test_model_dir = ad.model_dir
 
