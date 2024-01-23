@@ -45,7 +45,7 @@ from subgraph.models.node_align_edge_loss import Node_align_Edge_loss
 from subgraph.models.hungarian_node_align import Hungarian_Node_align_Node_loss
 from subgraph.models.fringed_node_align_node_loss import Fringed_node_align_Node_loss
 from subgraph.models.node_early_interaction_interpretability import NodeEarlyInteractionInterpretability
-from subgraph.models.gmn_embed import GMN_embed, GMN_embed_hinge, GMN_embed_with_ColBERT_scores, GMN_embed_with_MLP_and_ColBERT_scores, GMN_embed_maxsim_dot, GMN_embed_maxsim_dot_corrected
+from subgraph.models.gmn_embed import GMN_embed, GMN_embed_hinge_scoring, GMN_embed_hinge, GMN_embed_with_ColBERT_scores, GMN_embed_with_MLP_and_ColBERT_scores, GMN_embed_maxsim_dot, GMN_embed_maxsim_dot_corrected
 from subgraph.models.node_early_interaction_with_consistency import NodeEarlyInteractionWithConsistency
 
 from subgraph.eval_utils import evaluate_embeddings_similarity, pairwise_ranking_loss_similarity
@@ -64,6 +64,11 @@ def train(av,config):
   elif av.TASK.startswith("gmn_match_hinge_colbert"):
     logger.info("Loading model GMN_match_hinge_colbert")  
     model = GMN_match_hinge_colbert(av,config,1).to(device)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"
+  elif av.TASK.startswith("gmn_embed_hinge_scoring"):
+    logger.info("Loading model GMN_embed_hinge_scoring")  
+    model = GMN_embed_hinge_scoring(av,config,1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn" 
   elif av.TASK.startswith("gmn_match_hinge_vaibhav"):

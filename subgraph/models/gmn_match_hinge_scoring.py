@@ -6,6 +6,7 @@ from GMN.loss import euclidean_distance
 import GMN.graphmatchingnetwork as gmngmn
 import GMN.graphembeddingnetwork as gmngen
 from subgraph.models.gmn_match_hinge_lrl import CrossAttention
+from subgraph.models.utils import colbert_scores_for_gmn_data
 
 class GMN_match_hinge_scoring(torch.nn.Module):
     def __init__(self, av,config,input_dim):
@@ -92,13 +93,13 @@ class GMN_match_hinge_colbert(torch.nn.Module):
         prop_config.pop('share_prop_params',None)
         prop_config.pop('similarity',None)        
         self.prop_layer = gmngmn.GraphPropMatchingLayer(**prop_config)      
-        self.aggregator = gmngen.GraphAggregator(**self.config['aggregator'])
 
         self.max_node_size = max(self.av.MAX_QUERY_SUBGRAPH_SIZE,self.av.MAX_CORPUS_SUBGRAPH_SIZE)
         self.cross_attention_module = CrossAttention(self.av, 'none', prop_config['node_state_dim'], self.max_node_size)
-        
+
         self.graph_size_to_mask_map = [torch.cat((torch.tensor([1]).repeat(x,1).repeat(1,self.av.transform_dim), \
         torch.tensor([0]).repeat(self.max_node_size-x,1).repeat(1,self.av.transform_dim))) for x in range(0,self.max_node_size+1)]
+        self.node_feature_processor = gmngen.NodeFeatureProcessor(agg_config['node_hidden_sizes'], agg_config['input_size'])
 
     def get_graph(self, batch):
         graph = batch
@@ -125,11 +126,10 @@ class GMN_match_hinge_colbert(torch.nn.Module):
                                                 max_node_size=self.max_node_size,
                                                 cross_attention_module=self.cross_attention_module)
 
-        graph_vectors = self.aggregator(node_features_enc,graph_idx,2*len(batch_data_sizes) )
-        x, y = gmnutils.reshape_and_split_tensor(graph_vectors, 2)
-        #scores = -euclidean_distance(x,y)
-        scores = -torch.sum(torch.nn.ReLU()(x-y),dim=-1)
-        return scores
+        node_features_enc = self.node_feature_processor(node_features_enc)
+
+        return colbert_scores_for_gmn_data(node_features_enc, batch_data_sizes, graph_idx)
+
 
 class GMN_match_hinge_scoring_sinkhorn(torch.nn.Module):
     def __init__(self, av,config,input_dim):
@@ -189,10 +189,10 @@ class GMN_match_hinge_scoring_sinkhorn(torch.nn.Module):
         stacked_cnode_emb = torch.stack([F.pad(x, pad=(0,0,0,self.max_node_size-x.shape[0])) \
                                          for x in node_feature_enc_corpus])
 
-        _, attention_matrix = self.cross_attention_module(node_features_enc, batch_data_sizes_flat)
+        _, transport_plan = self.cross_attention_module(node_features_enc, batch_data_sizes_flat)
 
         scores = -torch.sum(torch.maximum(
-            stacked_qnode_emb - attention_matrix[0]@stacked_cnode_emb,
+            stacked_qnode_emb - transport_plan@stacked_cnode_emb,
             torch.tensor([0], device=self.device)),
            dim=(1,2))
         
