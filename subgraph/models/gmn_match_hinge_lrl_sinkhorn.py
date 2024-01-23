@@ -5,10 +5,11 @@ from subgraph.utils import cudavar
 from GMN.loss import euclidean_distance
 import GMN.graphmatchingnetwork as gmngmn
 import GMN.graphembeddingnetwork as gmngen
+from subgraph.models.gmn_match_hinge_lrl import CrossAttention
 
 class GMN_match_hinge_lrl_sinkhorn(torch.nn.Module):
     def __init__(self, av,config,input_dim):
-        super(GMN_match_hinge_lrl, self).__init__()
+        super(GMN_match_hinge_lrl_sinkhorn, self).__init__()
         self.av = av
         self.device = 'cuda:0' if self.av.has_cuda and self.av.want_cuda else 'cpu'
         self.config = config
@@ -63,7 +64,7 @@ class GMN_match_hinge_lrl_sinkhorn(torch.nn.Module):
 
 class GMN_match_hinge_lrl_scoring_sinkhorn(torch.nn.Module):
     def __init__(self, av,config,input_dim):
-        super(GMN_match_hinge_lrl_scoring, self).__init__()
+        super(GMN_match_hinge_lrl_scoring_sinkhorn, self).__init__()
         self.av = av
         self.device = 'cuda:0' if self.av.has_cuda and self.av.want_cuda else 'cpu'
         self.config = config
@@ -78,11 +79,10 @@ class GMN_match_hinge_lrl_scoring_sinkhorn(torch.nn.Module):
         prop_config.pop('share_prop_params',None)
         prop_config.pop('similarity',None)        
         self.prop_layer = gmngmn.GraphPropMatchingLayer(**prop_config)      
-        self.aggregator = gmngen.GraphAggregator(**self.config['aggregator'])
 
         self.max_node_size = max(self.av.MAX_QUERY_SUBGRAPH_SIZE,self.av.MAX_CORPUS_SUBGRAPH_SIZE)
         self.lrl_cross_attention_module = CrossAttention(self.av, 'lrl', prop_config['node_state_dim'], self.max_node_size, use_sinkhorn=True)
-        
+
         self.graph_size_to_mask_map = [torch.cat((torch.tensor([1]).repeat(x,1).repeat(1,self.av.transform_dim), \
         torch.tensor([0]).repeat(self.max_node_size-x,1).repeat(1,self.av.transform_dim))) for x in range(0,self.max_node_size+1)]
 
@@ -115,9 +115,9 @@ class GMN_match_hinge_lrl_scoring_sinkhorn(torch.nn.Module):
         node_feature_enc_query = node_feature_enc_split[0::2]
         node_feature_enc_corpus = node_feature_enc_split[1::2]
 
-        stacked_qnode_emb = torch.stack([F.pad(x, pad=(0,0,0,self.max_node_size+1-x.shape[0])) \
+        stacked_qnode_emb = torch.stack([F.pad(x, pad=(0,0,0,self.max_node_size-x.shape[0])) \
                                          for x in node_feature_enc_query])
-        stacked_cnode_emb = torch.stack([F.pad(x, pad=(0,0,0,self.max_node_size+1-x.shape[0])) \
+        stacked_cnode_emb = torch.stack([F.pad(x, pad=(0,0,0,self.max_node_size-x.shape[0])) \
                                          for x in node_feature_enc_corpus])
 
         _, transport_plan = self.lrl_cross_attention_module(node_features_enc, batch_data_sizes_flat)
@@ -131,7 +131,7 @@ class GMN_match_hinge_lrl_scoring_sinkhorn(torch.nn.Module):
 
 class GMN_match_hinge_hinge_similarity_sinkhorn(torch.nn.Module):
     def __init__(self, av,config,input_dim):
-        super(GMN_match_hinge_hinge_similarity, self).__init__()
+        super(GMN_match_hinge_hinge_similarity_sinkhorn, self).__init__()
         self.av = av
         self.device = 'cuda:0' if self.av.has_cuda and self.av.want_cuda else 'cpu'
         self.config = config
@@ -186,7 +186,7 @@ class GMN_match_hinge_hinge_similarity_sinkhorn(torch.nn.Module):
 
 class GMN_match_hinge_hinge_similarity_scoring_sinkhorn(torch.nn.Module):
     def __init__(self, av,config,input_dim):
-        super(GMN_match_hinge_hinge_similarity_scoring, self).__init__()
+        super(GMN_match_hinge_hinge_similarity_scoring_sinkhorn, self).__init__()
         self.av = av
         self.device = 'cuda:0' if self.av.has_cuda and self.av.want_cuda else 'cpu'
         self.config = config
@@ -201,7 +201,6 @@ class GMN_match_hinge_hinge_similarity_scoring_sinkhorn(torch.nn.Module):
         prop_config.pop('share_prop_params',None)
         prop_config.pop('similarity',None)        
         self.prop_layer = gmngmn.GraphPropMatchingLayer(**prop_config)      
-        self.aggregator = gmngen.GraphAggregator(**self.config['aggregator'])
 
         self.max_node_size = max(self.av.MAX_QUERY_SUBGRAPH_SIZE,self.av.MAX_CORPUS_SUBGRAPH_SIZE)
         self.hinge_cross_attention_module = CrossAttention(self.av, 'hinge', prop_config['node_state_dim'], self.max_node_size, use_sinkhorn=True)
@@ -238,9 +237,9 @@ class GMN_match_hinge_hinge_similarity_scoring_sinkhorn(torch.nn.Module):
         node_feature_enc_query = node_feature_enc_split[0::2]
         node_feature_enc_corpus = node_feature_enc_split[1::2]
 
-        stacked_qnode_emb = torch.stack([F.pad(x, pad=(0,0,0,self.max_node_size+1-x.shape[0])) \
+        stacked_qnode_emb = torch.stack([F.pad(x, pad=(0,0,0,self.max_node_size-x.shape[0])) \
                                          for x in node_feature_enc_query])
-        stacked_cnode_emb = torch.stack([F.pad(x, pad=(0,0,0,self.max_node_size+1-x.shape[0])) \
+        stacked_cnode_emb = torch.stack([F.pad(x, pad=(0,0,0,self.max_node_size-x.shape[0])) \
                                          for x in node_feature_enc_corpus])
 
         _, transport_plan = self.hinge_cross_attention_module(node_features_enc, batch_data_sizes_flat)

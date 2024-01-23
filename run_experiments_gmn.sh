@@ -12,16 +12,20 @@ else
     TASK=$2
 fi
 
-# datasets=('aids')
-datasets=('aids' 'mutag' 'ptc_fr' 'ptc_fm' 'ptc_mr' 'ptc_mm')
-# cuda=('7')
-cuda=('6' '6' '4' '3' '2' '1')
+datasets=('aids')
+# datasets=('aids' 'mutag' 'ptc_fr' 'ptc_fm' 'ptc_mr' 'ptc_mm')
+cuda=('4')
+# cuda=('0' '0' '0' '1' '1' '1')
 for ((idx=0; idx<${#datasets[@]}; idx++)); do
     dataset="${datasets[$idx]}"
     CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=${cuda[$idx]} python -m subgraph.iso_matching_models \
     --experiment_group=${experiment_group} \
     --TASK=${TASK} \
     --MARGIN=0.5 \
+    --filters_1=10 \
+    --filters_2=10 \
+    --filters_3=10 \
+    --NOISE_FACTOR=0 \
     --transform_dim=16 \
     --FEAT_TYPE="One" \
     --DATASET_NAME=${dataset} \

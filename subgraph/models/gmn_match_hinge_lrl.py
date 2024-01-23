@@ -14,8 +14,10 @@ class CrossAttention(torch.nn.Module):
         self.device = 'cuda:0' if self.av.has_cuda and self.av.want_cuda else 'cpu'
         self.type = type_
         self.dim = dim
-        self.max_node_size = max_node_size + 1
         self.use_sinkhorn = use_sinkhorn
+        self.max_node_size = max_node_size
+        if not self.use_sinkhorn:
+            self.max_node_size = self.max_node_size + 1
         self.build_layers()
         self.graph_size_to_mask_map = [torch.cat((torch.tensor([1], device=self.device).repeat(x,1).repeat(1,self.av.transform_dim), \
         torch.tensor([0], device=self.device).repeat(self.max_node_size-x,1).repeat(1,self.av.transform_dim))) for x in range(0,self.max_node_size+1)]
