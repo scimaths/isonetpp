@@ -1,0 +1,65 @@
+Command line
+/raid/infolab/ashwinr/isonetpp/subgraph/iso_matching_models.py
+--experiment_group=gmn_match_hinge_vaibhav
+--TASK=gmn_match_hinge_vaibhav
+--MARGIN=0.5
+--filters_1=10
+--filters_2=10
+--filters_3=10
+--NOISE_FACTOR=0
+--transform_dim=16
+--FEAT_TYPE=One
+--DATASET_NAME=aids
+--no_of_query_subgraphs=300
+--MIN_QUERY_SUBGRAPH_SIZE=5
+--MAX_QUERY_SUBGRAPH_SIZE=15
+--MIN_CORPUS_SUBGRAPH_SIZE=16
+--MAX_CORPUS_SUBGRAPH_SIZE=20
+fringe_isonet= {'masking_for_msg_passing_count': 4}
+encoder= {'node_hidden_sizes': [10], 'node_feature_dim': 1, 'edge_hidden_sizes': None, 'edge_feature_dim': 1}
+aggregator= {'node_hidden_sizes': [10], 'graph_transform_sizes': [10], 'input_size': [10], 'gated': True, 'aggregation_type': 'sum'}
+graph_embedding_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'embedding'}
+graph_matching_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'matching', 'similarity': 'dotproduct'}
+model_type= embedding
+data= {'problem': 'graph_edit_distance', 'dataset_params': {'n_nodes_range': [20, 20], 'p_edge_range': [0.2, 0.2], 'n_changes_positive': 1, 'n_changes_negative': 2, 'validation_dataset_size': 1000}}
+training= {'batch_size': 128, 'learning_rate': 0.0001, 'mode': 'pair', 'loss': 'margin', 'margin': 0.5, 'graph_vec_regularizer_weight': 1e-06, 'clip_value': 10.0, 'n_training_steps': 500000, 'print_after': 100, 'eval_after': 10}
+evaluation= {'batch_size': 128}
+seed= 7474
+early_interaction= {'n_time_updates': 3, 'time_update_idx': 'k_t', 'prop_separate_params': None}
+node_early_interaction_interpretability= {'lambd': 1.0}
+graphsim= {'conv_kernel_size': [10, 4, 2], 'linear_size': [24, 16], 'gcn_size': [10, 10, 10], 'conv_pool_size': [3, 3, 2], 'conv_out_channels': [2, 4, 8], 'dropout': 0}
+loading train query graphs from ./velugoti_dataset/Datasets/splits/train/train_aids240k_query_subgraphs.pkl
+loading train relationships from ./velugoti_dataset/Datasets/splits/train/train_aids240k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from ./velugoti_dataset/Datasets/splits/aids240k_corpus_subgraphs.pkl
+loading val query graphs from ./velugoti_dataset/Datasets/splits/val/val_aids240k_query_subgraphs.pkl
+loading val relationships from ./velugoti_dataset/Datasets/splits/val/val_aids240k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from ./velugoti_dataset/Datasets/splits/aids240k_corpus_subgraphs.pkl
+Loading model GMN_match_hinge_vaibhav
+saving initial model to ./gmn_match_hinge_vaibhav/initialModels/gmn_match_hinge_vaibhav_aids_7474_2024-01-23_19:00:22.447012
+no. of params in model: 2168
+Run: 0 train loss: 257.113699 Time: 459.69
+Run: 0 VAL ap_score: 0.445747 map_score: 0.446445 Time: 146.64
+saving best validated model to ./gmn_match_hinge_vaibhav/bestValidationModels/gmn_match_hinge_vaibhav_aids_7474_2024-01-23_19:00:22.447012
+Run: 1 train loss: 205.799591 Time: 443.36
+Run: 1 VAL ap_score: 0.435560 map_score: 0.435595 Time: 146.01
+Run: 2 train loss: 189.133643 Time: 443.60
+Run: 2 VAL ap_score: 0.491617 map_score: 0.515921 Time: 147.07
+saving best validated model to ./gmn_match_hinge_vaibhav/bestValidationModels/gmn_match_hinge_vaibhav_aids_7474_2024-01-23_19:00:22.447012
+Run: 3 train loss: 172.543177 Time: 441.43
+Run: 3 VAL ap_score: 0.526062 map_score: 0.516569 Time: 149.54
+saving best validated model to ./gmn_match_hinge_vaibhav/bestValidationModels/gmn_match_hinge_vaibhav_aids_7474_2024-01-23_19:00:22.447012
+Run: 4 train loss: 157.351944 Time: 445.61
+Run: 4 VAL ap_score: 0.548844 map_score: 0.539297 Time: 150.87
+saving best validated model to ./gmn_match_hinge_vaibhav/bestValidationModels/gmn_match_hinge_vaibhav_aids_7474_2024-01-23_19:00:22.447012
+Run: 5 train loss: 146.099539 Time: 444.54
+Run: 5 VAL ap_score: 0.547537 map_score: 0.535783 Time: 144.19
+Run: 6 train loss: 139.134261 Time: 444.63
+Run: 6 VAL ap_score: 0.538049 map_score: 0.542174 Time: 147.68
+saving best validated model to ./gmn_match_hinge_vaibhav/bestValidationModels/gmn_match_hinge_vaibhav_aids_7474_2024-01-23_19:00:22.447012
+Run: 7 train loss: 134.888859 Time: 439.63
+Run: 7 VAL ap_score: 0.543610 map_score: 0.538189 Time: 149.32
+Run: 8 train loss: 132.221860 Time: 445.19
+Run: 8 VAL ap_score: 0.548611 map_score: 0.547606 Time: 149.18
+saving best validated model to ./gmn_match_hinge_vaibhav/bestValidationModels/gmn_match_hinge_vaibhav_aids_7474_2024-01-23_19:00:22.447012
+Run: 9 train loss: 127.372755 Time: 461.34
+Run: 9 VAL ap_score: 0.560404 map_score: 0.546120 Time: 147.38
