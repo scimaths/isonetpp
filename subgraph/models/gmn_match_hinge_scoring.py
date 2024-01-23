@@ -92,15 +92,13 @@ class GMN_match_hinge_colbert(torch.nn.Module):
         prop_config.pop('n_prop_layers',None)
         prop_config.pop('share_prop_params',None)
         prop_config.pop('similarity',None)    
-        agg_config = self.config['aggregator']
         self.prop_layer = gmngmn.GraphPropMatchingLayer(**prop_config)      
 
         self.max_node_size = max(self.av.MAX_QUERY_SUBGRAPH_SIZE,self.av.MAX_CORPUS_SUBGRAPH_SIZE)
-        self.cross_attention_module = CrossAttention(self.av, 'none', prop_config['node_state_dim'], self.max_node_size)
+        self.cross_attention_module = CrossAttention(self.av, 'none', prop_config['node_state_dim'], self.max_node_size, colbert=True)
 
         self.graph_size_to_mask_map = [torch.cat((torch.tensor([1]).repeat(x,1).repeat(1,self.av.transform_dim), \
         torch.tensor([0]).repeat(self.max_node_size-x,1).repeat(1,self.av.transform_dim))) for x in range(0,self.max_node_size+1)]
-        self.node_feature_processor = gmngen.NodeFeatureProcessor(agg_config['node_hidden_sizes'], agg_config['input_size'])
 
     def get_graph(self, batch):
         graph = batch
@@ -127,9 +125,12 @@ class GMN_match_hinge_colbert(torch.nn.Module):
                                                 max_node_size=self.max_node_size,
                                                 cross_attention_module=self.cross_attention_module)
 
-        node_features_enc = self.node_feature_processor(node_features_enc)
-
-        return colbert_scores_for_gmn_data(node_features_enc, batch_data_sizes, graph_idx)
+        dot_pdt_similarity = self.cross_attention_module(node_features_enc, batch_data_sizes_flat)
+        max_sim = torch.max(dot_pdt_similarity, dim=2)
+        querysize = batch_data_sizes_flat[::2]
+        query_mask = torch.stack([torch.cat((torch.ones(querysize[i]), torch.zeros(self.max_node_size - querysize[i]))) for i in querysize])
+        scores = torch.sum(torch.mul(max_sim, query_mask))
+        return scores
 
 
 class GMN_match_hinge_scoring_sinkhorn(torch.nn.Module):

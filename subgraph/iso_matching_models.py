@@ -444,7 +444,7 @@ if __name__ == "__main__":
   ap.add_argument("--loss_lambda",                    type=float, default=1)
   ap.add_argument("--transport_node_type",            type=str,   default="soft")
   ap.add_argument("--transport_edge_type",            type=str,   default="sinkhorn")
-  ap.add_argument("--temp_gmn_scoring",               type=str,   default="1")
+  ap.add_argument("--temp_gmn_scoring",               type=float,   default="1")
 
   av = ap.parse_args()
   seeds = [4586, 7366, 7474, 7762, 4929, 3543, 1704, 356, 4891, 3133]

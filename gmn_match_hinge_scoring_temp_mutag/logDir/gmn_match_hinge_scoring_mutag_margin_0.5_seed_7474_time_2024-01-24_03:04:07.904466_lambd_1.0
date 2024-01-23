@@ -1,0 +1,57 @@
+Command line
+/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/subgraph/iso_matching_models.py
+--experiment_group=gmn_match_hinge_scoring_temp_mutag
+--TASK=gmn_match_hinge_scoring
+--MARGIN=0.5
+--filters_1=10
+--filters_2=10
+--filters_3=10
+--NOISE_FACTOR=0
+--transform_dim=16
+--FEAT_TYPE=One
+--temp_gmn_scoring=0.1
+--DATASET_NAME=mutag
+--no_of_query_subgraphs=300
+--MIN_QUERY_SUBGRAPH_SIZE=5
+--MAX_QUERY_SUBGRAPH_SIZE=15
+--MIN_CORPUS_SUBGRAPH_SIZE=16
+--MAX_CORPUS_SUBGRAPH_SIZE=20
+fringe_isonet= {'masking_for_msg_passing_count': 4}
+encoder= {'node_hidden_sizes': [10], 'node_feature_dim': 1, 'edge_hidden_sizes': None, 'edge_feature_dim': 1}
+aggregator= {'node_hidden_sizes': [10], 'graph_transform_sizes': [10], 'input_size': [10], 'gated': True, 'aggregation_type': 'sum'}
+graph_embedding_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'embedding'}
+graph_matching_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'matching', 'similarity': 'dotproduct'}
+model_type= embedding
+data= {'problem': 'graph_edit_distance', 'dataset_params': {'n_nodes_range': [20, 20], 'p_edge_range': [0.2, 0.2], 'n_changes_positive': 1, 'n_changes_negative': 2, 'validation_dataset_size': 1000}}
+training= {'batch_size': 128, 'learning_rate': 0.0001, 'mode': 'pair', 'loss': 'margin', 'margin': 0.5, 'graph_vec_regularizer_weight': 1e-06, 'clip_value': 10.0, 'n_training_steps': 500000, 'print_after': 100, 'eval_after': 10}
+evaluation= {'batch_size': 128}
+seed= 7474
+early_interaction= {'n_time_updates': 3, 'time_update_idx': 'k_t', 'prop_separate_params': None}
+node_early_interaction_interpretability= {'lambd': 1.0}
+graphsim= {'conv_kernel_size': [10, 4, 2], 'linear_size': [24, 16], 'gcn_size': [10, 10, 10], 'conv_pool_size': [3, 3, 2], 'conv_out_channels': [2, 4, 8], 'dropout': 0}
+loading train query graphs from ./velugoti_dataset/Datasets/splits/train/train_mutag240k_query_subgraphs.pkl
+loading train relationships from ./velugoti_dataset/Datasets/splits/train/train_mutag240k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from ./velugoti_dataset/Datasets/splits/mutag240k_corpus_subgraphs.pkl
+loading val query graphs from ./velugoti_dataset/Datasets/splits/val/val_mutag240k_query_subgraphs.pkl
+loading val relationships from ./velugoti_dataset/Datasets/splits/val/val_mutag240k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from ./velugoti_dataset/Datasets/splits/mutag240k_corpus_subgraphs.pkl
+Loading model GMN Match Hinge baseline scoring
+saving initial model to ./gmn_match_hinge_scoring_temp_mutag/initialModels/gmn_match_hinge_scoring_mutag_7474_2024-01-24_03:04:07.904466
+no. of params in model: 2050
+Run: 0 train loss: 349.337867 Time: 427.71
+Run: 0 VAL ap_score: 0.365766 map_score: 0.414294 Time: 126.04
+saving best validated model to ./gmn_match_hinge_scoring_temp_mutag/bestValidationModels/gmn_match_hinge_scoring_mutag_7474_2024-01-24_03:04:07.904466
+Run: 1 train loss: 291.607240 Time: 417.99
+Run: 1 VAL ap_score: 0.394518 map_score: 0.439796 Time: 120.32
+saving best validated model to ./gmn_match_hinge_scoring_temp_mutag/bestValidationModels/gmn_match_hinge_scoring_mutag_7474_2024-01-24_03:04:07.904466
+Run: 2 train loss: 261.117422 Time: 411.75
+Run: 2 VAL ap_score: 0.442895 map_score: 0.482673 Time: 119.48
+saving best validated model to ./gmn_match_hinge_scoring_temp_mutag/bestValidationModels/gmn_match_hinge_scoring_mutag_7474_2024-01-24_03:04:07.904466
+Run: 3 train loss: 235.395225 Time: 411.57
+Run: 3 VAL ap_score: 0.461982 map_score: 0.497270 Time: 121.11
+saving best validated model to ./gmn_match_hinge_scoring_temp_mutag/bestValidationModels/gmn_match_hinge_scoring_mutag_7474_2024-01-24_03:04:07.904466
+Run: 4 train loss: 217.390512 Time: 406.63
+Run: 4 VAL ap_score: 0.443353 map_score: 0.485518 Time: 119.12
+Run: 5 train loss: 204.982625 Time: 411.39
+Run: 5 VAL ap_score: 0.463429 map_score: 0.516867 Time: 119.26
+saving best validated model to ./gmn_match_hinge_scoring_temp_mutag/bestValidationModels/gmn_match_hinge_scoring_mutag_7474_2024-01-24_03:04:07.904466

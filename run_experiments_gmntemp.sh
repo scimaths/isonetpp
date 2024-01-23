@@ -12,12 +12,17 @@ else
     TASK=$2
 fi
 
-datasets=('aids')
-# datasets=('aids' 'mutag' 'ptc_fr' 'ptc_fm' 'ptc_mr' 'ptc_mm')
-cuda=('4')
-# cuda=('0' '0' '1' '1' '2' '2')
-for ((idx=0; idx<${#datasets[@]}; idx++)); do
-    dataset="${datasets[$idx]}"
+if [ -z "$3" ]; then
+    echo Give DATASET argument
+    exit
+else
+    DATASET=$3
+fi
+
+temps=('0.05' '0.1' '0.5' '5')
+cuda=('0' '0' '0' '0')
+for ((idx=0; idx<${#temps[@]}; idx++)); do
+    temp="${temps[$idx]}"
     CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=${cuda[$idx]} python -m subgraph.iso_matching_models \
     --experiment_group=${experiment_group} \
     --TASK=${TASK} \
@@ -28,8 +33,8 @@ for ((idx=0; idx<${#datasets[@]}; idx++)); do
     --NOISE_FACTOR=0 \
     --transform_dim=16 \
     --FEAT_TYPE="One" \
-    --temp_gmn_scoring=0.1 \
-    --DATASET_NAME=${dataset} \
+    --temp_gmn_scoring=${temp} \
+    --DATASET_NAME=${DATASET} \
     --no_of_query_subgraphs=300 \
     --MIN_QUERY_SUBGRAPH_SIZE=5 \
     --MAX_QUERY_SUBGRAPH_SIZE=15 \
