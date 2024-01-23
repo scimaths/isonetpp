@@ -5,6 +5,7 @@ from subgraph.utils import cudavar
 from GMN.loss import euclidean_distance
 import GMN.graphembeddingnetwork as gmngen
 from subgraph.models.utils import colbert_scores_for_gmn_data
+from subgraph.models.gmn_match_hinge_lrl import CrossAttention
 
 class GMN_embed(torch.nn.Module):
     def __init__(self, av,config,input_dim):
@@ -156,7 +157,7 @@ class GMN_embed_hinge_scoring(torch.nn.Module):
         self.aggregator = gmngen.GraphAggregator(**self.config['aggregator'])
 
         self.max_node_size = max(self.av.MAX_QUERY_SUBGRAPH_SIZE,self.av.MAX_CORPUS_SUBGRAPH_SIZE)
-        self.cross_attention_module = CrossAttention(self.av, 'lrl', prop_config['node_state_dim'], self.max_node_size)
+        self.cross_attention_module = CrossAttention(self.av, 'lrl', prop_config['node_state_dim'], self.max_node_size, use_sinkhorn=True)
 
         self.graph_size_to_mask_map = [torch.cat((torch.tensor([1]).repeat(x,1).repeat(1,self.av.transform_dim), \
         torch.tensor([0]).repeat(self.max_node_size-x,1).repeat(1,self.av.transform_dim))) for x in range(0,self.max_node_size+1)]
