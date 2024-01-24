@@ -125,12 +125,12 @@ class GMN_match_hinge_colbert(torch.nn.Module):
                                                 max_node_size=self.max_node_size,
                                                 cross_attention_module=self.cross_attention_module)
 
-        dot_pdt_similarity = self.cross_attention_module(node_features_enc, batch_data_sizes_flat, return_dotpdt=True)
-        max_sim = torch.max(dot_pdt_similarity, dim=2).values
-        querysize = batch_data_sizes_flat[::2]
-        query_mask = torch.stack([torch.cat((torch.ones(querysize[i], device=self.device), torch.zeros(self.max_node_size + 1 - querysize[i], device=self.device))) for i in querysize])
-        scores = torch.sum(torch.mul(max_sim, query_mask), dim=1)
-        return scores
+        # dot_pdt_similarity = self.cross_attention_module(node_features_enc, batch_data_sizes_flat, return_dotpdt=True)
+        # max_sim = torch.max(dot_pdt_similarity, dim=2).values
+        # querysize = batch_data_sizes_flat[::2]
+        # query_mask = torch.stack([torch.cat((torch.ones(querysize[i], device=self.device), torch.zeros(self.max_node_size + 1 - querysize[i], device=self.device))) for i in querysize])
+        # scores = torch.sum(torch.mul(max_sim, query_mask), dim=1)
+        return colbert_scores_for_gmn_data(node_features_enc, batch_data_sizes, graph_idx)
 
 
 class GMN_match_hinge_scoring_sinkhorn(torch.nn.Module):
@@ -192,7 +192,9 @@ class GMN_match_hinge_scoring_sinkhorn(torch.nn.Module):
                                          for x in node_feature_enc_corpus])
 
         _, transport_plan = self.cross_attention_module(node_features_enc, batch_data_sizes_flat)
-
+        print(transport_plan[0])
+        print(batch_data_sizes[0])
+        exit()
         scores = -torch.sum(torch.maximum(
             stacked_qnode_emb - transport_plan@stacked_cnode_emb,
             torch.tensor([0], device=self.device)),

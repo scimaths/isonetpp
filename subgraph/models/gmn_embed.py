@@ -154,7 +154,7 @@ class GMN_embed_hinge_scoring(torch.nn.Module):
         prop_config.pop('n_prop_layers',None)
         prop_config.pop('share_prop_params',None)
         self.prop_layer = gmngen.GraphPropLayer(**prop_config)      
-        self.aggregator = gmngen.GraphAggregator(**self.config['aggregator'])
+        # self.aggregator = gmngen.GraphAggregator(**self.config['aggregator'])
 
         self.max_node_size = max(self.av.MAX_QUERY_SUBGRAPH_SIZE,self.av.MAX_CORPUS_SUBGRAPH_SIZE)
         self.cross_attention_module = CrossAttention(self.av, 'lrl', prop_config['node_state_dim'], self.max_node_size, use_sinkhorn=True)
