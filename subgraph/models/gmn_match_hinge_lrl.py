@@ -8,12 +8,13 @@ import GMN.graphembeddingnetwork as gmngen
 from subgraph.models.utils import pytorch_sinkhorn_iters
 
 class CrossAttention(torch.nn.Module):
-    def __init__(self, av, type_, dim, max_node_size, use_sinkhorn=False, colbert=False):
+    def __init__(self, av, type_, dim, max_node_size, use_sinkhorn=False, colbert=False, injective_attention=False):
         super(CrossAttention, self).__init__()
         self.av = av
         self.device = 'cuda:0' if self.av.has_cuda and self.av.want_cuda else 'cpu'
         self.type = type_
         self.dim = dim
+        self.injective_attention = injective_attention
         self.use_sinkhorn = use_sinkhorn
         self.colbert = colbert
         self.max_node_size = max_node_size
@@ -78,7 +79,8 @@ class CrossAttention(torch.nn.Module):
         else:
             # softmax
             # mask to fill -inf
-            dot_pdt_similarity.masked_fill_(mask, -torch.inf)
+            if not self.injective_attention:
+                dot_pdt_similarity.masked_fill_(mask, -torch.inf)
             dot_pdt_similarity = torch.div(dot_pdt_similarity, self.av.temp_gmn_scoring)
             if self.colbert:
                 return dot_pdt_similarity
