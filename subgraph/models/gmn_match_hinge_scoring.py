@@ -95,7 +95,7 @@ class GMN_match_hinge_colbert(torch.nn.Module):
         self.prop_layer = gmngmn.GraphPropMatchingLayer(**prop_config)      
 
         self.max_node_size = max(self.av.MAX_QUERY_SUBGRAPH_SIZE,self.av.MAX_CORPUS_SUBGRAPH_SIZE)
-        self.cross_attention_module = CrossAttention(self.av, 'none', prop_config['node_state_dim'], self.max_node_size, colbert=True)
+        self.cross_attention_module = CrossAttention(self.av, 'none', prop_config['node_state_dim'], self.max_node_size)
 
         self.graph_size_to_mask_map = [torch.cat((torch.tensor([1]).repeat(x,1).repeat(1,self.av.transform_dim), \
         torch.tensor([0]).repeat(self.max_node_size-x,1).repeat(1,self.av.transform_dim))) for x in range(0,self.max_node_size+1)]
@@ -125,11 +125,11 @@ class GMN_match_hinge_colbert(torch.nn.Module):
                                                 max_node_size=self.max_node_size,
                                                 cross_attention_module=self.cross_attention_module)
 
-        dot_pdt_similarity = self.cross_attention_module(node_features_enc, batch_data_sizes_flat)
-        max_sim = torch.max(dot_pdt_similarity, dim=2)
+        dot_pdt_similarity = self.cross_attention_module(node_features_enc, batch_data_sizes_flat, return_dotpdt=True)
+        max_sim = torch.max(dot_pdt_similarity, dim=2).values
         querysize = batch_data_sizes_flat[::2]
-        query_mask = torch.stack([torch.cat((torch.ones(querysize[i]), torch.zeros(self.max_node_size - querysize[i]))) for i in querysize])
-        scores = torch.sum(torch.mul(max_sim, query_mask))
+        query_mask = torch.stack([torch.cat((torch.ones(querysize[i], device=self.device), torch.zeros(self.max_node_size + 1 - querysize[i], device=self.device))) for i in querysize])
+        scores = torch.sum(torch.mul(max_sim, query_mask), dim=1)
         return scores
 
 
