@@ -144,9 +144,9 @@ class GMN_match_hinge_vaibhav_injective_attention(torch.nn.Module):
         node_feature_enc_query = node_feature_enc_split[0::2]
         node_feature_enc_corpus = node_feature_enc_split[1::2]       
 
-        stacked_qnode_emb = torch.stack([F.pad(x, pad=(0,0,0,self.max_node_size-x.shape[0])) \
+        stacked_qnode_emb = torch.stack([F.pad(x, pad=(0,0,0,self.max_node_size+1-x.shape[0])) \
                                          for x in node_feature_enc_query])
-        stacked_cnode_emb = torch.stack([F.pad(x, pad=(0,0,0,self.max_node_size-x.shape[0])) \
+        stacked_cnode_emb = torch.stack([F.pad(x, pad=(0,0,0,self.max_node_size+1-x.shape[0])) \
                                          for x in node_feature_enc_corpus])
 
         _, attention_matrix = self.lrl_cross_attention_module(node_features_enc, batch_data_sizes_flat)

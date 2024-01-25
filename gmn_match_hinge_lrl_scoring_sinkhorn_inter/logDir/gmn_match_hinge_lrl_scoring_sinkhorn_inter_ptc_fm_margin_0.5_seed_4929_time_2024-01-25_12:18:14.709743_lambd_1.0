@@ -1,0 +1,95 @@
+Command line
+/raid/infolab/ashwinr/isonetpp/subgraph/iso_matching_models.py
+--experiment_group=gmn_match_hinge_lrl_scoring_sinkhorn_inter
+--TASK=gmn_match_hinge_lrl_scoring_sinkhorn_inter
+--MARGIN=0.5
+--filters_1=10
+--filters_2=10
+--filters_3=10
+--NOISE_FACTOR=0
+--transform_dim=16
+--FEAT_TYPE=One
+--DATASET_NAME=ptc_fm
+--no_of_query_subgraphs=300
+--MIN_QUERY_SUBGRAPH_SIZE=5
+--MAX_QUERY_SUBGRAPH_SIZE=15
+--MIN_CORPUS_SUBGRAPH_SIZE=16
+--MAX_CORPUS_SUBGRAPH_SIZE=20
+fringe_isonet= {'masking_for_msg_passing_count': 4}
+encoder= {'node_hidden_sizes': [10], 'node_feature_dim': 1, 'edge_hidden_sizes': None, 'edge_feature_dim': 1}
+aggregator= {'node_hidden_sizes': [10], 'graph_transform_sizes': [10], 'input_size': [10], 'gated': True, 'aggregation_type': 'sum'}
+graph_embedding_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'embedding'}
+graph_matching_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'matching', 'similarity': 'dotproduct'}
+model_type= embedding
+data= {'problem': 'graph_edit_distance', 'dataset_params': {'n_nodes_range': [20, 20], 'p_edge_range': [0.2, 0.2], 'n_changes_positive': 1, 'n_changes_negative': 2, 'validation_dataset_size': 1000}}
+training= {'batch_size': 128, 'learning_rate': 0.0001, 'mode': 'pair', 'loss': 'margin', 'margin': 0.5, 'graph_vec_regularizer_weight': 1e-06, 'clip_value': 10.0, 'n_training_steps': 500000, 'print_after': 100, 'eval_after': 10}
+evaluation= {'batch_size': 128}
+seed= 4929
+early_interaction= {'n_time_updates': 3, 'time_update_idx': 'k_t', 'prop_separate_params': None}
+node_early_interaction_interpretability= {'lambd': 1.0}
+graphsim= {'conv_kernel_size': [10, 4, 2], 'linear_size': [24, 16], 'gcn_size': [10, 10, 10], 'conv_pool_size': [3, 3, 2], 'conv_out_channels': [2, 4, 8], 'dropout': 0}
+loading train query graphs from ./velugoti_dataset/Datasets/splits/train/train_ptc_fm240k_query_subgraphs.pkl
+loading train relationships from ./velugoti_dataset/Datasets/splits/train/train_ptc_fm240k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from ./velugoti_dataset/Datasets/splits/ptc_fm240k_corpus_subgraphs.pkl
+loading val query graphs from ./velugoti_dataset/Datasets/splits/val/val_ptc_fm240k_query_subgraphs.pkl
+loading val relationships from ./velugoti_dataset/Datasets/splits/val/val_ptc_fm240k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from ./velugoti_dataset/Datasets/splits/ptc_fm240k_corpus_subgraphs.pkl
+Loading model gmn_match_hinge_lrl_scoring_sinkhorn_inter
+saving initial model to ./gmn_match_hinge_lrl_scoring_sinkhorn_inter/initialModels/gmn_match_hinge_lrl_scoring_sinkhorn_inter_ptc_fm_4929_2024-01-25_12:18:14.709743
+no. of params in model: 2498
+Run: 0 train loss: 216.034722 Time: 449.62
+Run: 0 VAL ap_score: 0.502465 map_score: 0.541899 Time: 153.58
+saving best validated model to ./gmn_match_hinge_lrl_scoring_sinkhorn_inter/bestValidationModels/gmn_match_hinge_lrl_scoring_sinkhorn_inter_ptc_fm_4929_2024-01-25_12:18:14.709743
+Run: 1 train loss: 139.714689 Time: 449.55
+Run: 1 VAL ap_score: 0.553721 map_score: 0.589554 Time: 153.76
+saving best validated model to ./gmn_match_hinge_lrl_scoring_sinkhorn_inter/bestValidationModels/gmn_match_hinge_lrl_scoring_sinkhorn_inter_ptc_fm_4929_2024-01-25_12:18:14.709743
+Run: 2 train loss: 116.373938 Time: 451.90
+Run: 2 VAL ap_score: 0.637210 map_score: 0.647015 Time: 153.33
+saving best validated model to ./gmn_match_hinge_lrl_scoring_sinkhorn_inter/bestValidationModels/gmn_match_hinge_lrl_scoring_sinkhorn_inter_ptc_fm_4929_2024-01-25_12:18:14.709743
+Run: 3 train loss: 107.165600 Time: 449.48
+Run: 3 VAL ap_score: 0.668933 map_score: 0.669378 Time: 154.20
+saving best validated model to ./gmn_match_hinge_lrl_scoring_sinkhorn_inter/bestValidationModels/gmn_match_hinge_lrl_scoring_sinkhorn_inter_ptc_fm_4929_2024-01-25_12:18:14.709743
+Run: 4 train loss: 101.928355 Time: 450.21
+Run: 4 VAL ap_score: 0.670506 map_score: 0.668720 Time: 154.59
+Run: 5 train loss: 98.332365 Time: 449.25
+Run: 5 VAL ap_score: 0.675920 map_score: 0.683893 Time: 154.74
+saving best validated model to ./gmn_match_hinge_lrl_scoring_sinkhorn_inter/bestValidationModels/gmn_match_hinge_lrl_scoring_sinkhorn_inter_ptc_fm_4929_2024-01-25_12:18:14.709743
+Run: 6 train loss: 93.722344 Time: 450.44
+Run: 6 VAL ap_score: 0.696535 map_score: 0.693547 Time: 154.57
+saving best validated model to ./gmn_match_hinge_lrl_scoring_sinkhorn_inter/bestValidationModels/gmn_match_hinge_lrl_scoring_sinkhorn_inter_ptc_fm_4929_2024-01-25_12:18:14.709743
+Run: 7 train loss: 91.688074 Time: 448.24
+Run: 7 VAL ap_score: 0.694173 map_score: 0.695840 Time: 155.33
+saving best validated model to ./gmn_match_hinge_lrl_scoring_sinkhorn_inter/bestValidationModels/gmn_match_hinge_lrl_scoring_sinkhorn_inter_ptc_fm_4929_2024-01-25_12:18:14.709743
+Run: 8 train loss: 89.162000 Time: 448.59
+Run: 8 VAL ap_score: 0.698634 map_score: 0.693446 Time: 156.58
+Run: 9 train loss: 86.749512 Time: 449.15
+Run: 9 VAL ap_score: 0.697808 map_score: 0.698546 Time: 155.37
+saving best validated model to ./gmn_match_hinge_lrl_scoring_sinkhorn_inter/bestValidationModels/gmn_match_hinge_lrl_scoring_sinkhorn_inter_ptc_fm_4929_2024-01-25_12:18:14.709743
+Run: 10 train loss: 83.945406 Time: 449.08
+Run: 10 VAL ap_score: 0.688708 map_score: 0.704020 Time: 155.99
+saving best validated model to ./gmn_match_hinge_lrl_scoring_sinkhorn_inter/bestValidationModels/gmn_match_hinge_lrl_scoring_sinkhorn_inter_ptc_fm_4929_2024-01-25_12:18:14.709743
+Run: 11 train loss: 80.678171 Time: 447.44
+Run: 11 VAL ap_score: 0.707093 map_score: 0.723900 Time: 155.75
+saving best validated model to ./gmn_match_hinge_lrl_scoring_sinkhorn_inter/bestValidationModels/gmn_match_hinge_lrl_scoring_sinkhorn_inter_ptc_fm_4929_2024-01-25_12:18:14.709743
+Run: 12 train loss: 77.832902 Time: 449.14
+Run: 12 VAL ap_score: 0.729414 map_score: 0.726883 Time: 156.49
+saving best validated model to ./gmn_match_hinge_lrl_scoring_sinkhorn_inter/bestValidationModels/gmn_match_hinge_lrl_scoring_sinkhorn_inter_ptc_fm_4929_2024-01-25_12:18:14.709743
+Run: 13 train loss: 75.007068 Time: 449.80
+Run: 13 VAL ap_score: 0.708016 map_score: 0.722145 Time: 155.25
+Run: 14 train loss: 72.533083 Time: 447.30
+Run: 14 VAL ap_score: 0.735561 map_score: 0.736176 Time: 156.14
+saving best validated model to ./gmn_match_hinge_lrl_scoring_sinkhorn_inter/bestValidationModels/gmn_match_hinge_lrl_scoring_sinkhorn_inter_ptc_fm_4929_2024-01-25_12:18:14.709743
+Run: 15 train loss: 71.071577 Time: 448.09
+Run: 15 VAL ap_score: 0.733613 map_score: 0.742168 Time: 156.84
+saving best validated model to ./gmn_match_hinge_lrl_scoring_sinkhorn_inter/bestValidationModels/gmn_match_hinge_lrl_scoring_sinkhorn_inter_ptc_fm_4929_2024-01-25_12:18:14.709743
+Run: 16 train loss: 68.794910 Time: 447.77
+Run: 16 VAL ap_score: 0.716890 map_score: 0.740956 Time: 155.79
+Run: 17 train loss: 66.915993 Time: 446.70
+Run: 17 VAL ap_score: 0.714788 map_score: 0.723587 Time: 155.96
+Run: 18 train loss: 65.440519 Time: 449.70
+Run: 18 VAL ap_score: 0.742928 map_score: 0.742641 Time: 156.56
+saving best validated model to ./gmn_match_hinge_lrl_scoring_sinkhorn_inter/bestValidationModels/gmn_match_hinge_lrl_scoring_sinkhorn_inter_ptc_fm_4929_2024-01-25_12:18:14.709743
+Run: 19 train loss: 64.496015 Time: 449.54
+Run: 19 VAL ap_score: 0.746194 map_score: 0.749667 Time: 156.49
+saving best validated model to ./gmn_match_hinge_lrl_scoring_sinkhorn_inter/bestValidationModels/gmn_match_hinge_lrl_scoring_sinkhorn_inter_ptc_fm_4929_2024-01-25_12:18:14.709743
+Run: 20 train loss: 61.792509 Time: 450.15

@@ -38,7 +38,7 @@ from subgraph.models.isonet import ISONET, ISONET_Sym
 from subgraph.models.gmn_match import GMN_match, GMN_match_hinge, GMN_match_hinge_baseline
 from subgraph.models.gmn_match_hinge_scoring import GMN_match_hinge_scoring, GMN_match_hinge_scoring_sinkhorn, GMN_match_hinge_colbert, GMN_match_hinge_scoring_injective_attention
 from subgraph.models.gmn_match_hinge_lrl import GMN_match_hinge_lrl, GMN_match_hinge_lrl_scoring, GMN_match_hinge_hinge_similarity, GMN_match_hinge_hinge_similarity_scoring
-from subgraph.models.gmn_match_hinge_lrl_sinkhorn import GMN_match_hinge_lrl_sinkhorn, GMN_match_hinge_lrl_scoring_sinkhorn, GMN_match_hinge_hinge_similarity_sinkhorn, GMN_match_hinge_hinge_similarity_scoring_sinkhorn
+from subgraph.models.gmn_match_hinge_lrl_sinkhorn import GMN_match_hinge_lrl_sinkhorn, GMN_match_hinge_lrl_scoring_sinkhorn, GMN_match_hinge_hinge_similarity_sinkhorn, GMN_match_hinge_hinge_similarity_scoring_sinkhorn, GMN_match_hinge_lrl_scoring_sinkhorn_inter
 from subgraph.models.gmn_match_hinge_lrl_injective_attention import GMN_match_hinge_lrl_injective_attention, GMN_match_hinge_lrl_scoring_injective_attention, GMN_match_hinge_hinge_similarity_injective_attention, GMN_match_hinge_hinge_similarity_scoring_injective_attention
 from subgraph.models.vaibhav import GMN_match_hinge_vaibhav, GMN_match_hinge_vaibhav_injective_attention
 from subgraph.models.node_align_node_loss import Node_align_Node_loss
@@ -60,6 +60,11 @@ def train(av,config):
     logger.info("Loading model NodeAlignNodeLoss")  
     logger.info("This uses GMN encoder followed by parameterized sinkhorn with LRL and similarity computation using hinge scoring (H_q, PH_c)")  
     model = Node_align_Node_loss(av,config,1).to(device)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"
+  elif av.TASK.startswith("gmn_match_hinge_lrl_scoring_sinkhorn_inter"):
+    logger.info("Loading model gmn_match_hinge_lrl_scoring_sinkhorn_inter")  
+    model = GMN_match_hinge_lrl_scoring_sinkhorn_inter(av,config,1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
   elif av.TASK.startswith("gmn_match_hinge_colbert"):
@@ -302,7 +307,12 @@ def train(av,config):
     av.store_epoch_info = False
   else:
     logger.info("ALERT!! CHECK FOR ERROR")  
-
+  # for name, param in model.named_parameters():
+  #   if param.requires_grad:
+  #       print(name, param.data.shape)
+  #       if 'fc_combine_interaction' in name and 'bias' in name:
+  #         print(param.data)
+  # exit(0)
   if os.path.exists(os.path.join("initialModelWeights", av.TASK)):
     model.load_state_dict(torch.load(os.path.join("initialModelWeights", av.TASK)))
   save_initial_model(av,model)
