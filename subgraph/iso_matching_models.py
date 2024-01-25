@@ -40,7 +40,7 @@ from subgraph.models.gmn_match_hinge_scoring import GMN_match_hinge_scoring, GMN
 from subgraph.models.gmn_match_hinge_lrl import GMN_match_hinge_lrl, GMN_match_hinge_lrl_scoring, GMN_match_hinge_hinge_similarity, GMN_match_hinge_hinge_similarity_scoring
 from subgraph.models.gmn_match_hinge_lrl_sinkhorn import GMN_match_hinge_lrl_sinkhorn, GMN_match_hinge_lrl_scoring_sinkhorn, GMN_match_hinge_hinge_similarity_sinkhorn, GMN_match_hinge_hinge_similarity_scoring_sinkhorn, GMN_match_hinge_lrl_scoring_sinkhorn_inter
 from subgraph.models.gmn_match_hinge_lrl_injective_attention import GMN_match_hinge_lrl_injective_attention, GMN_match_hinge_lrl_scoring_injective_attention, GMN_match_hinge_hinge_similarity_injective_attention, GMN_match_hinge_hinge_similarity_scoring_injective_attention
-from subgraph.models.vaibhav import GMN_match_hinge_vaibhav
+from subgraph.models.vaibhav import GMN_match_hinge_vaibhav, GMN_match_hinge_vaibhav_injective_attention
 from subgraph.models.node_align_node_loss import Node_align_Node_loss
 from subgraph.models.node_align_edge_loss import Node_align_Edge_loss
 from subgraph.models.hungarian_node_align import Hungarian_Node_align_Node_loss
@@ -77,6 +77,11 @@ def train(av,config):
     model = GMN_embed_hinge_scoring(av,config,1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn" 
+  elif av.TASK.startswith("gmn_match_hinge_vaibhav_injective_attention"):
+    logger.info("Loading model GMN_match_hinge_vaibhav_injective_attention")  
+    model = GMN_match_hinge_vaibhav_injective_attention(av,config,1).to(device)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"
   elif av.TASK.startswith("gmn_match_hinge_vaibhav"):
     logger.info("Loading model GMN_match_hinge_vaibhav")  
     model = GMN_match_hinge_vaibhav(av,config,1).to(device)
