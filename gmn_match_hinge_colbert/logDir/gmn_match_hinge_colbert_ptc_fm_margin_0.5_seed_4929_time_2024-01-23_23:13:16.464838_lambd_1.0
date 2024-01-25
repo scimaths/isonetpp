@@ -1,0 +1,108 @@
+Command line
+/raid/infolab/ashwinr/isonetpp/subgraph/iso_matching_models.py
+--experiment_group=gmn_match_hinge_colbert
+--TASK=gmn_match_hinge_colbert
+--MARGIN=0.5
+--filters_1=10
+--filters_2=10
+--filters_3=10
+--NOISE_FACTOR=0
+--transform_dim=16
+--FEAT_TYPE=One
+--DATASET_NAME=ptc_fm
+--no_of_query_subgraphs=300
+--MIN_QUERY_SUBGRAPH_SIZE=5
+--MAX_QUERY_SUBGRAPH_SIZE=15
+--MIN_CORPUS_SUBGRAPH_SIZE=16
+--MAX_CORPUS_SUBGRAPH_SIZE=20
+fringe_isonet= {'masking_for_msg_passing_count': 4}
+encoder= {'node_hidden_sizes': [10], 'node_feature_dim': 1, 'edge_hidden_sizes': None, 'edge_feature_dim': 1}
+aggregator= {'node_hidden_sizes': [10], 'graph_transform_sizes': [10], 'input_size': [10], 'gated': True, 'aggregation_type': 'sum'}
+graph_embedding_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'embedding'}
+graph_matching_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'matching', 'similarity': 'dotproduct'}
+model_type= embedding
+data= {'problem': 'graph_edit_distance', 'dataset_params': {'n_nodes_range': [20, 20], 'p_edge_range': [0.2, 0.2], 'n_changes_positive': 1, 'n_changes_negative': 2, 'validation_dataset_size': 1000}}
+training= {'batch_size': 128, 'learning_rate': 0.0001, 'mode': 'pair', 'loss': 'margin', 'margin': 0.5, 'graph_vec_regularizer_weight': 1e-06, 'clip_value': 10.0, 'n_training_steps': 500000, 'print_after': 100, 'eval_after': 10}
+evaluation= {'batch_size': 128}
+seed= 4929
+early_interaction= {'n_time_updates': 3, 'time_update_idx': 'k_t', 'prop_separate_params': None}
+node_early_interaction_interpretability= {'lambd': 1.0}
+graphsim= {'conv_kernel_size': [10, 4, 2], 'linear_size': [24, 16], 'gcn_size': [10, 10, 10], 'conv_pool_size': [3, 3, 2], 'conv_out_channels': [2, 4, 8], 'dropout': 0}
+loading train query graphs from ./velugoti_dataset/Datasets/splits/train/train_ptc_fm240k_query_subgraphs.pkl
+loading train relationships from ./velugoti_dataset/Datasets/splits/train/train_ptc_fm240k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from ./velugoti_dataset/Datasets/splits/ptc_fm240k_corpus_subgraphs.pkl
+loading val query graphs from ./velugoti_dataset/Datasets/splits/val/val_ptc_fm240k_query_subgraphs.pkl
+loading val relationships from ./velugoti_dataset/Datasets/splits/val/val_ptc_fm240k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from ./velugoti_dataset/Datasets/splits/ptc_fm240k_corpus_subgraphs.pkl
+Loading model GMN_match_hinge_colbert
+saving initial model to ./gmn_match_hinge_colbert/initialModels/gmn_match_hinge_colbert_ptc_fm_4929_2024-01-23_23:13:16.464838
+no. of params in model: 1940
+Run: 0 train loss: 298.179336 Time: 618.46
+Run: 0 VAL ap_score: 0.432679 map_score: 0.459304 Time: 238.26
+saving best validated model to ./gmn_match_hinge_colbert/bestValidationModels/gmn_match_hinge_colbert_ptc_fm_4929_2024-01-23_23:13:16.464838
+Run: 1 train loss: 221.337034 Time: 483.11
+Run: 1 VAL ap_score: 0.464977 map_score: 0.490796 Time: 118.79
+saving best validated model to ./gmn_match_hinge_colbert/bestValidationModels/gmn_match_hinge_colbert_ptc_fm_4929_2024-01-23_23:13:16.464838
+Run: 2 train loss: 197.736533 Time: 388.17
+Run: 2 VAL ap_score: 0.516598 map_score: 0.532672 Time: 121.32
+saving best validated model to ./gmn_match_hinge_colbert/bestValidationModels/gmn_match_hinge_colbert_ptc_fm_4929_2024-01-23_23:13:16.464838
+Run: 3 train loss: 182.266442 Time: 372.76
+Run: 3 VAL ap_score: 0.512804 map_score: 0.522467 Time: 122.41
+Run: 4 train loss: 170.973987 Time: 382.88
+Run: 4 VAL ap_score: 0.537766 map_score: 0.549529 Time: 117.49
+saving best validated model to ./gmn_match_hinge_colbert/bestValidationModels/gmn_match_hinge_colbert_ptc_fm_4929_2024-01-23_23:13:16.464838
+Run: 5 train loss: 163.203338 Time: 372.18
+Run: 5 VAL ap_score: 0.552516 map_score: 0.552185 Time: 119.53
+saving best validated model to ./gmn_match_hinge_colbert/bestValidationModels/gmn_match_hinge_colbert_ptc_fm_4929_2024-01-23_23:13:16.464838
+Run: 6 train loss: 158.375776 Time: 383.31
+Run: 6 VAL ap_score: 0.531732 map_score: 0.548230 Time: 116.49
+Run: 7 train loss: 152.924166 Time: 381.46
+Run: 7 VAL ap_score: 0.546041 map_score: 0.552168 Time: 118.92
+Run: 8 train loss: 150.356891 Time: 380.65
+Run: 8 VAL ap_score: 0.555165 map_score: 0.579728 Time: 119.81
+saving best validated model to ./gmn_match_hinge_colbert/bestValidationModels/gmn_match_hinge_colbert_ptc_fm_4929_2024-01-23_23:13:16.464838
+Run: 9 train loss: 145.804033 Time: 387.17
+Run: 9 VAL ap_score: 0.558338 map_score: 0.577070 Time: 116.34
+Run: 10 train loss: 143.377721 Time: 393.03
+Run: 10 VAL ap_score: 0.545253 map_score: 0.557934 Time: 132.64
+Run: 11 train loss: 140.735296 Time: 375.50
+Run: 11 VAL ap_score: 0.569069 map_score: 0.582487 Time: 120.35
+saving best validated model to ./gmn_match_hinge_colbert/bestValidationModels/gmn_match_hinge_colbert_ptc_fm_4929_2024-01-23_23:13:16.464838
+Run: 12 train loss: 139.094478 Time: 387.04
+Run: 12 VAL ap_score: 0.570185 map_score: 0.584578 Time: 120.61
+saving best validated model to ./gmn_match_hinge_colbert/bestValidationModels/gmn_match_hinge_colbert_ptc_fm_4929_2024-01-23_23:13:16.464838
+Run: 13 train loss: 136.877236 Time: 405.72
+Run: 13 VAL ap_score: 0.548819 map_score: 0.558250 Time: 120.54
+Run: 14 train loss: 134.694686 Time: 371.10
+Run: 14 VAL ap_score: 0.561412 map_score: 0.579475 Time: 117.83
+Run: 15 train loss: 132.493460 Time: 383.07
+Run: 15 VAL ap_score: 0.574053 map_score: 0.585812 Time: 120.38
+saving best validated model to ./gmn_match_hinge_colbert/bestValidationModels/gmn_match_hinge_colbert_ptc_fm_4929_2024-01-23_23:13:16.464838
+Run: 16 train loss: 130.837439 Time: 393.76
+Run: 16 VAL ap_score: 0.549484 map_score: 0.571659 Time: 124.37
+Run: 17 train loss: 129.654435 Time: 386.22
+Run: 17 VAL ap_score: 0.550517 map_score: 0.568102 Time: 130.19
+Run: 18 train loss: 129.449719 Time: 394.85
+Run: 18 VAL ap_score: 0.545786 map_score: 0.571227 Time: 128.72
+Run: 19 train loss: 126.281951 Time: 364.79
+Run: 19 VAL ap_score: 0.571193 map_score: 0.581586 Time: 124.89
+Run: 20 train loss: 125.118282 Time: 377.82
+Run: 20 VAL ap_score: 0.562832 map_score: 0.581366 Time: 120.57
+Run: 21 train loss: 124.259672 Time: 363.44
+Run: 21 VAL ap_score: 0.582917 map_score: 0.596837 Time: 127.59
+saving best validated model to ./gmn_match_hinge_colbert/bestValidationModels/gmn_match_hinge_colbert_ptc_fm_4929_2024-01-23_23:13:16.464838
+Run: 22 train loss: 123.006241 Time: 423.55
+Run: 22 VAL ap_score: 0.574352 map_score: 0.588960 Time: 143.28
+Run: 23 train loss: 120.402985 Time: 435.82
+Run: 23 VAL ap_score: 0.556075 map_score: 0.589223 Time: 206.21
+Run: 24 train loss: 120.232661 Time: 555.30
+Run: 24 VAL ap_score: 0.569657 map_score: 0.589860 Time: 238.21
+Run: 25 train loss: 120.066344 Time: 631.35
+Run: 25 VAL ap_score: 0.558944 map_score: 0.592735 Time: 254.01
+Run: 26 train loss: 118.011300 Time: 653.19
+Run: 26 VAL ap_score: 0.562405 map_score: 0.587452 Time: 241.24
+Run: 27 train loss: 119.001180 Time: 620.16
+Run: 27 VAL ap_score: 0.574836 map_score: 0.589219 Time: 246.94
+Run: 28 train loss: 117.018607 Time: 626.94
+Run: 28 VAL ap_score: 0.545813 map_score: 0.598775 Time: 244.33
+saving best validated model to ./gmn_match_hinge_colbert/bestValidationModels/gmn_match_hinge_colbert_ptc_fm_4929_2024-01-23_23:13:16.464838

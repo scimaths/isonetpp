@@ -16,7 +16,7 @@ class CrossAttention(torch.nn.Module):
         self.dim = dim
         self.injective_attention = injective_attention
         self.use_sinkhorn = use_sinkhorn
-        self.colbert = colbert
+        self.attention_to_sinkhorn = attention_to_sinkhorn
         self.max_node_size = max_node_size
         if not self.use_sinkhorn:
             self.max_node_size = self.max_node_size + 1
@@ -32,7 +32,7 @@ class CrossAttention(torch.nn.Module):
         elif self.type == 'hinge':
             self.relu1 = torch.nn.ReLU()
 
-    def forward(self, data, batch_data_sizes_flat):
+    def forward(self, data, batch_data_sizes_flat, return_dotpdt=False):
 
         partitionsT = torch.split(data, batch_data_sizes_flat)
         partitions_1 = torch.stack([F.pad(partition, pad=(0, 0, 0, self.max_node_size-len(partition))) for partition in partitionsT[0::2]])
@@ -84,6 +84,7 @@ class CrossAttention(torch.nn.Module):
             dot_pdt_similarity = torch.div(dot_pdt_similarity, self.av.temp_gmn_scoring)
             if self.colbert:
                 return dot_pdt_similarity
+            dot_pdt_similarity = torch.div(dot_pdt_similarity, self.av.temp_gmn_scoring)
             softmax_1 = torch.softmax(dot_pdt_similarity, dim=2)
             softmax_2 = torch.softmax(dot_pdt_similarity, dim=1)
 
