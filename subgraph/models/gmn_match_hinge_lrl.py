@@ -15,6 +15,7 @@ class CrossAttention(torch.nn.Module):
         self.type = type_
         self.dim = dim
         self.injective_attention = injective_attention
+        self.colbert = colbert
         self.use_sinkhorn = use_sinkhorn
         self.max_node_size = max_node_size
         if not self.use_sinkhorn:
