@@ -305,6 +305,9 @@ def train(av,config):
   # for name, param in model.named_parameters():
   #   if param.requires_grad:
   #       print(name, param.data.shape)
+  #       if 'fc_combine_interaction' in name and 'bias' in name:
+  #         print(param.data)
+  # exit(0)
   if os.path.exists(os.path.join("initialModelWeights", av.TASK)):
     model.load_state_dict(torch.load(os.path.join("initialModelWeights", av.TASK)))
   save_initial_model(av,model)

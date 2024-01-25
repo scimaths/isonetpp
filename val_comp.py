@@ -1,7 +1,7 @@
 import os
 
 path = "./"
-directories = [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d)) and d.startswith("gmn_match_hinge_scoring_temp_")]
+directories = [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d)) and d.startswith("gmn_match_hinge")]
 
 run = '101'
 for directory in directories:

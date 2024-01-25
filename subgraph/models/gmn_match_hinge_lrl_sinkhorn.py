@@ -190,7 +190,7 @@ class GMN_match_hinge_lrl_scoring_sinkhorn_inter(torch.nn.Module):
         batch_data_sizes_flat = [item for sublist in batch_data_sizes for item in sublist]
         
         node_features_enc, edge_features_enc = self.encoder(node_features, edge_features)
-        self.prop_layer.first = True
+        self.prop_layer.first = False
         for i in range(self.config['graph_matching_net'] ['n_prop_layers']) :
             node_features_enc = self.prop_layer(node_features_enc, from_idx, to_idx,\
                                                 graph_idx,2*len(batch_data_sizes), \

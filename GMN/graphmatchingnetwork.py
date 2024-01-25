@@ -298,6 +298,119 @@ class GraphPropMatchingLayer(GraphPropLayer):
                                           [aggregated_messages, attention_input],
                                           node_features=node_features)
 
+class GraphPropMatchingLayerInter(GraphPropLayer):
+    """A graph propagation layer that also does cross graph matching.
+
+    It assumes the incoming graph data is batched and paired, i.e. graph 0 and 1
+    forms the first pair and graph 2 and 3 are the second pair etc., and computes
+    cross-graph attention-based matching for each pair.
+    """
+
+    def __init__(self,
+                 node_state_dim,
+                 edge_hidden_sizes,  # int
+                 node_hidden_sizes,  # int
+                 edge_net_init_scale=0.1,
+                 node_update_type='residual',
+                 use_reverse_direction=True,
+                 reverse_dir_param_different=True,
+                 layer_norm=False,
+                 prop_type='embedding',
+                 final_edge_encoding_dim=1,
+                 name='graph-net'):
+        
+        super(GraphPropMatchingLayerInter, self).__init__(node_state_dim, edge_hidden_sizes, node_hidden_sizes, reverse_dir_param_different=False, node_update_type='gru', prop_type='embedding')
+
+        self.fc_combine_interaction = torch.nn.Sequential(
+            torch.nn.Linear(2*node_state_dim, 2*node_state_dim),
+            torch.nn.ReLU(),
+            torch.nn.Linear(2*node_state_dim, node_state_dim)
+        )
+        self.first = True
+
+    def forward(self,
+                node_states,
+                from_idx,
+                to_idx,
+                graph_idx,
+                n_graphs,
+                similarity='dotproduct',
+                edge_features=None,
+                node_features=None,
+                batch_data_sizes_flat=None,
+                max_node_size=None,
+                attention_past=None,
+                return_attention=False,
+                cross_attention_module=None):
+        """Run one propagation step with cross-graph matching.
+
+        Args:
+          node_states: [n_nodes, node_state_dim] float tensor, node states.
+          from_idx: [n_edges] int tensor, from node indices for each edge.
+          to_idx: [n_edges] int tensor, to node indices for each edge.
+          graph_idx: [n_onodes] int tensor, graph id for each node.
+          n_graphs: integer, number of graphs in the batch.
+          similarity: type of similarity to use for the cross graph attention.
+          edge_features: if not None, should be [n_edges, edge_feat_dim] tensor,
+            extra edge features.
+          node_features: if not None, should be [n_nodes, node_feat_dim] tensor,
+            extra node features.
+
+        Returns:
+          node_states: [n_nodes, node_state_dim] float tensor, new node states.
+
+        Raises:
+          ValueError: if some options are not provided correctly.
+        """
+
+        if attention_past is not None:
+          partitionsT = torch.split(node_states, batch_data_sizes_flat)
+          partitions_1 = torch.stack([F.pad(partition, pad=(0, 0, 0, max_node_size+1-len(partition))) for partition in partitionsT[0::2]])
+          partitions_2 = torch.stack([F.pad(partition, pad=(0, 0, 0, max_node_size+1-len(partition))) for partition in partitionsT[1::2]])
+          query_new = torch.bmm(attention_past[0], partitions_2)
+          corpus_new = torch.bmm(torch.transpose(attention_past[1], 1, 2), partitions_1)
+          results = torch.cat([query_new[i//2, :batch_data_sizes_flat[i]] if i%2==0 else corpus_new[i//2, :batch_data_sizes_flat[i]] for i in range(len(batch_data_sizes_flat))])
+          attention_input = node_states - results
+
+          if return_attention:
+            if cross_attention_module:
+              _, attention_matrices = cross_attention_module(node_states, batch_data_sizes_flat)
+            else:
+              _, attention_matrices = batch_block_pair_attention_faster(
+                node_states, graph_idx, n_graphs, 
+                batch_data_sizes_flat=batch_data_sizes_flat, max_node_size=max_node_size)
+            aggregated_messages = self._compute_aggregated_messages(
+              node_states, from_idx, to_idx, edge_features=edge_features)
+            return self._compute_node_update(node_states,
+                                         [aggregated_messages, attention_input],
+                                         node_features=node_features), attention_matrices
+          else:
+            return self._compute_node_update(node_states,
+                                          [aggregated_messages, attention_input],
+                                          node_features=node_features)
+        else:
+          if cross_attention_module:
+            cross_graph_attention, attention_matrices = cross_attention_module(node_states, batch_data_sizes_flat)
+          else:
+            cross_graph_attention, attention_matrices = batch_block_pair_attention_faster(
+              node_states, graph_idx, n_graphs,
+              batch_data_sizes_flat=batch_data_sizes_flat, max_node_size=max_node_size)
+          if self.first:
+            combined_features = self.fc_combine_interaction(torch.cat([node_states, torch.zeros_like(node_states)], dim=1))
+          else:
+            combined_features = self.fc_combine_interaction(torch.cat([node_states, cross_graph_attention], dim=1))
+          # attention_input = node_states - cross_graph_attention
+          aggregated_messages = self._compute_aggregated_messages(
+            combined_features, from_idx, to_idx, edge_features=edge_features)
+          if return_attention:
+            return self._compute_node_update(combined_features,
+                                          [aggregated_messages],
+                                          node_features=node_features), attention_matrices
+          else:
+            return self._compute_node_update(combined_features,
+                                          [aggregated_messages],
+                                          node_features=node_features)
+
 
 
 class GraphMatchingNet(GraphEmbeddingNet):
