@@ -1,9 +1,9 @@
 import os
 
 path = "./"
-directories = [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d)) and d.startswith("gmn_match_hinge_scoring_temp_")]
+directories = [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d)) and d.startswith("gmn_match_hinge_")]
 
-run = '101'
+run = '37'
 for directory in directories:
     logspath = os.path.join(directory, 'logDir')
     logs = sorted(os.listdir(logspath))
