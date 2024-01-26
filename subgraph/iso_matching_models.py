@@ -39,7 +39,7 @@ from subgraph.models.gmn_match import GMN_match, GMN_match_hinge, GMN_match_hing
 from subgraph.models.gmn_match_hinge_scoring import GMN_match_hinge_scoring, GMN_match_hinge_scoring_sinkhorn, GMN_match_hinge_colbert, GMN_match_hinge_scoring_injective_attention
 from subgraph.models.gmn_match_hinge_lrl import GMN_match_hinge_lrl, GMN_match_hinge_lrl_scoring, GMN_match_hinge_hinge_similarity, GMN_match_hinge_hinge_similarity_scoring, GMN_match_hinge_replicated, GMN_match_hinge_injective_attention
 from subgraph.models.gmn_match_hinge_lrl_sinkhorn import GMN_match_hinge_lrl_sinkhorn, GMN_match_hinge_lrl_scoring_sinkhorn, GMN_match_hinge_hinge_similarity_sinkhorn, GMN_match_hinge_hinge_similarity_scoring_sinkhorn, GMN_match_hinge_lrl_scoring_sinkhorn_inter
-from subgraph.models.gmn_match_hinge_lrl_injective_attention import GMN_match_hinge_lrl_injective_attention, GMN_match_hinge_lrl_scoring_injective_attention, GMN_match_hinge_hinge_similarity_injective_attention, GMN_match_hinge_hinge_similarity_scoring_injective_attention
+from subgraph.models.gmn_match_hinge_lrl_injective_attention import GMN_match_hinge_lrl_injective_attention, GMN_match_hinge_lrl_scoring_injective_attention, GMN_match_hinge_hinge_similarity_injective_attention, GMN_match_hinge_hinge_similarity_scoring_injective_attention, GMN_match_hinge_lrl_scoring_injective_attention_inter
 from subgraph.models.vaibhav import GMN_match_hinge_vaibhav, GMN_match_hinge_vaibhav_injective_attention
 from subgraph.models.node_align_node_loss import Node_align_Node_loss
 from subgraph.models.node_align_edge_loss import Node_align_Edge_loss
@@ -60,6 +60,11 @@ def train(av,config):
     logger.info("Loading model NodeAlignNodeLoss")  
     logger.info("This uses GMN encoder followed by parameterized sinkhorn with LRL and similarity computation using hinge scoring (H_q, PH_c)")  
     model = Node_align_Node_loss(av,config,1).to(device)
+    train_data.data_type = "gmn"
+    val_data.data_type = "gmn"
+  elif av.TASK.startswith("gmn_match_hinge_lrl_scoring_injective_attention_inter"):
+    logger.info("Loading model GMN Match Hinge, LRL scoring, Injective Attention, Interaction features")  
+    model = GMN_match_hinge_lrl_scoring_injective_attention_inter(av,config,1).to(device)
     train_data.data_type = "gmn"
     val_data.data_type = "gmn"
   elif av.TASK.startswith("gmn_match_hinge_injective_attention"):
