@@ -15,9 +15,9 @@ fi
 # datasets=('aids')
 # datasets=('ptc_fm' 'ptc_mr' 'ptc_mm')
 datasets=('aids' 'mutag' 'ptc_fr' 'ptc_fm' 'ptc_mr' 'ptc_mm')
-# cuda=('4')
+# cuda=('0')
 # cuda=('1' '3' '3')
-cuda=('4' '4' '7' '1' '1' '0')
+cuda=('0' '0' '0' '6' '6' '6')
 for ((idx=0; idx<${#datasets[@]}; idx++)); do
     dataset="${datasets[$idx]}"
     CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=${cuda[$idx]} python -m subgraph.iso_matching_models \
@@ -35,6 +35,7 @@ for ((idx=0; idx<${#datasets[@]}; idx++)); do
     --MIN_QUERY_SUBGRAPH_SIZE=5 \
     --MAX_QUERY_SUBGRAPH_SIZE=15 \
     --MIN_CORPUS_SUBGRAPH_SIZE=16 \
-    --MAX_CORPUS_SUBGRAPH_SIZE=20 &
+    --MAX_CORPUS_SUBGRAPH_SIZE=20 \
+    --temp_gmn_scoring=0.1 &
     sleep 10s
 done
