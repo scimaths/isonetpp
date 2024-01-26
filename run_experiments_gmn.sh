@@ -13,11 +13,12 @@ else
 fi
 
 # datasets=('aids')
-datasets=('ptc_fm' 'ptc_mr' 'ptc_mm')
+# datasets=('ptc_fm' 'ptc_mr' 'ptc_mm')
 # datasets=('aids' 'mutag' 'ptc_fr' 'ptc_fm' 'ptc_mr' 'ptc_mm')
-# cuda=('4')
-cuda=('1' '3' '3')
-# cuda=('3' '3' '3' '2' '2' '2')
+datasets=('aids' 'mutag' 'ptc_fr')
+# cuda=('5')
+cuda=('4' '4' '4')
+# cuda=('3' '3' '3' '5' '5' '5')
 for ((idx=0; idx<${#datasets[@]}; idx++)); do
     dataset="${datasets[$idx]}"
     CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=${cuda[$idx]} python -m subgraph.iso_matching_models \

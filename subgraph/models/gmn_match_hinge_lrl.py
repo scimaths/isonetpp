@@ -84,7 +84,6 @@ class CrossAttention(torch.nn.Module):
             dot_pdt_similarity = torch.div(dot_pdt_similarity, self.av.temp_gmn_scoring)
             if self.colbert:
                 return dot_pdt_similarity
-            dot_pdt_similarity = torch.div(dot_pdt_similarity, self.av.temp_gmn_scoring)
             softmax_1 = torch.softmax(dot_pdt_similarity, dim=2)
             softmax_2 = torch.softmax(dot_pdt_similarity, dim=1)
 
