@@ -1,0 +1,77 @@
+Command line
+/raid/infolab/vaibhav/isonetpp/subgraph/iso_matching_models.py
+--experiment_group=gmn_match_hinge_lrl_scoring_injective_attention_baseline_temp_0.1
+--TASK=gmn_match_hinge_lrl_scoring_injective_attention_baseline
+--MARGIN=0.5
+--filters_1=10
+--filters_2=10
+--filters_3=10
+--NOISE_FACTOR=0
+--transform_dim=16
+--FEAT_TYPE=One
+--DATASET_NAME=ptc_mm
+--no_of_query_subgraphs=300
+--MIN_QUERY_SUBGRAPH_SIZE=5
+--MAX_QUERY_SUBGRAPH_SIZE=15
+--MIN_CORPUS_SUBGRAPH_SIZE=16
+--MAX_CORPUS_SUBGRAPH_SIZE=20
+--temp_gmn_scoring=0.1
+fringe_isonet= {'masking_for_msg_passing_count': 4}
+encoder= {'node_hidden_sizes': [10], 'node_feature_dim': 1, 'edge_hidden_sizes': None, 'edge_feature_dim': 1}
+aggregator= {'node_hidden_sizes': [10], 'graph_transform_sizes': [10], 'input_size': [10], 'gated': True, 'aggregation_type': 'sum'}
+graph_embedding_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'embedding'}
+graph_matching_net= {'node_state_dim': 10, 'edge_hidden_sizes': [20], 'node_hidden_sizes': [10], 'n_prop_layers': 5, 'share_prop_params': True, 'edge_net_init_scale': 0.1, 'node_update_type': 'gru', 'use_reverse_direction': True, 'reverse_dir_param_different': False, 'layer_norm': False, 'prop_type': 'matching', 'similarity': 'dotproduct'}
+model_type= embedding
+data= {'problem': 'graph_edit_distance', 'dataset_params': {'n_nodes_range': [20, 20], 'p_edge_range': [0.2, 0.2], 'n_changes_positive': 1, 'n_changes_negative': 2, 'validation_dataset_size': 1000}}
+training= {'batch_size': 128, 'learning_rate': 0.0001, 'mode': 'pair', 'loss': 'margin', 'margin': 0.5, 'graph_vec_regularizer_weight': 1e-06, 'clip_value': 10.0, 'n_training_steps': 500000, 'print_after': 100, 'eval_after': 10}
+evaluation= {'batch_size': 128}
+seed= 7762
+early_interaction= {'n_time_updates': 3, 'time_update_idx': 'k_t', 'prop_separate_params': None}
+node_early_interaction_interpretability= {'lambd': 1.0}
+graphsim= {'conv_kernel_size': [10, 4, 2], 'linear_size': [24, 16], 'gcn_size': [10, 10, 10], 'conv_pool_size': [3, 3, 2], 'conv_out_channels': [2, 4, 8], 'dropout': 0}
+loading train query graphs from ./velugoti_dataset/Datasets/splits/train/train_ptc_mm240k_query_subgraphs.pkl
+loading train relationships from ./velugoti_dataset/Datasets/splits/train/train_ptc_mm240k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from ./velugoti_dataset/Datasets/splits/ptc_mm240k_corpus_subgraphs.pkl
+loading val query graphs from ./velugoti_dataset/Datasets/splits/val/val_ptc_mm240k_query_subgraphs.pkl
+loading val relationships from ./velugoti_dataset/Datasets/splits/val/val_ptc_mm240k_rel_nx_is_subgraph_iso.pkl
+loading corpus graphs from ./velugoti_dataset/Datasets/splits/ptc_mm240k_corpus_subgraphs.pkl
+Loading model GMN Match Hinge, LRL scoring, Injective Attention, Baseline (T>1)
+saving initial model to ./gmn_match_hinge_lrl_scoring_injective_attention_baseline_temp_0.1/initialModels/gmn_match_hinge_lrl_scoring_injective_attention_baseline_ptc_mm_7762_2024-01-26_23:02:15.232878
+no. of params in model: 2168
+Run: 0 train loss: 240.223176 Time: 1350.27
+Run: 0 VAL ap_score: 0.466713 map_score: 0.496743 Time: 443.46
+saving best validated model to ./gmn_match_hinge_lrl_scoring_injective_attention_baseline_temp_0.1/bestValidationModels/gmn_match_hinge_lrl_scoring_injective_attention_baseline_ptc_mm_7762_2024-01-26_23:02:15.232878
+Run: 1 train loss: 190.255367 Time: 1361.79
+Run: 1 VAL ap_score: 0.490119 map_score: 0.494274 Time: 455.41
+Run: 2 train loss: 173.364214 Time: 1367.85
+Run: 2 VAL ap_score: 0.508347 map_score: 0.535746 Time: 453.98
+saving best validated model to ./gmn_match_hinge_lrl_scoring_injective_attention_baseline_temp_0.1/bestValidationModels/gmn_match_hinge_lrl_scoring_injective_attention_baseline_ptc_mm_7762_2024-01-26_23:02:15.232878
+Run: 3 train loss: 154.523110 Time: 1359.44
+Run: 3 VAL ap_score: 0.536627 map_score: 0.571383 Time: 453.48
+saving best validated model to ./gmn_match_hinge_lrl_scoring_injective_attention_baseline_temp_0.1/bestValidationModels/gmn_match_hinge_lrl_scoring_injective_attention_baseline_ptc_mm_7762_2024-01-26_23:02:15.232878
+Run: 4 train loss: 138.644814 Time: 1369.59
+Run: 4 VAL ap_score: 0.559727 map_score: 0.590205 Time: 453.16
+saving best validated model to ./gmn_match_hinge_lrl_scoring_injective_attention_baseline_temp_0.1/bestValidationModels/gmn_match_hinge_lrl_scoring_injective_attention_baseline_ptc_mm_7762_2024-01-26_23:02:15.232878
+Run: 5 train loss: 127.794013 Time: 1366.49
+Run: 5 VAL ap_score: 0.576147 map_score: 0.591201 Time: 453.23
+saving best validated model to ./gmn_match_hinge_lrl_scoring_injective_attention_baseline_temp_0.1/bestValidationModels/gmn_match_hinge_lrl_scoring_injective_attention_baseline_ptc_mm_7762_2024-01-26_23:02:15.232878
+Run: 6 train loss: 122.090903 Time: 1361.00
+Run: 6 VAL ap_score: 0.568042 map_score: 0.580784 Time: 449.60
+Run: 7 train loss: 119.300494 Time: 1365.48
+Run: 7 VAL ap_score: 0.585896 map_score: 0.605037 Time: 444.73
+saving best validated model to ./gmn_match_hinge_lrl_scoring_injective_attention_baseline_temp_0.1/bestValidationModels/gmn_match_hinge_lrl_scoring_injective_attention_baseline_ptc_mm_7762_2024-01-26_23:02:15.232878
+Run: 8 train loss: 115.557540 Time: 1358.12
+Run: 8 VAL ap_score: 0.579382 map_score: 0.600934 Time: 453.14
+Run: 9 train loss: 112.337191 Time: 1353.08
+Run: 9 VAL ap_score: 0.597324 map_score: 0.618613 Time: 458.36
+saving best validated model to ./gmn_match_hinge_lrl_scoring_injective_attention_baseline_temp_0.1/bestValidationModels/gmn_match_hinge_lrl_scoring_injective_attention_baseline_ptc_mm_7762_2024-01-26_23:02:15.232878
+Run: 10 train loss: 108.058646 Time: 1370.46
+Run: 10 VAL ap_score: 0.602491 map_score: 0.619370 Time: 455.54
+saving best validated model to ./gmn_match_hinge_lrl_scoring_injective_attention_baseline_temp_0.1/bestValidationModels/gmn_match_hinge_lrl_scoring_injective_attention_baseline_ptc_mm_7762_2024-01-26_23:02:15.232878
+Run: 11 train loss: 104.941723 Time: 1366.07
+Run: 11 VAL ap_score: 0.607775 map_score: 0.632458 Time: 452.40
+saving best validated model to ./gmn_match_hinge_lrl_scoring_injective_attention_baseline_temp_0.1/bestValidationModels/gmn_match_hinge_lrl_scoring_injective_attention_baseline_ptc_mm_7762_2024-01-26_23:02:15.232878
+Run: 12 train loss: 102.352154 Time: 1365.67
+Run: 12 VAL ap_score: 0.621666 map_score: 0.628498 Time: 456.30
+Run: 13 train loss: 99.853920 Time: 1347.91
+Run: 13 VAL ap_score: 0.626790 map_score: 0.632384 Time: 457.36
