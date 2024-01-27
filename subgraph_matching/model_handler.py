@@ -6,6 +6,7 @@ from subgraph_matching.models.nanl_consistency import NodeAlignNodeLossConsisten
 from subgraph_matching.models.isonet import ISONET
 from subgraph_matching.models.node_early_interaction import NodeEarlyInteraction
 from subgraph_matching.models.edge_early_interaction import EdgeEarlyInteraction
+from subgraph_matching.models.nanl_attention import NodeAlignNodeLossAttention
 
 model_name_to_class_mappings = {
     'node_align_node_loss': NodeAlignNodeLoss,
@@ -13,6 +14,14 @@ model_name_to_class_mappings = {
     'isonet': ISONET,
     'node_early_interaction': NodeEarlyInteraction,
     'edge_early_interaction': EdgeEarlyInteraction,
+    'nanl_attention_q_to_c': NodeAlignNodeLossAttention,
+    'nanl_attention_c_to_q': NodeAlignNodeLossAttention,
+    'nanl_attention_max': NodeAlignNodeLossAttention,
+    'nanl_attention_min': NodeAlignNodeLossAttention,
+    'nanl_masked_attention_q_to_c': NodeAlignNodeLossAttention,
+    'nanl_masked_attention_c_to_q': NodeAlignNodeLossAttention,
+    'nanl_masked_attention_max': NodeAlignNodeLossAttention,
+    'nanl_masked_attention_min': NodeAlignNodeLossAttention,
 }
 
 def get_model_names():

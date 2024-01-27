@@ -20,6 +20,30 @@ def pytorch_sinkhorn_iters(log_alpha, device, temperature=0.1, noise_factor=1.0,
         log_alpha = log_alpha - (torch.logsumexp(log_alpha, dim=1, keepdim=True)).view(-1, 1, num_objs)
     return torch.exp(log_alpha)
 
+def attention(log_alpha, temperature=0.1):
+    log_alpha = torch.div(log_alpha, temperature)
+    attention_q_to_c = log_alpha.softmax(dim = -1)
+    attention_c_to_q = log_alpha.softmax(dim = -2)
+    return attention_q_to_c, attention_c_to_q
+
+def masked_attention(log_alpha, query_sizes, corpus_sizes, temperature=0.1):
+    log_alpha = torch.div(log_alpha, temperature)
+
+    batch_size, num_objs, _ = log_alpha.shape
+    modified_log_alpha = torch.full(size=(batch_size, num_objs + 1, num_objs + 1), fill_value=0., device=log_alpha.device)
+    modified_log_alpha[:, :-1, :-1] = log_alpha
+
+    query_mask = torch.arange(num_objs + 1, device=log_alpha.device).unsqueeze(0) < query_sizes.unsqueeze(1)
+    corpus_mask = torch.arange(num_objs + 1, device=log_alpha.device).unsqueeze(0) < corpus_sizes.unsqueeze(1)
+    non_pad_mask = torch.bitwise_and(query_mask.unsqueeze(-1), corpus_mask.unsqueeze(-2))
+    pad_mask = torch.bitwise_not(torch.bitwise_or(query_mask.unsqueeze(-1), corpus_mask.unsqueeze(-2)))
+    overall_mask = torch.bitwise_or(non_pad_mask, pad_mask)
+    modified_log_alpha.masked_fill_(torch.bitwise_not(overall_mask), -torch.inf)
+
+    attention_q_to_c = modified_log_alpha.softmax(dim = -1)[:, :-1, :-1]
+    attention_c_to_q = modified_log_alpha.softmax(dim = -2)[:, :-1, :-1]
+    return attention_q_to_c, attention_c_to_q
+
 def graph_size_to_mask_map(max_set_size, lateral_dim, device=None):
     return [torch.cat((
         torch.tensor([1], device=device, dtype=torch.float).repeat(x, 1).repeat(1, lateral_dim),
@@ -60,6 +84,12 @@ def split_and_stack(features, graph_sizes, max_set_size):
 def feature_alignment_score(query_features, corpus_features, transport_plan):
     return - torch.maximum(
         query_features - transport_plan @ corpus_features,
+        torch.tensor([0], device=query_features.device)
+    ).sum(dim=(1, 2))
+
+def reversed_feature_alignment_score(query_features, corpus_features, transport_plan):
+    return - torch.maximum(
+        transport_plan.transpose(-1, -2) @ query_features - corpus_features,
         torch.tensor([0], device=query_features.device)
     ).sum(dim=(1, 2))
 
