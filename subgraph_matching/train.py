@@ -1,13 +1,14 @@
 import os
 import time
 import torch
+import wandb
 from utils.parser import Parser
 import utils.early_stopping as es
 from utils.experiment import Experiment
-from utils.tooling import seed_everything
 from utils.eval import pairwise_ranking_loss
 from subgraph_matching.test import evaluate_model
 from subgraph_matching.dataset import get_datasets
+from utils.tooling import seed_everything, read_config
 from subgraph_matching.model_handler import get_model, get_data_type_for_model
 
 torch.backends.cuda.matmul.allow_tf32 = False
@@ -49,12 +50,25 @@ def train_model(
             losses.backward()
             optimizer.step()
             epoch_loss += losses.item()
-        experiment.log(f"Run: %d train loss: %f Time: %.2f", epoch_num, epoch_loss, time.time() - training_start_time)
+        epoch_training_time = time.time() - training_start_time
+        experiment.log(f"Run: %d train loss: %f Time: %.2f", epoch_num, epoch_loss, epoch_training_time)
 
         model.eval()
         validation_start_time = time.time()
         ap_score, map_score = evaluate_model(model, val_dataset)
-        experiment.log(f"Run: %d VAL ap_score: %.6f map_score: %.6f Time: %.2f", epoch_num, ap_score, map_score, time.time() - validation_start_time)
+        epoch_validation_time = time.time() - validation_start_time
+        experiment.log(f"Run: %d VAL ap_score: %.6f map_score: %.6f Time: %.2f", epoch_num, ap_score, map_score, epoch_validation_time)
+
+        wandb.log(
+            {
+            "train_loss": epoch_loss,
+            "train_time": epoch_training_time,
+            "ap_score": ap_score,
+            "map_score": map_score,
+            "val_time": epoch_validation_time,
+            },
+            step = epoch_num
+        )
 
         es_verdict = early_stopping.check([map_score])
         if es_verdict == es.SAVE:
@@ -76,19 +90,24 @@ if __name__ == "__main__":
 
     device = 'cuda' if args.use_cuda else 'cpu'
 
-    experiment_config = parser.get_experiment_config()
+    model_params = read_config(args.model_config_path)
+
+    experiment_config = parser.get_experiment_config(model_params.name)
     experiment = Experiment(config=experiment_config, device=device)
+
+    wandb_params = parser.get_wandb_config(model_params)
+    wandb.init(**wandb_params, resume=False)
 
     early_stopping_config = parser.get_early_stopping_config()
     early_stopping = es.EarlyStopping(**early_stopping_config)
     
     dataset_config = parser.get_dataset_config()
-    data_type = get_data_type_for_model(args.model)
+    data_type = get_data_type_for_model(model_params.name)
     datasets = get_datasets(dataset_config, experiment, data_type)
 
     model = get_model(
-        model_name=args.model,
-        config_path=args.model_config_path,
+        model_name=model_params.name,
+        config=model_params.model_config,
         max_node_set_size=datasets['train'].max_node_set_size,
         max_edge_set_size=datasets['train'].max_edge_set_size,
         device=device

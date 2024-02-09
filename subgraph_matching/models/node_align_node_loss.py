@@ -1,10 +1,11 @@
 import torch
 import torch.nn.functional as F
 from utils import model_utils
+from subgraph_matching.models._template import AlignmentModel
 from utils.tooling import ReadOnlyConfig
 import GMN.graphembeddingnetwork as gmngen
 
-class NodeAlignNodeLoss(torch.nn.Module):
+class NodeAlignNodeLoss(AlignmentModel):
     def __init__(
         self,
         max_node_set_size,
@@ -35,7 +36,7 @@ class NodeAlignNodeLoss(torch.nn.Module):
             torch.nn.Linear(sinkhorn_feature_dim, sinkhorn_feature_dim)
         )
 
-    def forward(self, graphs, graph_sizes, graph_adj_matrices):
+    def forward_with_alignment(self, graphs, graph_sizes, graph_adj_matrices):
         query_sizes, corpus_sizes = zip(*graph_sizes)
         query_sizes = torch.tensor(query_sizes, device=self.device)
         corpus_sizes = torch.tensor(corpus_sizes, device=self.device)
@@ -61,4 +62,4 @@ class NodeAlignNodeLoss(torch.nn.Module):
         sinkhorn_input = torch.matmul(masked_features_query, masked_features_corpus.permute(0, 2, 1))
         transport_plan = model_utils.pytorch_sinkhorn_iters(log_alpha=sinkhorn_input, device=self.device, **self.sinkhorn_config)
         
-        return model_utils.feature_alignment_score(stacked_features_query, stacked_features_corpus, transport_plan)
+        return model_utils.feature_alignment_score(stacked_features_query, stacked_features_corpus, transport_plan), [transport_plan, transport_plan.transpose(-1, -2)]

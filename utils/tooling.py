@@ -70,7 +70,5 @@ def make_read_only(dic):
 
 def read_config(config_path):
     config = load_yamls_with_inheritance(config_path)
-    assert 'model_config' in config, "Any config must have the 'model_config' attribute in it"
-
     config = make_read_only(config)
     return ReadOnlyConfig(**config)

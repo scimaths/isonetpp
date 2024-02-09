@@ -1,6 +1,6 @@
-import torch
+import os
 import argparse
-from utils.tooling import ReadOnlyConfig
+from utils.tooling import ReadOnlyConfig, read_config
 from subgraph_matching.model_handler import get_model_names, get_model
 
 class Parser:
@@ -9,7 +9,6 @@ class Parser:
 
         experiment_group = self.parser.add_argument_group("experiment_details")
         experiment_group.add_argument("--experiment_id", type=str, required=True, help="Label for the experiment, must be unique")
-        experiment_group.add_argument("--model", type=str, required=True, choices=get_model_names(), help="Model name, should be implemented in models/")
         experiment_group.add_argument("--experiment_dir", type=str, required=True, help="Home directory to save the experiment artifacts")
         experiment_group.add_argument("--use_cuda", type=bool, default=True, help="Use CUDA for this experiment?")
         experiment_group.add_argument("--reproducible", type=bool, default=True, help="Should reproducibility be ensured?")
@@ -34,14 +33,17 @@ class Parser:
         model_group = self.parser.add_argument_group("model_group")
         model_group.add_argument("--model_config_path", type=str, required=True)
 
+        wandb_group = self.parser.add_argument_group("wandb_group")
+        wandb_group.add_argument("--wandb_config_path", type=str, default="configs/wandb.yaml")
+
     def parse_args(self):
         self.args = self.parser.parse_args()
         return self.args
 
-    def get_experiment_config(self):
+    def get_experiment_config(self, model_name):
         return ReadOnlyConfig(
             experiment_id = self.args.experiment_id,
-            model = self.args.model,
+            model = model_name,
             home_dir = self.args.experiment_dir,
             dataset = f"{self.args.dataset_name}_{self.args.dataset_size}",
             seed = self.args.seed,
@@ -67,4 +69,25 @@ class Parser:
             dataset_size = self.args.dataset_size,
             dataset_base_path = self.args.dataset_path,
             batch_size = self.args.batch_size,
+        )
+
+    def get_wandb_config(self, model_params):
+        wandb_config = read_config(self.args.wandb_config_path).wandb
+
+        combined_config = vars(self.args).copy()
+        combined_config['model_config'] = model_params.model_config
+
+        return ReadOnlyConfig(
+            dir = os.path.join(self.args.experiment_dir, self.args.experiment_id),
+            project = wandb_config.project,
+            entity = wandb_config.entity,
+            name = "_".join([
+                self.args.experiment_id,
+                model_params.name,
+                self.args.dataset_name,
+                "dataset",
+                "seed",
+                str(self.args.seed)
+            ]),
+            config = combined_config,
         )

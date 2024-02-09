@@ -33,7 +33,7 @@ class SubgraphIsomorphismDataset:
         self.batch_size = batch_size
         self.data_type = data_type
         self.dataset_base_path = dataset_base_path
-        self.device = experiment.device
+        self.device = 'cuda'
         self.batch_setting = None
 
         self.load_graphs(experiment=experiment)
@@ -57,12 +57,14 @@ class SubgraphIsomorphismDataset:
         query_graph_file = dataset_accessor(f"{mode_prefix}_{self.dataset_name}{pair_count}_query_subgraphs.pkl")
         self.query_graphs = pickle.load(open(query_graph_file, 'rb'))
         num_query_graphs = len(self.query_graphs)
-        experiment.log("loaded %s query graphs from %s", self.mode, query_graph_file)
+        if experiment:
+            experiment.log("loaded %s query graphs from %s", self.mode, query_graph_file)
 
         # Load subgraph isomorphism relationships of query vs corpus graphs
         relationships_file = query_graph_file.replace("query_subgraphs", "rel_nx_is_subgraph_iso")
         self.relationships = pickle.load(open(relationships_file, 'rb'))
-        experiment.log("loaded %s relationships from %s", self.mode, relationships_file)
+        if experiment:
+            experiment.log("loaded %s relationships from %s", self.mode, relationships_file)
 
         assert list(self.relationships.keys()) == list(range(num_query_graphs))
 
@@ -72,7 +74,8 @@ class SubgraphIsomorphismDataset:
             f"{self.dataset_name}{pair_count}_corpus_subgraphs.pkl"
         )
         self.corpus_graphs = pickle.load(open(corpus_graph_file, 'rb'))
-        experiment.log("loaded corpus graphs from %s", corpus_graph_file)
+        if experiment:
+            experiment.log("loaded corpus graphs from %s", corpus_graph_file)
 
         self.pos_pairs, self.neg_pairs = [], []
         for query_idx in range(num_query_graphs):

@@ -1,6 +1,7 @@
 import torch
 import torch.nn.functional as F
 from utils import model_utils
+from subgraph_matching.models._template import AlignmentModel
 from utils.tooling import ReadOnlyConfig
 import GMN.graphembeddingnetwork as gmngen
 
@@ -11,7 +12,7 @@ VALID_ATTENTION_MODES = {
     'max': torch.maximum,
 }
 
-class NodeAlignNodeLossAttention(torch.nn.Module):
+class NodeAlignNodeLossAttention(AlignmentModel):
     def __init__(
         self,
         max_node_set_size,
@@ -50,7 +51,7 @@ class NodeAlignNodeLossAttention(torch.nn.Module):
             torch.nn.Linear(attention_feature_dim, attention_feature_dim)
         )
 
-    def forward(self, graphs, graph_sizes, graph_adj_matrices):
+    def forward_with_alignment(self, graphs, graph_sizes, graph_adj_matrices):
         query_sizes, corpus_sizes = zip(*graph_sizes)
         query_sizes = torch.tensor(query_sizes, device=self.device)
         corpus_sizes = torch.tensor(corpus_sizes, device=self.device)
@@ -83,4 +84,4 @@ class NodeAlignNodeLossAttention(torch.nn.Module):
 
         q_to_c_score = model_utils.feature_alignment_score(stacked_features_query, stacked_features_corpus, q_to_c_matrix)
         c_to_q_score = model_utils.reversed_feature_alignment_score(stacked_features_query, stacked_features_corpus, c_to_q_matrix)
-        return VALID_ATTENTION_MODES[self.attention_mode](q_to_c_score, c_to_q_score)
+        return VALID_ATTENTION_MODES[self.attention_mode](q_to_c_score, c_to_q_score), [q_to_c_matrix, c_to_q_matrix.transpose(-1, -2)]
