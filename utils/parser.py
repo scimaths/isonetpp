@@ -1,4 +1,5 @@
 import os
+import torch
 import argparse
 from utils.tooling import ReadOnlyConfig, read_config
 from subgraph_matching.model_handler import get_model_names, get_model
@@ -71,12 +72,12 @@ class Parser:
             batch_size = self.args.batch_size,
         )
 
-    def get_wandb_config(self, model_params):
+    def get_wandb_config(self, model_params, device):
         wandb_config = read_config(self.args.wandb_config_path).wandb
 
         combined_config = vars(self.args).copy()
         combined_config['model_config'] = model_params.model_config
-
+        combined_config['device'] = torch.cuda.get_device_name(device) if 'cuda' in device else 'cpu'
         return ReadOnlyConfig(
             dir = os.path.join(self.args.experiment_dir, self.args.experiment_id),
             project = wandb_config.project,
