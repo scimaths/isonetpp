@@ -67,7 +67,7 @@ class NodeAlignNodeLossConsistency(torch.nn.Module):
         masked_features_corpus = mask_graphs(transformed_features_corpus, corpus_sizes)
 
         node_sinkhorn_input = torch.matmul(masked_features_query, masked_features_corpus.permute(0, 2, 1))
-        node_transport_plan = model_utils.pytorch_sinkhorn_iters(
+        node_transport_plan = model_utils.sinkhorn_iters(
             log_alpha=node_sinkhorn_input, device=self.device, **self.sinkhorn_config
         )
 
@@ -93,7 +93,7 @@ class NodeAlignNodeLossConsistency(torch.nn.Module):
             to_idx=to_idx, paired_edge_counts=paired_edge_counts,
             graph_sizes=graph_sizes, max_edge_set_size=self.max_edge_set_size
         )
-        edge_transport_plan = model_utils.pytorch_sinkhorn_iters(
+        edge_transport_plan = model_utils.sinkhorn_iters(
             log_alpha=straight_mapped_scores+cross_mapped_scores,
             device=self.device, **self.sinkhorn_config
         )

@@ -94,7 +94,7 @@ class NodeEarlyInteraction(torch.nn.Module):
             masked_features_corpus = mask_graphs(transformed_features_corpus, corpus_sizes)
 
             sinkhorn_input = torch.matmul(masked_features_query, masked_features_corpus.permute(0, 2, 1))
-            transport_plan = model_utils.pytorch_sinkhorn_iters(log_alpha=sinkhorn_input, device=self.device, **self.sinkhorn_config)
+            transport_plan = model_utils.sinkhorn_iters(log_alpha=sinkhorn_input, device=self.device, **self.sinkhorn_config)
 
             # Compute interaction-based features
             interleaved_node_features = model_utils.get_interaction_feature_store(

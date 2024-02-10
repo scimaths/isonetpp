@@ -5,14 +5,14 @@ import torch.nn.functional as F
 def get_graph_features(graphs):
     return graphs.node_features, graphs.edge_features, graphs.from_idx, graphs.to_idx, graphs.graph_idx    
 
-def pytorch_sample_gumbel(shape, device, eps=1e-20):
+def sample_gumbel(shape, device, eps=1e-20):
     # Sample from Gumbel(0, 1)
     U = torch.rand(shape, device=device, dtype=torch.float)
     return -torch.log(eps - torch.log(U + eps))
 
-def pytorch_sinkhorn_iters(log_alpha, device, temperature=0.1, noise_factor=1.0, num_iters=20):
+def sinkhorn_iters(log_alpha, device, temperature=0.1, noise_factor=1.0, num_iters=20):
     batch_size, num_objs, _ = log_alpha.shape
-    noise = pytorch_sample_gumbel([batch_size, num_objs, num_objs], device) * noise_factor
+    noise = sample_gumbel([batch_size, num_objs, num_objs], device) * noise_factor
     log_alpha = log_alpha + noise
     log_alpha = torch.div(log_alpha, temperature)
     for _ in range(num_iters):

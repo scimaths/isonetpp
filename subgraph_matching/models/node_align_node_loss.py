@@ -59,6 +59,6 @@ class NodeAlignNodeLoss(AlignmentModel):
         masked_features_corpus = mask_graphs(transformed_features_corpus, corpus_sizes)
 
         sinkhorn_input = torch.matmul(masked_features_query, masked_features_corpus.permute(0, 2, 1))
-        transport_plan = model_utils.pytorch_sinkhorn_iters(log_alpha=sinkhorn_input, device=self.device, **self.sinkhorn_config)
+        transport_plan = model_utils.sinkhorn_iters(log_alpha=sinkhorn_input, device=self.device, **self.sinkhorn_config)
         
         return model_utils.feature_alignment_score(stacked_features_query, stacked_features_corpus, transport_plan), [transport_plan, transport_plan.transpose(-1, -2)]
