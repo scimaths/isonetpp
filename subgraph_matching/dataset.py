@@ -210,10 +210,10 @@ class SubgraphIsomorphismDataset:
         else:
             raise NotImplementedError
 
-def get_datasets(dataset_config, experiment, data_type):
+def get_datasets(dataset_config, experiment, data_type, modes=['train', 'val']):
     return {
         mode: SubgraphIsomorphismDataset(
             mode = mode, experiment = experiment,
             data_type = data_type, **dataset_config
-        ) for mode in ['train', 'val']
+        ) for mode in modes
     }

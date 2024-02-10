@@ -63,8 +63,8 @@ def train_model(
             {
             "train_loss": epoch_loss,
             "train_time": epoch_training_time,
-            "ap_score": ap_score,
-            "map_score": map_score,
+            "val_ap_score": ap_score,
+            "val_map_score": map_score,
             "val_time": epoch_validation_time,
             },
             step = epoch_num
@@ -121,3 +121,13 @@ if __name__ == "__main__":
         **parser.get_optimization_config(),
         device = device
     )
+
+    test_dataset = get_datasets(dataset_config, experiment, data_type, modes=['test'])['test']
+    test_ap_score, test_map_score = evaluate_model(trained_model, test_dataset)
+    experiment.log(f"TEST - ap_score: %.6f map_score: %.6f", test_ap_score, test_map_score)
+    wandb.log({
+        "test_ap_score": test_ap_score,
+        "test_map_score": test_map_score,
+    })
+
+    wandb.finish()
