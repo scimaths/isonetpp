@@ -1,9 +1,8 @@
 import torch
-import torch.nn.functional as F
 from utils import model_utils
-from subgraph_matching.models._template import AlignmentModel
 from utils.tooling import ReadOnlyConfig
 import GMN.graphembeddingnetwork as gmngen
+from subgraph_matching.models._template import AlignmentModel
 
 class NodeAlignNodeLoss(AlignmentModel):
     def __init__(
