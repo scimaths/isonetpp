@@ -4,6 +4,7 @@ from utils import model_utils
 from functools import partial
 from utils.tooling import ReadOnlyConfig
 import GMN.graphembeddingnetwork as gmngen
+import GMN.graphmatchingnetwork as gmngmn
 from subgraph_matching.models._template import AlignmentModel
 
 # Alignment preprocessing constants
@@ -21,6 +22,10 @@ POSSIBLE_ALIGNMENTS = [ATTENTION, MASKED_ATTENTION, SINKHORN, None]
 AGGREGATED = 'aggregated'
 SET_ALIGNED = 'set_aligned'
 POSSIBLE_SCORINGS = [AGGREGATED, SET_ALIGNED]
+
+# Interaction constants (wrt message-passing)
+INTERACTION_PRE = 'interaction_pre'
+INTERACTION_POST = 'interaction_post'
 
 class GMNBaseline(AlignmentModel):
     def __init__(
@@ -46,6 +51,8 @@ class GMNBaseline(AlignmentModel):
         # Arguments to manage alignment configs - shared if `scoring_alignment` and `interaction_alignment` are identical
         sinkhorn_config: Optional[ReadOnlyConfig] = None,
         attention_config: Optional[ReadOnlyConfig] = None,
+        # Arguments for moment of interaction
+        interaction_moment: str = INTERACTION_POST,
     ):
         super(GMNBaseline, self).__init__()
 
@@ -89,10 +96,16 @@ class GMNBaseline(AlignmentModel):
         assert (interaction_alignment_preprocessor_type == LRL) ^ (interaction_alignment_feature_dim is None), (
             "`interaction_alignment_feature_dim` should be non-zero iff LRL preprocessing is used"
         )
+        # require interaction is pre/post
+        assert interaction_moment in [INTERACTION_PRE, INTERACTION_POST], (
+            "`interaction_moment` must be one of `interaction_pre`/`interaction_post`"
+        )
+
         self.unify_scoring_and_interaction = unify_scoring_and_interaction
         self.interaction_alignment_type = interaction_alignment
         self.interaction_alignment_feature_dim = interaction_alignment_feature_dim
         self.interaction_alignment_preprocessor_type = interaction_alignment_preprocessor_type
+        self.interaction_moment = interaction_moment
 
         #########################################
         # CONSTRAINTS for configs
@@ -115,7 +128,16 @@ class GMNBaseline(AlignmentModel):
 
         # Handle common layers
         self.encoder = gmngen.GraphEncoder(**encoder_config)
-        self.prop_layer = gmngen.GraphPropLayer(**propagation_layer_config)
+        # self.prop_layer = gmngen.GraphPropLayer(**propagation_layer_config)
+        self.prop_layer = gmngmn.GraphPropMatchingLayer(**propagation_layer_config)
+        prop_layer_node_state_dim = propagation_layer_config.node_state_dim
+        if self.interaction_moment == INTERACTION_PRE:
+            raise NotImplementedError
+            self.interaction_layer = torch.nn.Sequential(
+                torch.nn.Linear(2 * prop_layer_node_state_dim, 2 * prop_layer_node_state_dim),
+                torch.nn.ReLU(),
+                torch.nn.Linear(2 * prop_layer_node_state_dim, prop_layer_node_state_dim)
+            )
         self.propagation_steps = propagation_steps
 
         # Handle unification of graph_size_to_mask_map
@@ -131,8 +153,8 @@ class GMNBaseline(AlignmentModel):
         )
 
         # Setup scoring and interaction layer
-        self.setup_scoring(propagation_layer_config.node_state_dim)
-        self.setup_interaction(propagation_layer_config.node_state_dim)
+        self.setup_scoring(prop_layer_node_state_dim)
+        self.setup_interaction(prop_layer_node_state_dim)
 
     def get_alignment_preprocessor(self, preprocessor_type, preprocessor_feature_dim, node_state_dim):
         if preprocessor_type == IDENTITY:
@@ -191,8 +213,29 @@ class GMNBaseline(AlignmentModel):
         node_features, edge_features, from_idx, to_idx, graph_idx = model_utils.get_graph_features(graphs)
 
         node_features_enc, edge_features_enc = self.encoder(node_features, edge_features)
-        for _ in range(self.propagation_steps) :
-            node_features_enc = self.prop_layer(node_features_enc, from_idx, to_idx, edge_features_enc)
+        for _ in range(self.propagation_steps):
+            aggregated_messages = self.prop_layer._compute_aggregated_messages(
+                node_features_enc, from_idx, to_idx, edge_features_enc
+            )
+
+            stacked_features_query, stacked_features_corpus = model_utils.split_and_stack(
+                node_features_enc, graph_sizes, self.max_node_set_size
+            )
+            transformed_features_query = self.interaction_alignment_preprocessor(stacked_features_query)
+            transformed_features_corpus = self.interaction_alignment_preprocessor(stacked_features_corpus)
+
+            def mask_graphs(features, graph_sizes):
+                mask = torch.stack([self.graph_size_to_mask_map[i] for i in graph_sizes])
+                return mask * features
+            masked_features_query = mask_graphs(transformed_features_query, query_sizes)
+            masked_features_corpus = mask_graphs(transformed_features_corpus, corpus_sizes)
+
+            log_alpha = torch.matmul(masked_features_query, masked_features_corpus.permute(0, 2, 1))
+            transport_plan = self.interaction_alignment_function(log_alpha=log_alpha, query_sizes=query_sizes, corpus_sizes=corpus_sizes)
+
+            node_features_enc = self.prop_layer._compute_node_update(
+                node_features_enc, [aggregated_messages, interaction_features]
+            )
 
         ############################## SCORING ##############################
         if self.scoring == AGGREGATED:
@@ -211,8 +254,8 @@ class GMNBaseline(AlignmentModel):
             stacked_features_query, stacked_features_corpus = model_utils.split_and_stack(
                 node_features_enc, graph_sizes, self.max_node_set_size
             )
-            transformed_features_query = self.interaction_alignment_preprocessor(stacked_features_query)
-            transformed_features_corpus = self.interaction_alignment_preprocessor(stacked_features_corpus)
+            transformed_features_query = self.scoring_alignment_preprocessor(stacked_features_query)
+            transformed_features_corpus = self.scoring_alignment_preprocessor(stacked_features_corpus)
 
             def mask_graphs(features, graph_sizes):
                 mask = torch.stack([self.graph_size_to_mask_map[i] for i in graph_sizes])
@@ -221,7 +264,7 @@ class GMNBaseline(AlignmentModel):
             masked_features_corpus = mask_graphs(transformed_features_corpus, corpus_sizes)
 
             log_alpha = torch.matmul(masked_features_query, masked_features_corpus.permute(0, 2, 1))
-            transport_plan = self.interaction_alignment_function(log_alpha=log_alpha, query_sizes=query_sizes, corpus_sizes=corpus_sizes)
+            transport_plan = self.scoring_alignment_function(log_alpha=log_alpha, query_sizes=query_sizes, corpus_sizes=corpus_sizes)
         
             return model_utils.feature_alignment_score(
                 stacked_features_query, stacked_features_corpus, transport_plan
