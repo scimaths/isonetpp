@@ -7,6 +7,7 @@ from subgraph_matching.models.isonet import ISONET
 from subgraph_matching.models.node_early_interaction import NodeEarlyInteraction
 from subgraph_matching.models.edge_early_interaction import EdgeEarlyInteraction
 from subgraph_matching.models.nanl_attention import NodeAlignNodeLossAttention
+from subgraph_matching.models.gmn_baseline import GMNBaseline
 
 model_name_to_class_mappings = {
     'node_align_node_loss': NodeAlignNodeLoss,
@@ -28,9 +29,12 @@ def get_model_names():
     return list(model_name_to_class_mappings.keys())
 
 def get_model(model_name, config, max_node_set_size, max_edge_set_size, device):
-    assert model_name in get_model_names(), f"Model {model_name} not defined; choose one from {', '.join(get_model_names())}"
+    if model_name.startswith('gmn_baseline'):
+        model_class = GMNBaseline
+    else:
+        model_class = model_name_to_class_mappings[model_name]
 
-    return model_name_to_class_mappings[model_name](
+    return model_class(
         max_node_set_size=max_node_set_size,
         max_edge_set_size=max_edge_set_size,
         device=device,

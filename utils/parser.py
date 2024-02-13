@@ -2,7 +2,6 @@ import os
 import torch
 import argparse
 from utils.tooling import ReadOnlyConfig, read_config
-from subgraph_matching.model_handler import get_model_names, get_model
 
 class Parser:
     def __init__(self):
