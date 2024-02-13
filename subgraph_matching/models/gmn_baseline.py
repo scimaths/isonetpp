@@ -246,7 +246,7 @@ class GMNBaseline(AlignmentModel):
             )
 
             interaction_features = model_utils.get_interaction_feature_store(
-                transport_plan[0], stacked_features_query, stacked_features_corpus
+                transport_plan[0], stacked_features_query, stacked_features_corpus, reverse_transport_plan=transport_plan[1]
             )[padded_node_indices, :]
 
             node_features_enc = self.prop_layer._compute_node_update(

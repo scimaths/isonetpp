@@ -41,7 +41,7 @@ def masked_attention(log_alpha, query_sizes, corpus_sizes, temperature=0.1):
     modified_log_alpha.masked_fill_(torch.bitwise_not(overall_mask), -torch.inf)
 
     attention_q_to_c = modified_log_alpha.softmax(dim = -1)[:, :-1, :-1]
-    attention_c_to_q = modified_log_alpha.softmax(dim = -2)[:, :-1, :-1]
+    attention_c_to_q = modified_log_alpha.softmax(dim = -2)[:, :-1, :-1].transpose(-1, -2)
     return attention_q_to_c, attention_c_to_q
 
 def graph_size_to_mask_map(max_set_size, lateral_dim, device=None):
@@ -150,12 +150,14 @@ def kronecker_product_on_nodes(node_transport_plan, from_idx, to_idx, paired_edg
     ) * edge_presence_mask
     return straight_mapped_scores, cross_mapped_scores
 
-def get_interaction_feature_store(transport_plan, query_features, corpus_features):
+def get_interaction_feature_store(transport_plan, query_features, corpus_features, reverse_transport_plan=None):
+    if reverse_transport_plan is None:
+        reverse_transport_plan = transport_plan.transpose(-1, -2)
     batch_size, set_size, feature_dim = query_features.shape
     assert query_features.shape == corpus_features.shape, "Query and corpus features have different feature dimensions"
 
     query_from_corpus = torch.bmm(transport_plan, corpus_features)
-    corpus_from_query = torch.bmm(transport_plan.permute(0, 2, 1), query_features)
+    corpus_from_query = torch.bmm(reverse_transport_plan, query_features)
     interleaved_features = torch.cat([
         query_from_corpus.unsqueeze(1),
         corpus_from_query.unsqueeze(1)
