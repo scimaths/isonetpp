@@ -70,7 +70,7 @@ class GMNBaseline(AlignmentModel):
             "`scoring_alignment` should be None iff aggregated scoring is used"
         )
         # require feature_dim for LRL preprocessing
-        assert (scoring_alignment_preprocessor_type != LRL) or (alignment_feature_dim is None), (
+        assert (scoring_alignment_preprocessor_type != LRL) or (alignment_feature_dim is not None), (
             "`alignment_feature_dim` should be non-zero if LRL preprocessing is used in scoring"
         )
         # ensure no extra params if aggregated
@@ -93,7 +93,7 @@ class GMNBaseline(AlignmentModel):
             interaction_alignment_preprocessor_type == scoring_alignment_preprocessor_type
         ), "Unification requires both preprocessors to be identical"
         # require feature_dim for LRL preprocessing
-        assert (interaction_alignment_preprocessor_type != LRL) or (alignment_feature_dim is None), (
+        assert (interaction_alignment_preprocessor_type != LRL) or (alignment_feature_dim is not None), (
             "`alignment_feature_dim` should be non-zero if LRL preprocessing is used in interaction"
         )
         # require interaction is pre/post

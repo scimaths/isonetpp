@@ -26,12 +26,17 @@ def attention(log_alpha, temperature=0.1):
     attention_c_to_q = log_alpha.softmax(dim = -2)
     return attention_q_to_c, attention_c_to_q
 
+def pad_log_alpha_by_one(log_alpha):
+    batch_size, num_objs, _ = log_alpha.shape
+    modified_log_alpha = torch.full(size=(batch_size, num_objs + 1, num_objs + 1), fill_value=0., device=log_alpha.device)
+    modified_log_alpha[:, :-1, :-1] = log_alpha
+    return modified_log_alpha
+
 def masked_attention(log_alpha, query_sizes, corpus_sizes, temperature=0.1):
     log_alpha = torch.div(log_alpha, temperature)
 
     batch_size, num_objs, _ = log_alpha.shape
-    modified_log_alpha = torch.full(size=(batch_size, num_objs + 1, num_objs + 1), fill_value=0., device=log_alpha.device)
-    modified_log_alpha[:, :-1, :-1] = log_alpha
+    modified_log_alpha = pad_log_alpha_by_one(log_alpha)
 
     query_mask = torch.arange(num_objs + 1, device=log_alpha.device).unsqueeze(0) < query_sizes.unsqueeze(1)
     corpus_mask = torch.arange(num_objs + 1, device=log_alpha.device).unsqueeze(0) < corpus_sizes.unsqueeze(1)
