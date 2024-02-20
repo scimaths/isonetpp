@@ -29,8 +29,9 @@ for config_file in \
          --model_config_path $config_file \
          --dataset_name $dataset \
          --seed $seed \
-         --dataset_size large
-   
+         --dataset_size large \
+         &
+
       ((dataset_counter++))
       sleep 30s
    done
