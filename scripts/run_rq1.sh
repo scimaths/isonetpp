@@ -23,13 +23,13 @@ for config_file in \
       seed="${dataset_seeds[$dataset]}"
       gpu_index=$(( (dataset_counter + config_counter) % ${#gpus[@]} ))
 
-      echo """CUDA_VISIBLE_DEVICES=${gpus[$gpu_index]} python3 -m subgraph_matching.train \
+      CUDA_VISIBLE_DEVICES=${gpus[$gpu_index]} python3 -m subgraph_matching.train \
          --experiment_id rq1 \
          --experiment_dir experiments/ \
          --model_config_path $config_file \
          --dataset_name $dataset \
          --seed $seed \
-         --dataset_size large"""
+         --dataset_size large
    
       ((dataset_counter++))
    done
