@@ -32,6 +32,7 @@ for config_file in \
          --dataset_size large
    
       ((dataset_counter++))
+      sleep 30s
    done
    ((config_counter++))
 done
