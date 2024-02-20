@@ -13,10 +13,10 @@ gpus=(0 1 5 6 7)
 config_counter=0
 
 for config_file in \
-   "configs/gmn_baselines/rq1/scoring=agg___tp=masked_attention_pp=lrl_when=post.yaml" \
-   "configs/gmn_baselines/rq1/scoring=attention_pp=lrl___tp=masked_attention_pp=lrl_when=post.yaml" \
-   "configs/gmn_baselines/rq1/scoring=masked_attention_pp=lrl___tp=masked_attention_pp=lrl_when=post.yaml" \
-   "configs/gmn_baselines/rq1/scoring=sinkhorn_pp=lrl___tp=masked_attention_pp=lrl_when=post.yaml" \
+   "configs/rq1/scoring=agg___tp=masked_attention_pp=lrl_when=post.yaml" \
+   "configs/rq1/scoring=attention_pp=lrl___tp=masked_attention_pp=lrl_when=post.yaml" \
+   "configs/rq1/scoring=masked_attention_pp=lrl___tp=masked_attention_pp=lrl_when=post.yaml" \
+   "configs/rq1/scoring=sinkhorn_pp=lrl___tp=masked_attention_pp=lrl_when=post.yaml" \
 ; do
    dataset_counter=0
    for dataset in "${!dataset_seeds[@]}"; do
