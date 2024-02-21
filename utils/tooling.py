@@ -1,4 +1,5 @@
 import os
+import copy
 import json
 import yaml
 import torch
@@ -63,12 +64,16 @@ def load_yamls_with_inheritance(config_path):
     return config
 
 def make_read_only(dic):
-    for key, value in dic.items():
+    result_dic = dic.copy()
+    for key, value in result_dic.items():
         if isinstance(value, dict):
-            dic[key] = make_read_only(value)
-    return ReadOnlyConfig(**dic)
+            result_dic[key] = make_read_only(value)
+    return ReadOnlyConfig(**result_dic)
 
-def read_config(config_path):
+def read_config(config_path, with_dict=False):
     config = load_yamls_with_inheritance(config_path)
-    config = make_read_only(config)
-    return ReadOnlyConfig(**config)
+    read_only_config = make_read_only(config)
+    if with_dict:
+        return read_only_config, config
+    else:
+        return read_only_config

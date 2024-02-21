@@ -90,12 +90,12 @@ if __name__ == "__main__":
 
     device = 'cuda' if args.use_cuda else 'cpu'
 
-    model_params = read_config(args.model_config_path)
+    model_params, config_dict = read_config(args.model_config_path, with_dict=True)
 
     experiment_config = parser.get_experiment_config(model_params.name)
     experiment = Experiment(config=experiment_config, device=device)
 
-    wandb_params = parser.get_wandb_config(model_params, device)
+    wandb_params = parser.get_wandb_config(config_dict, device)
     wandb.init(**wandb_params, resume=False)
 
     early_stopping_config = parser.get_early_stopping_config()

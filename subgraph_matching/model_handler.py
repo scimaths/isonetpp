@@ -1,4 +1,3 @@
-from utils.tooling import read_config
 import subgraph_matching.dataset as dataset
 
 from subgraph_matching.models.node_align_node_loss import NodeAlignNodeLoss

@@ -71,11 +71,12 @@ class Parser:
             batch_size = self.args.batch_size,
         )
 
-    def get_wandb_config(self, model_params, device):
+    def get_wandb_config(self, model_params: dict, device):
         wandb_config = read_config(self.args.wandb_config_path).wandb
 
         combined_config = vars(self.args).copy()
-        combined_config['model_config'] = model_params.model_config
+        for key in ['model_config', 'name']:
+            combined_config[key] = model_params[key]
         combined_config['device'] = torch.cuda.get_device_name(device) if 'cuda' in device else 'cpu'
         return ReadOnlyConfig(
             dir = os.path.join(self.args.experiment_dir, self.args.experiment_id),
@@ -83,7 +84,7 @@ class Parser:
             entity = wandb_config.entity,
             name = "_".join([
                 self.args.experiment_id,
-                model_params.name,
+                model_params['name'],
                 self.args.dataset_name,
                 "dataset",
                 "seed",
