@@ -23,7 +23,7 @@ def sinkhorn_iters(log_alpha, device, temperature=0.1, noise_factor=1.0, num_ite
 def attention(log_alpha, temperature=0.1):
     log_alpha = torch.div(log_alpha, temperature)
     attention_q_to_c = log_alpha.softmax(dim = -1)
-    attention_c_to_q = log_alpha.softmax(dim = -2)
+    attention_c_to_q = log_alpha.softmax(dim = -2).transpose(-1, -2)
     return attention_q_to_c, attention_c_to_q
 
 def pad_log_alpha_by_one(log_alpha):
