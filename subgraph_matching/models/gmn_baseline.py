@@ -134,15 +134,19 @@ class GMNBaseline(AlignmentModel):
         self.encoder = gmngen.GraphEncoder(**encoder_config)
         self.prop_layer = gmngmn.GraphPropMatchingLayer(**propagation_layer_config)
 
+        # Propagation params and function
+        self.propagation_steps = propagation_steps
         prop_layer_node_state_dim = propagation_layer_config.node_state_dim
+
         if self.interaction_when == INTERACTION_PRE:
-            raise NotImplementedError
             self.interaction_layer = torch.nn.Sequential(
                 torch.nn.Linear(2 * prop_layer_node_state_dim, 2 * prop_layer_node_state_dim),
                 torch.nn.ReLU(),
                 torch.nn.Linear(2 * prop_layer_node_state_dim, prop_layer_node_state_dim)
             )
-        self.propagation_steps = propagation_steps
+            self.propagation_function = self.propagation_step_with_pre_interaction
+        elif self.interaction_when == INTERACTION_POST:
+            self.propagation_function = self.propagation_step_with_post_interaction
 
         # Handle unification of graph_size_to_mask_map
         self.graph_size_to_mask_map = {
@@ -206,6 +210,64 @@ class GMNBaseline(AlignmentModel):
             )
             self.scoring_alignment_function = self.get_alignment_function(alignment_type=self.scoring_alignment_type)
 
+    def end_to_end_interaction_alignment(
+        self, node_features_enc, graph_sizes,
+        features_to_transport_plan, padded_node_indices
+    ):
+        stacked_features_query, stacked_features_corpus = model_utils.split_and_stack(
+            node_features_enc, graph_sizes, self.max_node_set_size
+        )
+
+        transport_plan = features_to_transport_plan(
+            stacked_features_query, stacked_features_corpus,
+            preprocessor = self.interaction_alignment_preprocessor,
+            alignment_function = self.interaction_alignment_function,
+            what_for = 'interaction'
+        )
+
+        interaction_features = model_utils.get_interaction_feature_store(
+            transport_plan[0], stacked_features_query, stacked_features_corpus, reverse_transport_plan=transport_plan[1]
+        )[padded_node_indices, :]
+
+        return interaction_features
+
+    def propagation_step_with_pre_interaction(
+        self, prop_idx, from_idx, to_idx, graph_sizes,
+        node_features_enc, edge_features_enc,
+        features_to_transport_plan, padded_node_indices
+    ):
+        if prop_idx == 0:
+            interaction_features = torch.zeros_like(node_features_enc)
+        else:
+            interaction_features = self.end_to_end_interaction_alignment(
+                node_features_enc, graph_sizes, features_to_transport_plan, padded_node_indices
+            )
+
+        combined_features = self.interaction_layer(
+            torch.cat([node_features_enc, interaction_features], dim=-1)
+        )
+        aggregated_messages = self.prop_layer._compute_aggregated_messages(
+            combined_features, from_idx, to_idx, edge_features_enc
+        )
+        node_features_enc = self.prop_layer._compute_node_update(combined_features, [aggregated_messages])
+        return node_features_enc
+
+    def propagation_step_with_post_interaction(
+        self, prop_idx, from_idx, to_idx, graph_sizes,
+        node_features_enc, edge_features_enc,
+        features_to_transport_plan, padded_node_indices
+    ):
+        aggregated_messages = self.prop_layer._compute_aggregated_messages(
+            node_features_enc, from_idx, to_idx, edge_features_enc
+        )
+        interaction_features = self.end_to_end_interaction_alignment(
+            node_features_enc, graph_sizes, features_to_transport_plan, padded_node_indices
+        )
+        node_features_enc = self.prop_layer._compute_node_update(
+            node_features_enc, [aggregated_messages, node_features_enc - interaction_features]
+        )
+        return node_features_enc
+
     def forward_with_alignment(self, graphs, graph_sizes, graph_adj_matrices):
         query_sizes, corpus_sizes = zip(*graph_sizes)
         query_sizes = torch.tensor(query_sizes, device=self.device)
@@ -229,28 +291,11 @@ class GMNBaseline(AlignmentModel):
         node_features, edge_features, from_idx, to_idx, graph_idx = model_utils.get_graph_features(graphs)
 
         node_features_enc, edge_features_enc = self.encoder(node_features, edge_features)
-        for _ in range(self.propagation_steps):
-            aggregated_messages = self.prop_layer._compute_aggregated_messages(
-                node_features_enc, from_idx, to_idx, edge_features_enc
-            )
 
-            stacked_features_query, stacked_features_corpus = model_utils.split_and_stack(
-                node_features_enc, graph_sizes, self.max_node_set_size
-            )
-
-            transport_plan = features_to_transport_plan(
-                stacked_features_query, stacked_features_corpus,
-                preprocessor = self.interaction_alignment_preprocessor,
-                alignment_function = self.interaction_alignment_function,
-                what_for = 'interaction'
-            )
-
-            interaction_features = model_utils.get_interaction_feature_store(
-                transport_plan[0], stacked_features_query, stacked_features_corpus, reverse_transport_plan=transport_plan[1]
-            )[padded_node_indices, :]
-
-            node_features_enc = self.prop_layer._compute_node_update(
-                node_features_enc, [aggregated_messages, node_features_enc - interaction_features]
+        for prop_idx in range(self.propagation_steps):
+            node_features_enc = self.propagation_function(
+                prop_idx, from_idx, to_idx, graph_sizes, node_features_enc,
+                edge_features_enc, features_to_transport_plan, padded_node_indices
             )
 
         ############################## SCORING ##############################
