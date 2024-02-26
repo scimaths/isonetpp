@@ -9,7 +9,7 @@ declare -A dataset_seeds=(
    ["ptc_mr"]="7366"
 )
 
-gpus=(0 1 2 3)
+gpus=(0 1 2 3 4 5)
 overall_counter=0
 
 for config_file in \
