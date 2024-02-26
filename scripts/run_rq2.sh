@@ -14,11 +14,13 @@ overall_counter=0
 
 for config_file in \
    "configs/rq2/scoring=attention_pp=lrl___tp=attention_pp=lrl_when=post.yaml" \
+   "configs/rq2/scoring=attention_pp=lrl___tp=attention_pp=lrl_when=post___unify=true.yaml" \
    "configs/rq2/scoring=attention_pp=lrl___tp=masked_attention_pp=lrl_when=post.yaml" \
    "configs/rq2/scoring=attention_pp=lrl___tp=sinkhorn_pp=lrl_when=post.yaml" \
    "configs/rq2/scoring=sinkhorn_pp=lrl___tp=attention_pp=lrl_when=post.yaml" \
    "configs/rq2/scoring=sinkhorn_pp=lrl___tp=masked_attention_pp=lrl_when=post.yaml" \
    "configs/rq2/scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=post.yaml" \
+   "configs/rq2/scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=post___unify=true.yaml" \
 ; do
    for dataset in "${!dataset_seeds[@]}"; do
       seed="${dataset_seeds[$dataset]}"
