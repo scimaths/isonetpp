@@ -26,6 +26,8 @@ POSSIBLE_SCORINGS = [AGGREGATED, SET_ALIGNED]
 # Interaction constants (wrt message-passing)
 INTERACTION_PRE = 'pre'
 INTERACTION_POST = 'post'
+INTERACTION_MSG_ONLY = 'msg_passing_only'
+INTERACTION_UPD_ONLY = 'update_only'
 
 class GMNBaseline(AlignmentModel):
     def __init__(
@@ -97,11 +99,13 @@ class GMNBaseline(AlignmentModel):
             "`alignment_feature_dim` should be non-zero if LRL preprocessing is used in interaction"
         )
         # require interaction is pre/post
-        assert interaction_when in [INTERACTION_PRE, INTERACTION_POST], (
-            "`interaction_when` must be one of `pre`/`post`"
+        assert interaction_when in [INTERACTION_PRE, INTERACTION_POST, INTERACTION_MSG_ONLY, INTERACTION_UPD_ONLY], (
+            "`interaction_when` must be one of `pre`/`post`/`msg_passing_only`/`update_only`"
         )
         assert (interaction_when, propagation_layer_config.prop_type) in [
             (INTERACTION_PRE, 'embedding'),
+            (INTERACTION_MSG_ONLY, 'embedding'),
+            (INTERACTION_UPD_ONLY, 'embedding'),
             (INTERACTION_POST, 'matching'),
         ]
 
@@ -138,7 +142,7 @@ class GMNBaseline(AlignmentModel):
         self.propagation_steps = propagation_steps
         prop_layer_node_state_dim = propagation_layer_config.node_state_dim
 
-        if self.interaction_when == INTERACTION_PRE:
+        if self.interaction_when in [INTERACTION_PRE, INTERACTION_MSG_ONLY, INTERACTION_UPD_ONLY]:
             self.interaction_layer = torch.nn.Sequential(
                 torch.nn.Linear(2 * prop_layer_node_state_dim, 2 * prop_layer_node_state_dim),
                 torch.nn.ReLU(),
@@ -246,10 +250,19 @@ class GMNBaseline(AlignmentModel):
         combined_features = self.interaction_layer(
             torch.cat([node_features_enc, interaction_features], dim=-1)
         )
+
+        features_input_to_msg = combined_features
+        features_input_to_upd = combined_features
+        # set the features for the other path as un-combined features
+        if self.interaction_when == INTERACTION_MSG_ONLY:
+            features_input_to_upd = node_features_enc
+        elif self.interaction_when == INTERACTION_UPD_ONLY:
+            features_input_to_msg = node_features_enc
+
         aggregated_messages = self.prop_layer._compute_aggregated_messages(
-            combined_features, from_idx, to_idx, edge_features_enc
+            features_input_to_msg, from_idx, to_idx, edge_features_enc
         )
-        node_features_enc = self.prop_layer._compute_node_update(combined_features, [aggregated_messages])
+        node_features_enc = self.prop_layer._compute_node_update(features_input_to_upd, [aggregated_messages])
         return node_features_enc
 
     def propagation_step_with_post_interaction(
