@@ -1,4 +1,5 @@
 import torch
+import functools
 from typing import Optional
 from utils import model_utils
 from functools import partial
@@ -281,25 +282,44 @@ class GMNBaseline(AlignmentModel):
         )
         return node_features_enc
 
+    def aggregated_scoring(self, node_features_enc, graph_idx, graph_sizes):
+        graph_vectors = self.aggregator(node_features_enc, graph_idx, 2 * len(graph_sizes))
+        graph_vector_dim = graph_vectors.shape[-1]
+        reshaped_graph_vectors = graph_vectors.reshape(-1, graph_vector_dim * 2)
+        query_graph_vectors = reshaped_graph_vectors[:, :graph_vector_dim]
+        corpus_graph_vectors = reshaped_graph_vectors[:, graph_vector_dim:]
+
+        return -torch.sum(
+            torch.nn.functional.relu(query_graph_vectors - corpus_graph_vectors),
+            dim=-1
+        ), []
+
+    def set_aligned_scoring(self, node_features_enc, graph_sizes, features_to_transport_plan):
+        stacked_features_query, stacked_features_corpus = model_utils.split_and_stack(
+            node_features_enc, graph_sizes, self.max_node_set_size
+        )
+        transport_plan = features_to_transport_plan(
+            stacked_features_query, stacked_features_corpus,
+            preprocessor = self.scoring_alignment_preprocessor,
+            alignment_function = self.scoring_alignment_function,
+            what_for = 'scoring'
+        )
+    
+        return model_utils.feature_alignment_score(
+            stacked_features_query, stacked_features_corpus, transport_plan[0]
+        ), transport_plan
+
     def forward_with_alignment(self, graphs, graph_sizes, graph_adj_matrices):
         query_sizes, corpus_sizes = zip(*graph_sizes)
         query_sizes = torch.tensor(query_sizes, device=self.device)
         corpus_sizes = torch.tensor(corpus_sizes, device=self.device)
         padded_node_indices = model_utils.get_padded_indices(graph_sizes, self.max_node_set_size, self.device)
 
-        def features_to_transport_plan(query_features, corpus_features, preprocessor, alignment_function, what_for):
-            transformed_features_query = preprocessor(query_features)
-            transformed_features_corpus = preprocessor(corpus_features)
-
-            def mask_graphs(features, graph_sizes):
-                mask = torch.stack([self.graph_size_to_mask_map[what_for][i] for i in graph_sizes])
-                return mask * features
-            masked_features_query = mask_graphs(transformed_features_query, query_sizes)
-            masked_features_corpus = mask_graphs(transformed_features_corpus, corpus_sizes)
-
-            log_alpha = torch.matmul(masked_features_query, masked_features_corpus.permute(0, 2, 1))
-            transport_plan = alignment_function(log_alpha=log_alpha, query_sizes=query_sizes, corpus_sizes=corpus_sizes)
-            return transport_plan
+        features_to_transport_plan = functools.partial(
+            model_utils.features_to_transport_plan,
+            query_sizes=query_sizes, corpus_sizes=corpus_sizes,
+            graph_size_to_mask_map=self.graph_size_to_mask_map
+        )
 
         node_features, edge_features, from_idx, to_idx, graph_idx = model_utils.get_graph_features(graphs)
 
@@ -313,28 +333,6 @@ class GMNBaseline(AlignmentModel):
 
         ############################## SCORING ##############################
         if self.scoring == AGGREGATED:
-            graph_vectors = self.aggregator(node_features_enc, graph_idx, 2 * len(graph_sizes))
-            graph_vector_dim = graph_vectors.shape[-1]
-            reshaped_graph_vectors = graph_vectors.reshape(-1, graph_vector_dim * 2)
-            query_graph_vectors = reshaped_graph_vectors[:, :graph_vector_dim]
-            corpus_graph_vectors = reshaped_graph_vectors[:, graph_vector_dim:]
-
-            return -torch.sum(
-                torch.nn.functional.relu(query_graph_vectors - corpus_graph_vectors),
-                dim=-1
-            ), []
-
+            return self.aggregated_scoring(node_features_enc, graph_idx, graph_sizes)
         elif self.scoring == SET_ALIGNED:
-            stacked_features_query, stacked_features_corpus = model_utils.split_and_stack(
-                node_features_enc, graph_sizes, self.max_node_set_size
-            )
-            transport_plan = features_to_transport_plan(
-                stacked_features_query, stacked_features_corpus,
-                preprocessor = self.scoring_alignment_preprocessor,
-                alignment_function = self.scoring_alignment_function,
-                what_for = 'scoring'
-            )
-        
-            return model_utils.feature_alignment_score(
-                stacked_features_query, stacked_features_corpus, transport_plan[0]
-            ), transport_plan
+            return self.set_aligned_scoring(node_features_enc, graph_sizes, features_to_transport_plan)

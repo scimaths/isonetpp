@@ -7,6 +7,7 @@ from subgraph_matching.models.node_early_interaction import NodeEarlyInteraction
 from subgraph_matching.models.edge_early_interaction import EdgeEarlyInteraction
 from subgraph_matching.models.nanl_attention import NodeAlignNodeLossAttention
 from subgraph_matching.models.gmn_baseline import GMNBaseline
+from subgraph_matching.models.gmn_iterative_refinement import GMNIterativeRefinement
 
 model_name_to_class_mappings = {
     'node_align_node_loss': NodeAlignNodeLoss,
@@ -30,6 +31,8 @@ def get_model_names():
 def get_model(model_name, config, max_node_set_size, max_edge_set_size, device):
     if model_name.startswith('gmn_baseline'):
         model_class = GMNBaseline
+    elif model_name.startswith('gmn_iterative_refinement'):
+        model_class = GMNIterativeRefinement
     else:
         model_class = model_name_to_class_mappings[model_name]
 
