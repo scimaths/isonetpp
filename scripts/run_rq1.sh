@@ -1,19 +1,49 @@
 cd ..
 
+# 1704, 4929, 7366, 7474, 7762
+
+# declare -A dataset_seeds=(
+#    ["aids"]="7474"
+#    ["mutag"]="7474"
+#    ["ptc_fm"]="4929"
+#    ["ptc_fr"]="7366"
+#    ["ptc_mm"]="7762"
+#    ["ptc_mr"]="7366"
+# )
+
+# declare -A dataset_seeds=(
+#    ["aids"]="1704"
+#    ["mutag"]="1704"
+#    ["ptc_fm"]="1704"
+#    ["ptc_fr"]="1704"
+#    ["ptc_mm"]="1704"
+#    ["ptc_mr"]="1704"
+# )
+
+# declare -A dataset_seeds=(
+#    ["aids"]="4929"
+#    ["mutag"]="4929"
+#    ["ptc_fm"]="7366"
+#    ["ptc_fr"]="4929"
+#    ["ptc_mm"]="4929"
+#    ["ptc_mr"]="4929"
+# )
+
 declare -A dataset_seeds=(
-   ["aids"]="7474"
-   ["mutag"]="7474"
-   ["ptc_fm"]="4929"
-   ["ptc_fr"]="7366"
-   ["ptc_mm"]="7762"
-   ["ptc_mr"]="7366"
+   ["aids"]="7366"
+   ["mutag"]="7366"
+   ["ptc_fm"]="7474"
+   ["ptc_fr"]="7474"
+   ["ptc_mm"]="7366"
+   ["ptc_mr"]="7474"
 )
 
-gpus=(0 1 2 3)
+gpus=(1 2 3)
 overall_counter=0
 
+# Included in RQ2_aggregated
+   # "configs/rq1/scoring=agg___tp=masked_attention_pp=lrl_when=post.yaml" \
 for config_file in \
-   "configs/rq1/scoring=agg___tp=masked_attention_pp=lrl_when=post.yaml" \
    "configs/rq1/scoring=attention_pp=lrl___tp=masked_attention_pp=lrl_when=post.yaml" \
    "configs/rq1/scoring=masked_attention_pp=lrl___tp=masked_attention_pp=lrl_when=post.yaml" \
    "configs/rq1/scoring=masked_attention_pp=lrl___tp=masked_attention_pp=lrl_when=post___unify=true.yaml" \
@@ -33,6 +63,6 @@ for config_file in \
          &
 
       ((overall_counter++))
-      sleep 30s
+      sleep 10s
    done
 done

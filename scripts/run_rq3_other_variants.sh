@@ -1,15 +1,35 @@
 cd ..
 
+# 1704, 4929, 7366, 7474, 7762
+
+# declare -A dataset_seeds=(
+#    ["aids"]="7474"
+#    ["mutag"]="7474"
+#    ["ptc_fm"]="4929"
+#    ["ptc_fr"]="7366"
+#    ["ptc_mm"]="7762"
+#    ["ptc_mr"]="7366"
+# )
+
+# declare -A dataset_seeds=(
+#    ["aids"]="1704"
+#    ["mutag"]="1704"
+#    ["ptc_fm"]="1704"
+#    ["ptc_fr"]="1704"
+#    ["ptc_mm"]="1704"
+#    ["ptc_mr"]="1704"
+# )
+
 declare -A dataset_seeds=(
-   ["aids"]="7474"
-   ["mutag"]="7474"
-   ["ptc_fm"]="4929"
-   ["ptc_fr"]="7366"
-   ["ptc_mm"]="7762"
-   ["ptc_mr"]="7366"
+   ["aids"]="4929"
+   ["mutag"]="4929"
+   ["ptc_fm"]="7366"
+   ["ptc_fr"]="4929"
+   ["ptc_mm"]="4929"
+   ["ptc_mr"]="4929"
 )
 
-gpus=(0 1 2 3 4 5)
+gpus=(0 1 2 3)
 overall_counter=0
 
 for config_file in \
@@ -32,6 +52,6 @@ for config_file in \
          &
 
       ((overall_counter++))
-      sleep 30s
+      sleep 10s
    done
 done
