@@ -38,27 +38,22 @@ declare -A dataset_seeds=(
    ["ptc_mr"]="7474"
 )
 
-gpus=(3 4 5)
+gpus=(5)
 overall_counter=0
 
-# Included in RQ3
-   # "configs/rq2/scoring=attention_pp=lrl___tp=attention_pp=lrl_when=post___unify=true.yaml" \
-   # "configs/rq2/scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=post___unify=true.yaml" \
-# Included in RQ1
-   # "configs/rq2/scoring=attention_pp=lrl___tp=masked_attention_pp=lrl_when=post.yaml" \
-   # "configs/rq2/scoring=sinkhorn_pp=lrl___tp=masked_attention_pp=lrl_when=post.yaml" \
+# Not running PRE for 1st paper on dog
+   # "configs/rq3/scoring=attention_pp=lrl___tp=attention_pp=lrl_when=pre___unify=true.yaml" \
+   # "configs/rq3/scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=pre___unify=true.yaml" \
+   # "configs/rq3/scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=post___unify=true.yaml" \
 for config_file in \
-   "configs/rq2/scoring=attention_pp=lrl___tp=attention_pp=lrl_when=post.yaml" \
-   "configs/rq2/scoring=attention_pp=lrl___tp=sinkhorn_pp=lrl_when=post.yaml" \
-   "configs/rq2/scoring=sinkhorn_pp=lrl___tp=attention_pp=lrl_when=post.yaml" \
-   "configs/rq2/scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=post.yaml" \
+   "configs/rq3/scoring=attention_pp=lrl___tp=attention_pp=lrl_when=post___unify=true.yaml" \
 ; do
    for dataset in "${!dataset_seeds[@]}"; do
       seed="${dataset_seeds[$dataset]}"
       gpu_index=$(( (overall_counter) % ${#gpus[@]} ))
 
       CUDA_VISIBLE_DEVICES=${gpus[$gpu_index]} python3 -m subgraph_matching.train \
-         --experiment_id rq2 \
+         --experiment_id rq3 \
          --experiment_dir experiments/ \
          --model_config_path $config_file \
          --dataset_name $dataset \

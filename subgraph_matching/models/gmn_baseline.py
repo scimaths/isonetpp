@@ -1,4 +1,5 @@
 import torch
+import functools
 from typing import Optional
 from utils import model_utils
 from functools import partial
@@ -26,6 +27,8 @@ POSSIBLE_SCORINGS = [AGGREGATED, SET_ALIGNED]
 # Interaction constants (wrt message-passing)
 INTERACTION_PRE = 'pre'
 INTERACTION_POST = 'post'
+INTERACTION_MSG_ONLY = 'msg_passing_only'
+INTERACTION_UPD_ONLY = 'update_only'
 
 class GMNBaseline(AlignmentModel):
     def __init__(
@@ -97,11 +100,13 @@ class GMNBaseline(AlignmentModel):
             "`alignment_feature_dim` should be non-zero if LRL preprocessing is used in interaction"
         )
         # require interaction is pre/post
-        assert interaction_when in [INTERACTION_PRE, INTERACTION_POST], (
-            "`interaction_when` must be one of `pre`/`post`"
+        assert interaction_when in [INTERACTION_PRE, INTERACTION_POST, INTERACTION_MSG_ONLY, INTERACTION_UPD_ONLY], (
+            "`interaction_when` must be one of `pre`/`post`/`msg_passing_only`/`update_only`"
         )
         assert (interaction_when, propagation_layer_config.prop_type) in [
             (INTERACTION_PRE, 'embedding'),
+            (INTERACTION_MSG_ONLY, 'embedding'),
+            (INTERACTION_UPD_ONLY, 'embedding'),
             (INTERACTION_POST, 'matching'),
         ]
 
@@ -138,7 +143,7 @@ class GMNBaseline(AlignmentModel):
         self.propagation_steps = propagation_steps
         prop_layer_node_state_dim = propagation_layer_config.node_state_dim
 
-        if self.interaction_when == INTERACTION_PRE:
+        if self.interaction_when in [INTERACTION_PRE, INTERACTION_MSG_ONLY, INTERACTION_UPD_ONLY]:
             self.interaction_layer = torch.nn.Sequential(
                 torch.nn.Linear(2 * prop_layer_node_state_dim, 2 * prop_layer_node_state_dim),
                 torch.nn.ReLU(),
@@ -246,10 +251,19 @@ class GMNBaseline(AlignmentModel):
         combined_features = self.interaction_layer(
             torch.cat([node_features_enc, interaction_features], dim=-1)
         )
+
+        features_input_to_msg = combined_features
+        features_input_to_upd = combined_features
+        # set the features for the other path as un-combined features
+        if self.interaction_when == INTERACTION_MSG_ONLY:
+            features_input_to_upd = node_features_enc
+        elif self.interaction_when == INTERACTION_UPD_ONLY:
+            features_input_to_msg = node_features_enc
+
         aggregated_messages = self.prop_layer._compute_aggregated_messages(
-            combined_features, from_idx, to_idx, edge_features_enc
+            features_input_to_msg, from_idx, to_idx, edge_features_enc
         )
-        node_features_enc = self.prop_layer._compute_node_update(combined_features, [aggregated_messages])
+        node_features_enc = self.prop_layer._compute_node_update(features_input_to_upd, [aggregated_messages])
         return node_features_enc
 
     def propagation_step_with_post_interaction(
@@ -268,25 +282,44 @@ class GMNBaseline(AlignmentModel):
         )
         return node_features_enc
 
+    def aggregated_scoring(self, node_features_enc, graph_idx, graph_sizes):
+        graph_vectors = self.aggregator(node_features_enc, graph_idx, 2 * len(graph_sizes))
+        graph_vector_dim = graph_vectors.shape[-1]
+        reshaped_graph_vectors = graph_vectors.reshape(-1, graph_vector_dim * 2)
+        query_graph_vectors = reshaped_graph_vectors[:, :graph_vector_dim]
+        corpus_graph_vectors = reshaped_graph_vectors[:, graph_vector_dim:]
+
+        return -torch.sum(
+            torch.nn.functional.relu(query_graph_vectors - corpus_graph_vectors),
+            dim=-1
+        ), []
+
+    def set_aligned_scoring(self, node_features_enc, graph_sizes, features_to_transport_plan):
+        stacked_features_query, stacked_features_corpus = model_utils.split_and_stack(
+            node_features_enc, graph_sizes, self.max_node_set_size
+        )
+        transport_plan = features_to_transport_plan(
+            stacked_features_query, stacked_features_corpus,
+            preprocessor = self.scoring_alignment_preprocessor,
+            alignment_function = self.scoring_alignment_function,
+            what_for = 'scoring'
+        )
+    
+        return model_utils.feature_alignment_score(
+            stacked_features_query, stacked_features_corpus, transport_plan[0]
+        ), transport_plan
+
     def forward_with_alignment(self, graphs, graph_sizes, graph_adj_matrices):
         query_sizes, corpus_sizes = zip(*graph_sizes)
         query_sizes = torch.tensor(query_sizes, device=self.device)
         corpus_sizes = torch.tensor(corpus_sizes, device=self.device)
         padded_node_indices = model_utils.get_padded_indices(graph_sizes, self.max_node_set_size, self.device)
 
-        def features_to_transport_plan(query_features, corpus_features, preprocessor, alignment_function, what_for):
-            transformed_features_query = preprocessor(query_features)
-            transformed_features_corpus = preprocessor(corpus_features)
-
-            def mask_graphs(features, graph_sizes):
-                mask = torch.stack([self.graph_size_to_mask_map[what_for][i] for i in graph_sizes])
-                return mask * features
-            masked_features_query = mask_graphs(transformed_features_query, query_sizes)
-            masked_features_corpus = mask_graphs(transformed_features_corpus, corpus_sizes)
-
-            log_alpha = torch.matmul(masked_features_query, masked_features_corpus.permute(0, 2, 1))
-            transport_plan = alignment_function(log_alpha=log_alpha, query_sizes=query_sizes, corpus_sizes=corpus_sizes)
-            return transport_plan
+        features_to_transport_plan = functools.partial(
+            model_utils.features_to_transport_plan,
+            query_sizes=query_sizes, corpus_sizes=corpus_sizes,
+            graph_size_to_mask_map=self.graph_size_to_mask_map
+        )
 
         node_features, edge_features, from_idx, to_idx, graph_idx = model_utils.get_graph_features(graphs)
 
@@ -300,28 +333,6 @@ class GMNBaseline(AlignmentModel):
 
         ############################## SCORING ##############################
         if self.scoring == AGGREGATED:
-            graph_vectors = self.aggregator(node_features_enc, graph_idx, 2 * len(graph_sizes))
-            graph_vector_dim = graph_vectors.shape[-1]
-            reshaped_graph_vectors = graph_vectors.reshape(-1, graph_vector_dim * 2)
-            query_graph_vectors = reshaped_graph_vectors[:, :graph_vector_dim]
-            corpus_graph_vectors = reshaped_graph_vectors[:, graph_vector_dim:]
-
-            return -torch.sum(
-                torch.nn.functional.relu(query_graph_vectors - corpus_graph_vectors),
-                dim=-1
-            ), []
-
+            return self.aggregated_scoring(node_features_enc, graph_idx, graph_sizes)
         elif self.scoring == SET_ALIGNED:
-            stacked_features_query, stacked_features_corpus = model_utils.split_and_stack(
-                node_features_enc, graph_sizes, self.max_node_set_size
-            )
-            transport_plan = features_to_transport_plan(
-                stacked_features_query, stacked_features_corpus,
-                preprocessor = self.scoring_alignment_preprocessor,
-                alignment_function = self.scoring_alignment_function,
-                what_for = 'scoring'
-            )
-        
-            return model_utils.feature_alignment_score(
-                stacked_features_query, stacked_features_corpus, transport_plan[0]
-            ), transport_plan
+            return self.set_aligned_scoring(node_features_enc, graph_sizes, features_to_transport_plan)
