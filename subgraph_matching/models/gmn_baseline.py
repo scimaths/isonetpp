@@ -145,9 +145,9 @@ class GMNBaseline(AlignmentModel):
 
         if self.interaction_when in [INTERACTION_PRE, INTERACTION_MSG_ONLY, INTERACTION_UPD_ONLY]:
             self.interaction_layer = torch.nn.Sequential(
-                torch.nn.Linear(2 * prop_layer_node_state_dim, 2 * prop_layer_node_state_dim),
+                torch.nn.Linear(2 * prop_layer_node_state_dim, 2 * prop_layer_node_state_dim, dtype=torch.float64),
                 torch.nn.ReLU(),
-                torch.nn.Linear(2 * prop_layer_node_state_dim, prop_layer_node_state_dim)
+                torch.nn.Linear(2 * prop_layer_node_state_dim, prop_layer_node_state_dim, dtype=torch.float64)
             )
             self.propagation_function = self.propagation_step_with_pre_interaction
         elif self.interaction_when == INTERACTION_POST:
@@ -173,9 +173,9 @@ class GMNBaseline(AlignmentModel):
             return lambda x: x
         elif preprocessor_type == LRL:
             return torch.nn.Sequential(
-                torch.nn.Linear(node_state_dim, preprocessor_feature_dim),
+                torch.nn.Linear(node_state_dim, preprocessor_feature_dim, dtype=torch.float64),
                 torch.nn.ReLU(),
-                torch.nn.Linear(preprocessor_feature_dim, preprocessor_feature_dim)
+                torch.nn.Linear(preprocessor_feature_dim, preprocessor_feature_dim, dtype=torch.float64)
             )
         else:
             raise NotImplementedError(f"preprocessor is implemented only for these modes - {POSSIBLE_ALIGNMENT_PREPROCESSOR_TYPES}")
@@ -248,7 +248,6 @@ class GMNBaseline(AlignmentModel):
                 node_features_enc, graph_sizes, features_to_transport_plan, padded_node_indices
             )
 
-        print(torch.cat([node_features_enc, interaction_features], dim=-1).shape)
         combined_features = self.interaction_layer(
             torch.cat([node_features_enc, interaction_features], dim=-1)
         )

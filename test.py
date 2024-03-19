@@ -5,6 +5,7 @@ import numpy as np
 
 torch.backends.cuda.matmul.allow_tf32 = False
 torch.backends.cudnn.allow_tf32 = False
+torch.set_default_dtype(torch.float64)
 
 torch.manual_seed(0)
 torch.set_printoptions(precision=30, sci_mode=False)

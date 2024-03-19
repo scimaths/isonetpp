@@ -61,7 +61,7 @@ class GMNIterativeRefinement(GMNBaseline):
         encoded_node_features, encoded_edge_features = self.encoder(node_features, edge_features)
         num_nodes, node_feature_dim = encoded_node_features.shape
 
-        node_feature_store = torch.zeros(num_nodes, node_feature_dim * (self.propagation_steps + 1), device=self.device)
+        node_feature_store = torch.zeros(num_nodes, node_feature_dim * (self.propagation_steps + 1), device=self.device, dtype=torch.float64)
         updated_node_feature_store = torch.zeros_like(node_feature_store)
 
         for refine_idx in range(self.refinement_steps):

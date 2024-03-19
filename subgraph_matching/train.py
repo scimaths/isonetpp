@@ -48,13 +48,10 @@ def train_model(
                 margin
             )
             torch.set_printoptions(precision=30, sci_mode=False)
-            from torchviz import make_dot, make_dot_from_trace
-            make_dot(prediction.mean(), params=dict(model.named_parameters()), show_attrs=True, show_saved=True).render("rnn_torchviz", format="png")
-
-            # print(model.interaction_alignment_preprocessor[0].weight)
-            # print(model.interaction_alignment_preprocessor[0].bias)
-            # print(model.interaction_alignment_preprocessor[2].weight)
-            # print(model.interaction_alignment_preprocessor[2].bias)
+            print(model.interaction_alignment_preprocessor[0].weight)
+            print(model.interaction_alignment_preprocessor[0].bias)
+            print(model.interaction_alignment_preprocessor[2].weight)
+            print(model.interaction_alignment_preprocessor[2].bias)
             losses.backward()
             # print(model)
             # print(losses.item())

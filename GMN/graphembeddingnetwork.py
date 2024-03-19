@@ -33,7 +33,7 @@ class GraphEncoder(nn.Module):
 
     def _build_model(self):
         layer = []
-        layer.append(nn.Linear(self._node_feature_dim, self._node_hidden_sizes[0]))
+        layer.append(nn.Linear(self._node_feature_dim, self._node_hidden_sizes[0], dtype=torch.float64))
         for i in range(1, len(self._node_hidden_sizes)):
             layer.append(nn.ReLU())
             layer.append(nn.Linear(self._node_hidden_sizes[i - 1], self._node_hidden_sizes[i]))
@@ -179,10 +179,10 @@ class GraphPropLayer(nn.Module):
 
     def build_model(self):
         layer = []
-        layer.append(nn.Linear(self._edge_hidden_sizes[0] + self._edge_embedding_dim, self._edge_hidden_sizes[0]))
+        layer.append(nn.Linear(self._edge_hidden_sizes[0] + self._edge_embedding_dim, self._edge_hidden_sizes[0], dtype=torch.float64))
         for i in range(1, len(self._edge_hidden_sizes)):
             layer.append(nn.ReLU())
-            layer.append(nn.Linear(self._edge_hidden_sizes[i - 1], self._edge_hidden_sizes[i]))
+            layer.append(nn.Linear(self._edge_hidden_sizes[i - 1], self._edge_hidden_sizes[i], dtype=torch.float64))
         self._message_net = nn.Sequential(*layer)
 
         # optionally compute message vectors in the reverse direction
@@ -199,18 +199,18 @@ class GraphPropLayer(nn.Module):
 
         if self._node_update_type == 'gru':
             if self._prop_type == 'embedding':
-                self.GRU = torch.nn.GRU(self._node_state_dim * 2, self._node_state_dim)
+                self.GRU = torch.nn.GRU(self._node_state_dim * 2, self._node_state_dim, dtype=torch.float64)
             elif self._prop_type == 'matching':
-                self.GRU = torch.nn.GRU(self._node_state_dim * 3, self._node_state_dim)
+                self.GRU = torch.nn.GRU(self._node_state_dim * 3, self._node_state_dim, dtype=torch.float64)
         else:
             layer = []
             if self._prop_type == 'embedding':
-                layer.append(nn.Linear(self._node_state_dim * 3, self._node_hidden_sizes[0]))
+                layer.append(nn.Linear(self._node_state_dim * 3, self._node_hidden_sizes[0], dtype=torch.float64))
             elif self._prop_type == 'matching':
-                layer.append(nn.Linear(self._node_state_dim * 4, self._node_hidden_sizes[0]))
+                layer.append(nn.Linear(self._node_state_dim * 4, self._node_hidden_sizes[0], dtype=torch.float64))
             for i in range(1, len(self._node_hidden_sizes)):
                 layer.append(nn.ReLU())
-                layer.append(nn.Linear(self._node_hidden_sizes[i - 1], self._node_hidden_sizes[i]))
+                layer.append(nn.Linear(self._node_hidden_sizes[i - 1], self._node_hidden_sizes[i], dtype=torch.float64))
             self.MLP = nn.Sequential(*layer)
 
     def _compute_aggregated_messages(

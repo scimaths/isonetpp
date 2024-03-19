@@ -86,7 +86,7 @@ class SubgraphIsomorphismDataset:
 
     def create_pyG_object(self, graph):
         num_nodes = graph.number_of_nodes()
-        features = torch.ones(num_nodes, 1, dtype=torch.float, device=self.device)
+        features = torch.ones(num_nodes, 1, dtype=torch.float64, device=self.device)
 
         edges = list(graph.edges)
         doubled_edges = [[x, y] for (x, y) in edges] + [[y, x] for (x, y) in edges]
@@ -105,7 +105,7 @@ class SubgraphIsomorphismDataset:
         def adj_list_from_graph_list(graphs):
             adj_list = []
             for graph in graphs:
-                unpadded_adj = torch.tensor(nx.adjacency_matrix(graph).todense(), dtype=torch.float, device=self.device)
+                unpadded_adj = torch.tensor(nx.adjacency_matrix(graph).todense(), dtype=torch.float64, device=self.device)
                 assert unpadded_adj.shape[0] == unpadded_adj.shape[1]
                 num_nodes = len(unpadded_adj)
                 padded_adj = F.pad(unpadded_adj, pad = (0, self.max_node_set_size - num_nodes, 0, self.max_node_set_size - num_nodes))
@@ -139,8 +139,8 @@ class SubgraphIsomorphismDataset:
             to_idx = torch.tensor(np.concatenate(to_idx, axis=0), dtype=torch.int64, device=self.device),
             graph_idx = torch.tensor(np.concatenate(graph_idx, axis=0), dtype=torch.int64, device=self.device),
             num_graphs = len(all_graphs),
-            node_features = torch.ones(total_nodes, 1, dtype=torch.float, device=self.device),
-            edge_features = torch.ones(total_edges, 1, dtype=torch.float, device=self.device)
+            node_features = torch.ones(total_nodes, 1, dtype=torch.float64, device=self.device),
+            edge_features = torch.ones(total_edges, 1, dtype=torch.float64, device=self.device)
         )
 
     def create_stratified_batches(self):
@@ -203,7 +203,7 @@ class SubgraphIsomorphismDataset:
         all_graph_adjs = list(zip(query_graph_adjs, corpus_graph_adjs))
 
         if self.batch_setting == 'stratified':
-            target = torch.tensor(np.array(self.labels[idx]), dtype=torch.float, device=self.device)
+            target = torch.tensor(np.array(self.labels[idx]), dtype=torch.float64, device=self.device)
             return all_graphs, all_graph_sizes, target, all_graph_adjs
         elif self.batch_setting == 'custom':
             return all_graphs, all_graph_sizes, None, all_graph_adjs
