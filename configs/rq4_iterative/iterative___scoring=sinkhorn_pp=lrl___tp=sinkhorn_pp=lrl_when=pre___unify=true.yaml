@@ -5,11 +5,12 @@ inherit:
 
 model_config:
   propagation_layer_config:
-    prop_type: matching
+    prop_type: embedding
 
   propagation_steps: 5
+  refinement_steps: 3
   alignment_feature_dim: 16
-  unify_scoring_and_interaction_preprocessor: False
+  unify_scoring_and_interaction_preprocessor: True
   # scoring params
   scoring: set_aligned
   scoring_alignment: sinkhorn
@@ -17,6 +18,6 @@ model_config:
   # interaction params
   interaction_alignment: sinkhorn
   interaction_alignment_preprocessor_type: lrl
-  interaction_when: post
+  interaction_when: pre
 
-name: gmn_baseline_scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=post
+name: gmn_iterative_refinement_scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=pre___unify=true

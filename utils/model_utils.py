@@ -169,3 +169,21 @@ def get_interaction_feature_store(transport_plan, query_features, corpus_feature
     ], dim=1).reshape(2*batch_size*set_size, feature_dim)
 
     return interleaved_features
+
+def features_to_transport_plan(
+    query_features, corpus_features, preprocessor, alignment_function, what_for,
+    # arguments below can be set exactly once during every forward pass with functools.partial
+    graph_size_to_mask_map, query_sizes, corpus_sizes
+):
+    transformed_features_query = preprocessor(query_features)
+    transformed_features_corpus = preprocessor(corpus_features)
+
+    def mask_graphs(features, graph_sizes):
+        mask = torch.stack([graph_size_to_mask_map[what_for][i] for i in graph_sizes])
+        return mask * features
+    masked_features_query = mask_graphs(transformed_features_query, query_sizes)
+    masked_features_corpus = mask_graphs(transformed_features_corpus, corpus_sizes)
+
+    log_alpha = torch.matmul(masked_features_query, masked_features_corpus.permute(0, 2, 1))
+    transport_plan = alignment_function(log_alpha=log_alpha, query_sizes=query_sizes, corpus_sizes=corpus_sizes)
+    return transport_plan
