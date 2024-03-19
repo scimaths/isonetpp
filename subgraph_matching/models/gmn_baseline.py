@@ -243,6 +243,7 @@ class GMNBaseline(AlignmentModel):
                 node_features_enc, graph_sizes, features_to_transport_plan, padded_node_indices
             )
 
+        print(torch.cat([node_features_enc, interaction_features], dim=-1).shape)
         combined_features = self.interaction_layer(
             torch.cat([node_features_enc, interaction_features], dim=-1)
         )
