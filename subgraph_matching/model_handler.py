@@ -8,6 +8,8 @@ from subgraph_matching.models.edge_early_interaction import EdgeEarlyInteraction
 from subgraph_matching.models.nanl_attention import NodeAlignNodeLossAttention
 from subgraph_matching.models.gmn_baseline import GMNBaseline
 from subgraph_matching.models.gmn_iterative_refinement import GMNIterativeRefinement
+from subgraph_matching.models.graphsim import GraphSim
+from subgraph_matching.models.egsc import EGSC
 
 model_name_to_class_mappings = {
     'node_align_node_loss': NodeAlignNodeLoss,
@@ -23,6 +25,8 @@ model_name_to_class_mappings = {
     'nanl_masked_attention_c_to_q': NodeAlignNodeLossAttention,
     'nanl_masked_attention_max': NodeAlignNodeLossAttention,
     'nanl_masked_attention_min': NodeAlignNodeLossAttention,
+    'graphsim': GraphSim,
+    'egsc': EGSC,
 }
 
 def get_model_names():
@@ -44,4 +48,6 @@ def get_model(model_name, config, max_node_set_size, max_edge_set_size, device):
     )
 
 def get_data_type_for_model(model_name):
+    if model_name in ['graphsim', 'egsc']:
+        return dataset.PYG_DATA_TYPE
     return dataset.GMN_DATA_TYPE
