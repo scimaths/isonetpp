@@ -103,7 +103,7 @@ class SEAttentionModule(torch.nn.Module):
         return x
 
 
-class EGSC(AlignmentModel):
+class EGSC(torch.nn.Module):
     def __init__(
         self,
         input_dim,
@@ -227,6 +227,6 @@ class EGSC(AlignmentModel):
         scores = torch.cat((scores_level3, scores_level2, scores_level1), dim=1)
 
         scores = F.relu(self.fully_connected_first(self.score_attention(scores)*scores + scores))
-        score = torch.sigmoid(self.scoring_layer(scores)).view(1, -1) # dim of score: 128 * 0
+        score = torch.sigmoid(self.scoring_layer(scores)).view(-1) # dim of score: 128 * 0
 
         return  score

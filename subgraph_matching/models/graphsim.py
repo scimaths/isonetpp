@@ -46,7 +46,7 @@ class MaxPoolLayerV1(torch.nn.Module):
             result.append(self.layers[i](self.padding(similarity_matrices_list[i])));
         return result  
 
-class GraphSim(AlignmentModel):
+class GraphSim(torch.nn.Module):
     def __init__(
         self,
         input_dim,
@@ -148,6 +148,6 @@ class GraphSim(AlignmentModel):
 
         features = self.linear_pass(features)
 
-        score_logits = self.scoring_layer(features).view(1, -1)
+        score_logits = self.scoring_layer(features).view(-1)
 
         return score_logits
