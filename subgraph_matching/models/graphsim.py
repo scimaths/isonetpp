@@ -3,7 +3,6 @@ import torch.nn.functional as F
 import torch_geometric.nn as pyg_nn
 from torch_geometric.data import Batch
 from torch.nn.utils.rnn import pad_sequence
-from subgraph_matching.models._template import AlignmentModel
 
 class CNNLayerV1(torch.nn.Module):
     def __init__(self, kernel_size, stride, in_channels, out_channels, num_similarity_matrices):
@@ -124,7 +123,7 @@ class GraphSim(torch.nn.Module):
             features = F.dropout(features,p=self.dropout, training=self.training)
         return features
 
-    def forward_with_alignment(self, graphs, graph_sizes, graph_adj_matrices):
+    def forward(self, graphs, graph_sizes, graph_adj_matrices):
         query_sizes, corpus_sizes = zip(*graph_sizes)
         query_sizes = torch.tensor(query_sizes, device=self.device)
         corpus_sizes = torch.tensor(corpus_sizes, device=self.device)

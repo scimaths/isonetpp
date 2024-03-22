@@ -1,13 +1,9 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 from torch.nn import Linear, ReLU
-
 from torch_geometric.nn import GINConv
 from torch_geometric.data import Batch
-from subgraph_matching.models._template import AlignmentModel
-
 from utils import model_utils
 
 class AttentionModule(torch.nn.Module):
@@ -188,7 +184,7 @@ class EGSC(torch.nn.Module):
         features_out = self.convolution_4(features, edge_index)
         return features_out
 
-    def forward_with_alignment(self, graphs, graph_sizes, graph_adj_matrices):
+    def forward(self, graphs, graph_sizes, graph_adj_matrices):
         query_sizes, corpus_sizes = zip(*graph_sizes)
         query_sizes = torch.tensor(query_sizes, device=self.device)
         corpus_sizes = torch.tensor(corpus_sizes, device=self.device)
