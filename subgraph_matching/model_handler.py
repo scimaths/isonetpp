@@ -9,6 +9,7 @@ from subgraph_matching.models.nanl_attention import NodeAlignNodeLossAttention
 from subgraph_matching.models.gmn_baseline import GMNBaseline
 from subgraph_matching.models.gmn_iterative_refinement import GMNIterativeRefinement
 from subgraph_matching.models.graphsim import GraphSim
+from subgraph_matching.models.egsc_modified import EGSC as EGSC_Modified
 from subgraph_matching.models.egsc import EGSC
 from subgraph_matching.models.eric import ERIC
 
@@ -28,6 +29,7 @@ model_name_to_class_mappings = {
     'nanl_masked_attention_min': NodeAlignNodeLossAttention,
     'graphsim': GraphSim,
     'egsc': EGSC,
+    'egsc_modified': EGSC_Modified,
     'eric': ERIC,
 }
 
@@ -50,6 +52,6 @@ def get_model(model_name, config, max_node_set_size, max_edge_set_size, device):
     )
 
 def get_data_type_for_model(model_name):
-    if model_name in ['graphsim', 'egsc', 'eric']:
+    if model_name in ['graphsim', 'egsc', 'egsc_modified', 'eric']:
         return dataset.PYG_DATA_TYPE
     return dataset.GMN_DATA_TYPE

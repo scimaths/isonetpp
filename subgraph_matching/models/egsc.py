@@ -223,6 +223,6 @@ class EGSC(torch.nn.Module):
         scores = torch.cat((scores_level3, scores_level2, scores_level1), dim=1)
 
         scores = F.relu(self.fully_connected_first(self.score_attention(scores)*scores + scores))
-        score = torch.sigmoid(self.scoring_layer(scores)).view(-1) # dim of score: 128 * 0
+        score = self.scoring_layer(scores).view(-1) # dim of score: 128 * 0
 
         return  score
