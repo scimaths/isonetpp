@@ -9,8 +9,8 @@ from subgraph_matching.models.nanl_attention import NodeAlignNodeLossAttention
 from subgraph_matching.models.gmn_baseline import GMNBaseline
 from subgraph_matching.models.gmn_iterative_refinement import GMNIterativeRefinement
 from subgraph_matching.models.graphsim import GraphSim
-from subgraph_matching.models.egsc_modified import EGSC as EGSC_Modified
 from subgraph_matching.models.egsc import EGSC
+from subgraph_matching.models.egsc_original import EGSC as EGSC_Original
 from subgraph_matching.models.eric import ERIC
 
 model_name_to_class_mappings = {
@@ -29,7 +29,7 @@ model_name_to_class_mappings = {
     'nanl_masked_attention_min': NodeAlignNodeLossAttention,
     'graphsim': GraphSim,
     'egsc': EGSC,
-    'egsc_modified': EGSC_Modified,
+    'egsc_original': EGSC_Original,
     'eric': ERIC,
 }
 

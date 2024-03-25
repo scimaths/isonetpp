@@ -6,223 +6,158 @@ from torch_geometric.nn import GINConv
 from torch_geometric.data import Batch
 from utils import model_utils
 
-class AttentionModule(torch.nn.Module):
-    def __init__(self, dim_size):
-        super(AttentionModule, self).__init__()
+class PoolingModule(torch.nn.Module):
+    def __init__(self, dim_size, reduction_ratio=4):
+        super(PoolingModule, self).__init__()
         self.dim_size = dim_size
-        self.setup_weights()
-        self.init_parameters()
-
-    def setup_weights(self):
-        self.weight_matrix = torch.nn.Parameter(torch.Tensor(self.dim_size, self.dim_size)) 
-        self.weight_matrix1 = torch.nn.Parameter(torch.Tensor(self.dim_size, self.dim_size))
-
-        channel = self.dim_size*1
-        reduction = 4
-        self.fc = nn.Sequential(
-                        nn.Linear(channel,  channel // reduction),
-                        nn.ReLU(inplace = True),
-                        nn.Linear(channel // reduction, channel),
-                        nn.Tanh()
-                )
-
-        self.fc1 =  nn.Linear(channel,  channel)
+        self.mean_transform_layer = nn.Linear(dim_size, dim_size, bias=False)
+        self.gating_layer = nn.Sequential(
+            nn.Linear(dim_size,  dim_size // reduction_ratio),
+            nn.ReLU(),
+            nn.Linear(dim_size // reduction_ratio, dim_size),
+            nn.Tanh()
+        )
+        self.final_layer = nn.Linear(dim_size,  dim_size)
         
-    def init_parameters(self):
-        torch.nn.init.xavier_uniform_(self.weight_matrix)
+    def forward(self, node_features, graph_idx, batch_size):
+        feature_coefs = self.gating_layer(node_features)
+        scaled_node_features = (feature_coefs + 1) * node_features
 
-    def forward(self, x, batch, size=None):
-        attention = self.fc(x)
-        x = attention * x + x
+        node_feature_mean = torch.div(
+            model_utils.unsorted_segment_sum(scaled_node_features, graph_idx, batch_size),
+            model_utils.unsorted_segment_sum(torch.ones_like(node_features), graph_idx, batch_size),
+        )
+        global_context = torch.tanh(self.mean_transform_layer(node_feature_mean)) 
+        node_coefs = (scaled_node_features * global_context[graph_idx]).sum(dim=1).sigmoid()
+        weighted_node_features = node_coefs.unsqueeze(-1) * scaled_node_features 
 
-        size = batch[-1].item() + 1 if size is None else size # size is the quantity of batches: 128 eg
-        mean = model_utils.unsorted_segment_sum(x, batch, size) # dim of mean: 128 * 16
-        mean /= model_utils.unsorted_segment_sum(torch.ones_like(x), batch, size) # dim of mean: 128 * 16
+        return model_utils.unsorted_segment_sum(weighted_node_features, graph_idx, batch_size)
 
-        transformed_global = torch.tanh(torch.mm(mean, self.weight_matrix)) 
-        coefs = torch.sigmoid((x * transformed_global[batch]).sum(dim=1)) # transformed_global[batch]: 1128 * 16; coefs: 1128 * 0
-        weighted = coefs.unsqueeze(-1) * x 
+class InteractionModule(torch.nn.Module):
+    def __init__(self, dim_size, reduction_ratio=4):
+        super(InteractionModule, self).__init__()
+        self.channel_size = dim_size * 2
+        self.gating_layer = nn.Sequential(
+            nn.Linear(self.channel_size,  self.channel_size // reduction_ratio),
+            nn.ReLU(),
+            nn.Linear(self.channel_size // reduction_ratio, self.channel_size),
+            nn.Sigmoid()
+        )
+        self.final_layer = nn.Sequential(
+            nn.Linear(self.channel_size,  self.channel_size),
+            nn.ReLU(),
+            nn.Linear(self.channel_size, dim_size // 2),
+            nn.ReLU()
+        )
 
-        return model_utils.unsorted_segment_sum(weighted, batch, size) # 128 * 16
+    def forward(self, query_embedding, corpus_embedding):
+        combined_embedding = torch.cat((query_embedding, corpus_embedding), 1)
+        feature_coefs = self.gating_layer(combined_embedding)
+        scaled_embedding = (feature_coefs + 1) * combined_embedding
+        return self.final_layer(scaled_embedding)
 
+class ScoringModule(torch.nn.Module):
+    def __init__(self, dim_size, bottleneck_size, reduction_ratio=4):
+        super(ScoringModule, self).__init__()
+        self.dim_size = dim_size
+        self.bottleneck_size = bottleneck_size
+        self.gating_layer = nn.Sequential(
+            nn.Linear(dim_size,  dim_size // reduction_ratio),
+            nn.ReLU(),
+            nn.Linear(dim_size // reduction_ratio, dim_size),
+            nn.Sigmoid()
+        )
+        self.final_layer = nn.Sequential(
+            nn.Linear(dim_size, bottleneck_size),
+            nn.ReLU(),
+            nn.Linear(bottleneck_size, 1),
+        )
 
-class SETensorNetworkModule(torch.nn.Module):
-    def __init__(self, dim_size):
-        super(SETensorNetworkModule, self).__init__()
-        channel = dim_size*2
-        reduction = 4
-        self.fc_se = nn.Sequential(
-                        nn.Linear(channel,  channel // reduction),
-                        nn.ReLU(inplace = True),
-                        nn.Linear(channel // reduction, channel),
-                        nn.Sigmoid()
-                )
-
-        self.fc0 = nn.Sequential(
-                        nn.Linear(channel,  channel),
-                        nn.ReLU(inplace = True),
-                        nn.Linear(channel, channel),
-                        nn.ReLU(inplace = True)
-                )
-
-        self.fc1 = nn.Sequential(
-                        nn.Linear(channel,  channel),
-                        nn.ReLU(inplace = True),
-                         nn.Linear(channel, dim_size // 2),
-                        nn.ReLU(inplace = True)
-                )
-
-    def forward(self, embedding_1, embedding_2):
-
-        combined_representation = torch.cat((embedding_1, embedding_2), 1)
-        se_feat_coefs = self.fc_se(combined_representation)
-        se_feat = se_feat_coefs * combined_representation + combined_representation
-        scores = self.fc1(se_feat)
-
-        return scores
-
-
-class SEAttentionModule(torch.nn.Module):
-    def __init__(self, dim_size):
-        super(SEAttentionModule, self).__init__()
-        channel = dim_size*1
-        reduction = 4
-        self.fc = nn.Sequential(
-                        nn.Linear(channel,  channel // reduction),
-                        nn.ReLU(inplace = True),
-                        nn.Linear(channel // reduction, channel),
-                        nn.Sigmoid()
-                )
-
-    def forward(self, x):
-        x = self.fc(x)
-        return x
-
+    def forward(self, combined_features):
+        feature_coefs = self.gating_layer(combined_features)
+        scaled_features = (feature_coefs + 1) * combined_features
+        return self.final_layer(scaled_features).squeeze()
 
 class EGSC(torch.nn.Module):
     def __init__(
         self,
-        input_dim,
         max_node_set_size,
         max_edge_set_size,
-        filters_1,
-        filters_2,
-        filters_3,
-        bottle_neck_neurons,
+        input_feature_dim,
+        conv_filters,
+        bottleneck_size,
         dropout,
-        device
+        device,
+        reduction_ratio=4,
     ):
         super(EGSC, self).__init__()
         self.device = device
-        self.filters_1 = filters_1
-        self.filters_2 = filters_2
-        self.filters_3 = filters_3
-        self.bottle_neck_neurons = bottle_neck_neurons
+        self.conv_filters = conv_filters
         self.dropout = dropout
 
-        self.feature_count = (self.filters_1 + self.filters_2 + self.filters_3 ) // 2
+        self.aggregated_feature_dim = sum(conv_filters) // 2
 
-        nn1 = torch.nn.Sequential(
-            torch.nn.Linear(input_dim, self.filters_1), 
-            torch.nn.ReLU(), 
-            torch.nn.Linear(self.filters_1, self.filters_1),
-            torch.nn.BatchNorm1d(self.filters_1))
+        self.gin_layers = nn.ModuleList()
+        self.pooling_layers = nn.ModuleList()
+        self.interaction_layers = nn.ModuleList()
 
-        nn2 = torch.nn.Sequential(
-            torch.nn.Linear(self.filters_1, self.filters_2), 
-            torch.nn.ReLU(), 
-            torch.nn.Linear(self.filters_2, self.filters_2),
-            torch.nn.BatchNorm1d(self.filters_2))
+        gin_feature_sequence = [input_feature_dim] + self.conv_filters
+        for idx in range(3):
+            # GIN layers
+            input_dim, output_dim = gin_feature_sequence[idx : idx + 2]
+            mlp = nn.Sequential(
+                nn.Linear(input_dim, output_dim),
+                nn.ReLU(),
+                nn.Linear(output_dim, output_dim),
+                nn.BatchNorm1d(output_dim)
+            )
+            self.gin_layers.append(GINConv(mlp, train_eps=True))
 
-        nn3 = torch.nn.Sequential(
-            torch.nn.Linear(self.filters_2, self.filters_3), 
-            torch.nn.ReLU(), 
-            torch.nn.Linear(self.filters_3, self.filters_3),
-            torch.nn.BatchNorm1d(self.filters_3))
+            # Pooling and Interaction layers
+            self.pooling_layers.append(PoolingModule(dim_size=output_dim, reduction_ratio=reduction_ratio))
+            self.interaction_layers.append(InteractionModule(dim_size=output_dim, reduction_ratio=reduction_ratio))
 
-        self.convolution_1 = GINConv(nn1, train_eps=True)
-        self.convolution_2 = GINConv(nn2, train_eps=True)
-        self.convolution_3 = GINConv(nn3, train_eps=True)
+        self.scoring_layer = ScoringModule(
+            dim_size=self.aggregated_feature_dim,
+            bottleneck_size=bottleneck_size,
+            reduction_ratio=reduction_ratio
+        )
 
-        self.attention_level3 = AttentionModule(self.filters_3)
-
-        self.attention_level2 = AttentionModule(self.filters_2)
-
-        self.attention_level1 = AttentionModule(self.filters_1)
-
-        self.tensor_network_level3 = SETensorNetworkModule(dim_size=self.filters_3)
-        self.tensor_network_level2 = SETensorNetworkModule(dim_size=self.filters_2)
-        self.tensor_network_level1 = SETensorNetworkModule(dim_size=self.filters_1)
-        self.fully_connected_first = torch.nn.Linear(self.feature_count, self.bottle_neck_neurons)
-        self.scoring_layer = torch.nn.Linear(self.bottle_neck_neurons, 1)
-
-        self.score_attention = SEAttentionModule(self.feature_count)
-
-
-    def convolutional_pass_level1(self, edge_index, features):
-        """
-        Making convolutional pass.
-        """
-        features = self.convolution_1(features, edge_index)
+    def gin_forward_pass(self, layer_idx, features, edge_index):
+        features = self.gin_layers[layer_idx](features, edge_index)
         features = F.relu(features)
-        features_1 = F.dropout(features, p=self.dropout, training=self.training)
-        return features_1
-
-    def convolutional_pass_level2(self, edge_index, features):
-        features_2 = self.convolution_2(features, edge_index)
-        features_2 = F.relu(features_2)
-        features_2 = F.dropout(features_2, p=self.dropout, training=self.training)
-        return features_2
-
-    def convolutional_pass_level3(self, edge_index, features):
-        features_3 = self.convolution_3(features, edge_index)
-        features_3 = F.relu(features_3)
-        features_3 = F.dropout(features_3, p=self.dropout, training=self.training)
-        return features_3
-
-    def convolutional_pass_level4(self, edge_index, features):
-        features_out = self.convolution_4(features, edge_index)
-        return features_out
+        return F.dropout(features, p=self.dropout)
 
     def forward(self, graphs, graph_sizes, graph_adj_matrices):
-        query_sizes, corpus_sizes = zip(*graph_sizes)
-        query_sizes = torch.tensor(query_sizes, device=self.device)
-        corpus_sizes = torch.tensor(corpus_sizes, device=self.device)
+        batch_size = len(graph_sizes)
 
         query_graphs, corpus_graphs = zip(*graphs)
         query_batch = Batch.from_data_list(query_graphs)
         corpus_batch = Batch.from_data_list(corpus_graphs)
 
+        query_edge_index, corpus_edge_index = query_batch.edge_index, corpus_batch.edge_index
+        query_features, corpus_features = query_batch.x, corpus_batch.x
+        query_graph_idx, corpus_graph_idx = query_batch.batch, corpus_batch.batch
 
-        edge_index_1 = query_batch.edge_index
-        edge_index_2 = corpus_batch.edge_index
-        features_1 = query_batch.x
-        features_2 = corpus_batch.x
-        batch_1 = query_batch.batch
-        batch_2 = corpus_batch.batch
+        combined_features = []
+        for layer_idx in range(3):
+            query_features = self.gin_forward_pass(
+                layer_idx=layer_idx, features=query_features, edge_index=query_edge_index
+            )
+            pooled_query_features = self.pooling_layers[layer_idx](
+                query_features, query_graph_idx, batch_size
+            )
 
-        features_level1_1 = self.convolutional_pass_level1(edge_index_1, features_1)
-        features_level1_2 = self.convolutional_pass_level1(edge_index_2, features_2)
-        pooled_features_level1_1 = self.attention_level1(features_level1_1, batch_1) # 128 * 64
-        pooled_features_level1_2 = self.attention_level1(features_level1_2, batch_2) # 128 * 64
-        scores_level1 = self.tensor_network_level1(pooled_features_level1_1, pooled_features_level1_2)
+            corpus_features = self.gin_forward_pass(
+                layer_idx=layer_idx, features=corpus_features, edge_index=corpus_edge_index
+            )
+            pooled_corpus_features = self.pooling_layers[layer_idx](
+                corpus_features, corpus_graph_idx, batch_size
+            )
 
-        features_level2_1 = self.convolutional_pass_level2(edge_index_1, features_level1_1)
-        features_level2_2 = self.convolutional_pass_level2(edge_index_2, features_level1_2)
+            combined_features.append(
+                self.interaction_layers[layer_idx](pooled_query_features, pooled_corpus_features)
+            )
+        combined_features = torch.cat(combined_features, dim=1)
 
-        pooled_features_level2_1 = self.attention_level2(features_level2_1, batch_1) # 128 * 32
-        pooled_features_level2_2 = self.attention_level2(features_level2_2, batch_2) # 128 * 32
-        scores_level2 = self.tensor_network_level2(pooled_features_level2_1, pooled_features_level2_2)
-
-        features_level3_1 = self.convolutional_pass_level3(edge_index_1, features_level2_1)
-        features_level3_2 = self.convolutional_pass_level3(edge_index_2, features_level2_2)
-        pooled_features_level3_1 = self.attention_level3(features_level3_1, batch_1) # 128 * 16
-        pooled_features_level3_2 = self.attention_level3(features_level3_2, batch_2) # 128 * 16
-        scores_level3 = self.tensor_network_level3(pooled_features_level3_1, pooled_features_level3_2)
-
-        scores = torch.cat((scores_level3, scores_level2, scores_level1), dim=1)
-
-        scores = F.relu(self.fully_connected_first(self.score_attention(scores)*scores + scores))
-        score = self.scoring_layer(scores).view(-1) # dim of score: 128 * 0
-
-        return  score
+        return self.scoring_layer(combined_features)
