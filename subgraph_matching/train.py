@@ -47,6 +47,9 @@ def train_model(
                 predictions_for_negatives.unsqueeze(1),
                 margin
             )
+
+            if hasattr(model, 'regularizer'):
+                losses += model.regularizer
             losses.backward()
             optimizer.step()
             epoch_loss += losses.item()

@@ -5,11 +5,12 @@ import torch.nn.functional as F
 from torch_geometric.nn import GINConv
 from torch_geometric.data import Batch
 from utils import model_utils
+from subgraph_matching.models._template import EncodingLayer, InteractionLayer, EncodeThenInteractModel
 
 
-class EncodingLayer(torch.nn.Module):
+class EncodingLayerEric(EncodingLayer):
     def __init__(self, input_dim, filters, dropout):
-        super(EncodingLayer, self).__init__()
+        super(EncodingLayerEric, self).__init__()
         self.input_dim = input_dim
         self.filters = filters
         self.num_filter = len(self.filters)
@@ -73,7 +74,10 @@ class EncodingLayer(torch.nn.Module):
         x = F.relu(self.mlp_list_outer[layer_index](x))
         return x
 
-    def forward(self, features, edge_index, graph_idx, batch_size):
+    def forward(self, graphs, batch_size):
+        graph_batch = Batch.from_data_list(graphs)
+        features, edge_index, graph_idx = graph_batch.x, graph_batch.edge_index, graph_batch.batch
+
         layer_wise_node_features = [] # (num_layers, total_num_nodes, num_features)
         layer_wise_graph_features = [] # (num_layers, batch_size, num_features)
         for layer_index in range(self.num_filter):
@@ -84,10 +88,10 @@ class EncodingLayer(torch.nn.Module):
         return layer_wise_graph_features, layer_wise_node_features
 
 
-class InteractionLayer(torch.nn.Module):
+class InteractionLayerEric(InteractionLayer):
     class TensorNetworkInteraction(torch.nn.Module):
         def __init__(self, filters, tensor_neurons):
-            super(InteractionLayer.TensorNetworkInteraction, self).__init__()
+            super(InteractionLayerEric.TensorNetworkInteraction, self).__init__()
 
             self.last_filter = filters[-1]
             self.tensor_neurons = tensor_neurons
@@ -121,7 +125,7 @@ class InteractionLayer(torch.nn.Module):
 
     class MinkowskiInteraction(torch.nn.Module):
         def __init__(self, filters, reduction, dropout, use_conv_stack=True):
-            super(InteractionLayer.MinkowskiInteraction, self).__init__()
+            super(InteractionLayerEric.MinkowskiInteraction, self).__init__()
 
             self.filters = filters
             self.channel_dim = sum(self.filters)
@@ -155,7 +159,7 @@ class InteractionLayer(torch.nn.Module):
 
 
     def __init__(self, filters, tensor_neurons, reduction, dropout):
-        super(InteractionLayer, self).__init__()
+        super(InteractionLayerEric, self).__init__()
 
         self.filters = filters
         self.tensor_neurons = tensor_neurons
@@ -181,7 +185,7 @@ class InteractionLayer(torch.nn.Module):
         return score
 
 
-class ERIC(torch.nn.Module):
+class ERIC(EncodeThenInteractModel):
     def __init__(
         self,
         input_dim,
@@ -195,29 +199,24 @@ class ERIC(torch.nn.Module):
     ):
         super(ERIC, self).__init__()
 
-        self.encoding_layer = EncodingLayer(input_dim, gnn_filters, dropout)
-        self.interaction_layer = InteractionLayer(gnn_filters, tensor_neurons, reduction, dropout)
+        self.encoding_layer = EncodingLayerEric(input_dim, gnn_filters, dropout)
+        self.interaction_layer = InteractionLayerEric(gnn_filters, tensor_neurons, reduction, dropout)
         self.gamma = nn.Parameter(torch.Tensor(1)) 
         nn.init.zeros_(self.gamma)
 
     def forward(self, graphs, graph_sizes, graph_adj_matrices):
         batch_size = len(graph_sizes)
-
         query_graphs, corpus_graphs = zip(*graphs)
-        query_batch = Batch.from_data_list(query_graphs)
-        corpus_batch = Batch.from_data_list(corpus_graphs)
-
-        query_edge_index, corpus_edge_index = query_batch.edge_index, corpus_batch.edge_index
-        query_node_features, corpus_node_features = query_batch.x, corpus_batch.x
-        query_graph_idx, corpus_graph_idx = query_batch.batch, corpus_batch.batch
 
         # Encoding graph level features
-        query_graph_features, query_node_features = self.encoding_layer(query_node_features, query_edge_index, query_graph_idx, batch_size)
-        corpus_graph_features, corpus_node_features = self.encoding_layer(corpus_node_features, corpus_edge_index, corpus_graph_idx, batch_size)
+        query_graph_features, query_node_features = self.encoding_layer(query_graphs, batch_size)
+        corpus_graph_features, corpus_node_features = self.encoding_layer(corpus_graphs, batch_size)
 
         # Interaction
         score = self.interaction_layer(query_graph_features, corpus_graph_features, batch_size)
 
         # Regularizer Term
+        query_graph_idx = Batch.from_data_list(query_graphs).batch
+        corpus_graph_idx = Batch.from_data_list(corpus_graphs).batch
         self.regularizer = self.gamma * self.encoding_layer.regularizer(query_node_features, corpus_node_features, query_graph_features, corpus_graph_features, query_graph_idx, corpus_graph_idx, batch_size)
         return score
