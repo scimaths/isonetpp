@@ -6,7 +6,7 @@ from torch_geometric.nn import GINConv
 from torch_geometric.data import Batch
 from utils import model_utils
 
-class PoolingModule(torch.nn.Module):
+class PoolingModule(nn.Module):
     def __init__(self, dim_size, reduction_ratio=4):
         super(PoolingModule, self).__init__()
         self.dim_size = dim_size
@@ -19,22 +19,22 @@ class PoolingModule(torch.nn.Module):
         )
         self.final_layer = nn.Linear(dim_size,  dim_size)
         
-    def forward(self, node_features, graph_idx, batch_size):
+    def forward(self, node_features, graph_idx, num_graphs):
         feature_coefs = self.gating_layer(node_features)
         scaled_node_features = (feature_coefs + 1) * node_features
 
         node_feature_mean = torch.div(
-            model_utils.unsorted_segment_sum(scaled_node_features, graph_idx, batch_size),
-            model_utils.unsorted_segment_sum(torch.ones_like(node_features), graph_idx, batch_size),
+            model_utils.unsorted_segment_sum(scaled_node_features, graph_idx, num_graphs),
+            model_utils.unsorted_segment_sum(torch.ones_like(node_features), graph_idx, num_graphs),
         )
         global_context = torch.tanh(self.mean_transform_layer(node_feature_mean)) 
         node_coefs = (scaled_node_features * global_context[graph_idx]).sum(dim=1).sigmoid()
         weighted_node_features = node_coefs.unsqueeze(-1) * scaled_node_features 
 
-        return model_utils.unsorted_segment_sum(weighted_node_features, graph_idx, batch_size)
+        return model_utils.unsorted_segment_sum(weighted_node_features, graph_idx, num_graphs)
 
-class InteractionModule(torch.nn.Module):
-    def __init__(self, dim_size, reduction_ratio=4):
+class InteractionModule(nn.Module):
+    def __init__(self, dim_size, reduction_ratio=4, output_dim=None):
         super(InteractionModule, self).__init__()
         self.channel_size = dim_size * 2
         self.gating_layer = nn.Sequential(
@@ -43,10 +43,11 @@ class InteractionModule(torch.nn.Module):
             nn.Linear(self.channel_size // reduction_ratio, self.channel_size),
             nn.Sigmoid()
         )
+        output_dim = output_dim or dim_size // 2
         self.final_layer = nn.Sequential(
             nn.Linear(self.channel_size,  self.channel_size),
             nn.ReLU(),
-            nn.Linear(self.channel_size, dim_size // 2),
+            nn.Linear(self.channel_size, output_dim),
             nn.ReLU()
         )
 
@@ -56,7 +57,7 @@ class InteractionModule(torch.nn.Module):
         scaled_embedding = (feature_coefs + 1) * combined_embedding
         return self.final_layer(scaled_embedding)
 
-class ScoringModule(torch.nn.Module):
+class ScoringModule(nn.Module):
     def __init__(self, dim_size, bottleneck_size, reduction_ratio=4):
         super(ScoringModule, self).__init__()
         self.dim_size = dim_size
@@ -78,7 +79,20 @@ class ScoringModule(torch.nn.Module):
         scaled_features = (feature_coefs + 1) * combined_features
         return self.final_layer(scaled_features).squeeze()
 
-class EGSC(torch.nn.Module):
+class EGSC_ScoringHead(nn.Module):
+    def __init__(self, dim_size, bottleneck_size, reduction_ratio=4):
+        super(EGSC_ScoringHead, self).__init__()
+        self.pooling_layer = PoolingModule(dim_size, reduction_ratio)
+        self.interaction_layer = InteractionModule(dim_size, reduction_ratio, output_dim=dim_size)
+        self.scoring_layer = ScoringModule(dim_size, bottleneck_size, reduction_ratio)
+
+    def forward(self, node_features, graph_idx, num_graphs):
+        pooled_graph_features = self.pooling_layer(node_features, graph_idx, num_graphs)
+        query_features, corpus_features = pooled_graph_features[0::2], pooled_graph_features[1::2]
+        combined_features = self.interaction_layer(query_features, corpus_features)
+        return self.scoring_layer(combined_features)
+
+class EGSC(nn.Module):
     def __init__(
         self,
         max_node_set_size,
@@ -92,6 +106,7 @@ class EGSC(torch.nn.Module):
     ):
         super(EGSC, self).__init__()
         self.device = device
+        self.num_conv_layers = len(conv_filters)
         self.conv_filters = conv_filters
         self.dropout = dropout
 
@@ -101,10 +116,10 @@ class EGSC(torch.nn.Module):
         self.pooling_layers = nn.ModuleList()
         self.interaction_layers = nn.ModuleList()
 
-        gin_feature_sequence = [input_feature_dim] + self.conv_filters
-        for idx in range(3):
+        gin_feature_dim_sequence = [input_feature_dim] + self.conv_filters
+        for idx in range(self.num_conv_layers):
             # GIN layers
-            input_dim, output_dim = gin_feature_sequence[idx : idx + 2]
+            input_dim, output_dim = gin_feature_dim_sequence[idx : idx + 2]
             mlp = nn.Sequential(
                 nn.Linear(input_dim, output_dim),
                 nn.ReLU(),
@@ -140,7 +155,7 @@ class EGSC(torch.nn.Module):
         query_graph_idx, corpus_graph_idx = query_batch.batch, corpus_batch.batch
 
         combined_features = []
-        for layer_idx in range(3):
+        for layer_idx in range(self.num_conv_layers):
             query_features = self.gin_forward_pass(
                 layer_idx=layer_idx, features=query_features, edge_index=query_edge_index
             )

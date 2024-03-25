@@ -7,6 +7,7 @@ from utils.tooling import ReadOnlyConfig
 import GMN.graphembeddingnetwork as gmngen
 import GMN.graphmatchingnetwork as gmngmn
 from subgraph_matching.models._template import AlignmentModel
+from subgraph_matching.models.egsc import EGSC_ScoringHead
 
 # Alignment preprocessing constants
 LRL = 'lrl'
@@ -22,7 +23,8 @@ POSSIBLE_ALIGNMENTS = [ATTENTION, MASKED_ATTENTION, SINKHORN, None]
 # Scoring constants
 AGGREGATED = 'aggregated'
 SET_ALIGNED = 'set_aligned'
-POSSIBLE_SCORINGS = [AGGREGATED, SET_ALIGNED]
+EGSC_STYLE = 'egsc_style'
+POSSIBLE_SCORINGS = [AGGREGATED, SET_ALIGNED, EGSC_STYLE]
 
 # Interaction constants (wrt message-passing)
 INTERACTION_PRE = 'pre'
@@ -41,8 +43,9 @@ class GMNBaseline(AlignmentModel):
         device,
         alignment_feature_dim: Optional[int] = None,
         # Arguments to manage scoring-time alignment
-        scoring: str = AGGREGATED, # one of 'aggregated', 'set_aligned'
+        scoring: str = AGGREGATED, # one of 'aggregated', 'set_aligned', 'egsc_style'
         aggregator_config: Optional[ReadOnlyConfig] = None,
+        egsc_scoring_config: Optional[ReadOnlyConfig] = None,
         scoring_alignment: Optional[str] = None, # one of 'attention', 'sinkhorn' or None
         scoring_alignment_preprocessor_type: str = IDENTITY, # one of 'lrl' or 'identity'
         # Use scoring arguments for interaction
@@ -68,20 +71,25 @@ class GMNBaseline(AlignmentModel):
         assert (scoring != AGGREGATED) ^ (aggregator_config is not None), (
             "`aggregator_config` should not be None iff aggregated scoring is used"
         )
+        # ensure egsc_scoring_config is present when needed and not when not
+        assert (scoring != EGSC_STYLE) ^ (egsc_scoring_config is not None), (
+            "`egsc_scoring_config` should not be None iff EGSC-style scoring is used"
+        )
         # set_aligned scoring should use some non-None alignment
-        assert (scoring == AGGREGATED) ^ (scoring_alignment is not None), (
-            "`scoring_alignment` should be None iff aggregated scoring is used"
+        assert (scoring != SET_ALIGNED) ^ (scoring_alignment is not None), (
+            "`scoring_alignment` should be None iff set-aligned scoring is not used"
         )
         # require feature_dim for LRL preprocessing
         assert (scoring_alignment_preprocessor_type != LRL) or (alignment_feature_dim is not None), (
             "`alignment_feature_dim` should be non-zero if LRL preprocessing is used in scoring"
         )
-        # ensure no extra params if aggregated
-        assert (scoring != AGGREGATED) or (scoring_alignment_preprocessor_type == IDENTITY), (
-            "aggregated scoring must have identity preprocessor to prevent extra parameters"
+        # ensure no extra params if aggregated/egsc-style scoring
+        assert (scoring == SET_ALIGNED) or (scoring_alignment_preprocessor_type == IDENTITY), (
+            "Only set-aligned scoring is allowed to have non-identity preprocessor"
         )
         self.scoring = scoring
         self.aggregator_config = aggregator_config
+        self.egsc_scoring_config = egsc_scoring_config
         self.scoring_alignment_type = scoring_alignment
         self.alignment_feature_dim = alignment_feature_dim
         self.scoring_alignment_preprocessor_type = scoring_alignment_preprocessor_type
@@ -89,8 +97,8 @@ class GMNBaseline(AlignmentModel):
         #########################################
         # CONSTRAINTS for interaction
         # unification of interaction and scoring
-        assert not(unify_scoring_and_interaction_preprocessor) or (scoring != AGGREGATED), (
-            "Can't unify with aggregated scoring"
+        assert not(unify_scoring_and_interaction_preprocessor) or (scoring == SET_ALIGNED), (
+            "Can't unify if set-aligned scoring is not used"
         )
         assert not(unify_scoring_and_interaction_preprocessor) or (
             interaction_alignment_preprocessor_type == scoring_alignment_preprocessor_type
@@ -207,6 +215,10 @@ class GMNBaseline(AlignmentModel):
     def setup_scoring(self, node_state_dim):
         if self.scoring == AGGREGATED:
             self.aggregator = gmngen.GraphAggregator(**self.aggregator_config)
+
+        elif self.scoring == EGSC_STYLE:
+            self.egsc_scoring_layer = EGSC_ScoringHead(**self.egsc_scoring_config)
+
         elif self.scoring == SET_ALIGNED:
             self.scoring_alignment_preprocessor = self.get_alignment_preprocessor(
                 preprocessor_type = self.scoring_alignment_preprocessor_type,
@@ -334,5 +346,9 @@ class GMNBaseline(AlignmentModel):
         ############################## SCORING ##############################
         if self.scoring == AGGREGATED:
             return self.aggregated_scoring(node_features_enc, graph_idx, graph_sizes)
+
+        elif self.scoring == EGSC_STYLE:
+            return self.egsc_scoring_layer(node_features_enc, graph_idx, len(graph_sizes) * 2), []
+
         elif self.scoring == SET_ALIGNED:
             return self.set_aligned_scoring(node_features_enc, graph_sizes, features_to_transport_plan)
