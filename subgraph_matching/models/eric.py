@@ -5,31 +5,6 @@ import torch.nn.functional as F
 from torch_geometric.nn.glob import global_add_pool
 from torch_geometric.data import Batch
 
-class MLPLayers(nn.Module):
-
-    def __init__(self, n_in, n_hid, n_out, num_layers = 2 ,use_bn=True, act = 'relu'):
-        super(MLPLayers, self).__init__()
-        modules = []
-        modules.append(nn.Linear(n_in, n_hid))
-        out = n_hid
-        use_act = True
-        for i in range(num_layers-1):  # num_layers = 3  i=0,1
-            if i == num_layers-2:
-                use_bn = False
-                use_act = False
-                out = n_out
-            modules.append(nn.Linear(n_hid, out))
-            if use_bn:
-                modules.append(nn.BatchNorm1d(out)) 
-            if use_act:
-                modules.append(nn.ReLU())
-        self.mlp_list = nn.Sequential(*modules)
-
-    def forward(self,x):
-        x = self.mlp_list(x)
-        return x
-
-
 class TensorNetworkModule(torch.nn.Module):
 
     def __init__(self, tensor_neurons, filters):
@@ -75,6 +50,63 @@ class TensorNetworkModule(torch.nn.Module):
         scores = F.relu(scoring + block_scoring + self.bias.view(-1))
         return scores
 
+class EncodingLayer:
+    def __init__(self, input_dim, filters, tensor_neurons):
+        super(EncodingLayer, self).__init__()
+        self.num_filter = len(filters)
+
+        self.gnn_list = nn.ModuleList()
+        gnn_filters = [input_dim] + filters
+        for i in range(self.num_filter):
+            self.gnn_list.append(
+                GINConv(
+                    torch.nn.Sequential(
+                        torch.nn.Linear(gnn_filters[i], gnn_filters[i+1]),
+                        torch.nn.ReLU(),
+                        torch.nn.Linear(gnn_filters[i+1], gnn_filters[i+1]),
+                        torch.nn.BatchNorm1d(gnn_filters[i+1]),
+                    ),eps=True
+                )
+            )
+
+        self.mlp_list_inner = nn.ModuleList()
+        self.mlp_list_outer = nn.ModuleList()
+        for i in range(self.num_filter):
+            self.mlp_list_inner.append(nn.Linear(self.filters[i], self.filters[i]))
+            self.mlp_list_outer.append(nn.Linear(self.filters[i], self.filters[i]))
+
+
+    def forward(self, x, edge_index, graph_idx, batch_size):
+        size = batch[-1].item() + 1
+        features_layer = []
+        for i in range(self.num_filter):
+            def conv(enc, x, edge_index):
+                x = self.gnn_list[i](x, edge_index)
+                x = F.relu(x)
+                x = F.dropout(x, p = self.dropout, training=self.training)
+                return x 
+            x = conv(self.gnn_list[i], x, edge_index)
+            x = F.relu(self.mlp_list_inner[i](x))
+            x = model_utils.unsorted_segment_sum(x, graph_idx, batch_size)
+            x = unsorted_segment_sum(feat, batch, size=size)
+            x = F.relu(self.mlp_list_outer[i](x))
+            features_layer.append(x)
+        return torch.cat(features_layer, dim=1)
+
+
+class InteractionLayer:
+    def __init__(self, filters, tensor_neurons):
+        super(InteractionLayer, self).__init__()
+        self.NTN = TensorNetworkModule(tensor_neurons, filters)
+
+    def forward(self, query_features, corpus_features):
+        sim_rep = self.NTN(query_features, corpus_features)
+        sim_score = torch.sigmoid(self.score_sim_layer(sim_rep).squeeze())
+        self.score_sim_layer = nn.Sequential(
+                                    nn.Linear(tensor_neurons, tensor_neurons),
+                                    nn.ReLU(),
+                                    nn.Linear(tensor_neurons, 1)
+                                )
 
 class ERIC(torch.nn.Module):
     def __init__(
@@ -96,32 +128,8 @@ class ERIC(torch.nn.Module):
         self.tensor_neurons = tensor_neurons
         self.num_filter = len(self.filters)
 
-        self.gnn_list = nn.ModuleList()
-        self.mlp_list_inner = nn.ModuleList()  
-        self.mlp_list_outer = nn.ModuleList()  
-        self.NTN_list = nn.ModuleList()
-
-        self.gnn_list.append(GINConv(torch.nn.Sequential(
-            torch.nn.Linear(input_dim, self.filters[0]),
-            torch.nn.ReLU(),
-            torch.nn.Linear(self.filters[0], self.filters[0]),
-            torch.nn.BatchNorm1d(self.filters[0]),
-        ),eps=True))
-
-        for i in range(self.num_filter-1):
-            self.gnn_list.append(GINConv(torch.nn.Sequential(
-            torch.nn.Linear(self.filters[i],self.filters[i+1]),
-            torch.nn.ReLU(),
-            torch.nn.Linear(self.filters[i+1], self.filters[i+1]),
-            torch.nn.BatchNorm1d(self.filters[i+1]),
-        ), eps=True))
-
-        for i in range(self.num_filter):
-            self.mlp_list_inner.append(MLPLayers(self.filters[i], self.filters[i],None, num_layers=1,use_bn=False))
-            self.mlp_list_outer.append(MLPLayers(self.filters[i], self.filters[i],None, num_layers=1,use_bn=False))
-            self.act_inner = F.relu
-            self.act_outer = F.relu
-            self.NTN = TensorNetworkModule(self.tensor_neurons, self.filters[self.num_filter-1])
+        self.encoding_layer = EncodingLayer(self.filters, self.tensor_neurons)
+        self.interaction_layer = InteractionLayer(self.filters[-1], self.tensor_neurons)
 
         self.channel_dim = sum(self.filters)
         self.reduction = reduction
@@ -139,66 +147,29 @@ class ERIC(torch.nn.Module):
                             nn.ReLU(),
                             nn.Linear(16 , 1)
                         )
-        self.score_sim_layer = nn.Sequential(
-                                    nn.Linear(tensor_neurons, tensor_neurons),
-                                    nn.ReLU(),
-                                    nn.Linear(tensor_neurons, 1)
-                                )
-
+        
         self.alpha = nn.Parameter(torch.Tensor(1))
         self.beta = nn.Parameter(torch.Tensor(1))
 
-    def convolutional_pass_level(self, enc, edge_index, x):
-        feat = enc(x, edge_index)
-        feat = F.relu(feat)
-        feat = F.dropout(feat, p = self.dropout, training=self.training)
-        return feat
-
-    def deepsets_outer(self, batch, feat, filter_idx, size = None):
-        size = (batch[-1].item() + 1 if size is None else size)
-        pool = global_add_pool(feat, batch, size=size)
-        return self.act_outer(self.mlp_list_outer[filter_idx](pool))
-
     def forward(self, graphs, graph_sizes, graph_adj_matrices):
-        query_sizes, corpus_sizes = zip(*graph_sizes)
-        query_sizes = torch.tensor(query_sizes, device=self.device)
-        corpus_sizes = torch.tensor(corpus_sizes, device=self.device)
+        batch_size = len(graph_sizes)
 
         query_graphs, corpus_graphs = zip(*graphs)
         query_batch = Batch.from_data_list(query_graphs)
         corpus_batch = Batch.from_data_list(corpus_graphs)
 
-        edge_index_1 = query_batch.edge_index
-        edge_index_2 = corpus_batch.edge_index
-        features_1 = query_batch.x
-        features_2 = corpus_batch.x
-        batch_1 = query_batch.batch
-        batch_2 = corpus_batch.batch
+        query_edge_index, corpus_edge_index = query_batch.edge_index, corpus_batch.edge_index
+        query_features, corpus_features = query_batch.x, corpus_batch.x
+        query_graph_idx, corpus_graph_idx = query_batch.batch, corpus_batch.batch
 
-        conv_source_1 = torch.clone(features_1)
-        conv_source_2 = torch.clone(features_2)
-
-
-        for i in range(self.num_filter):
-            conv_source_1 = self.convolutional_pass_level(self.gnn_list[i], edge_index_1, conv_source_1)
-            conv_source_2 = self.convolutional_pass_level(self.gnn_list[i], edge_index_2, conv_source_2)
-
-            deepsets_inner_1 = self.act_inner(self.mlp_list_inner[i](conv_source_1)) # [1147, 64]
-            deepsets_inner_2 = self.act_inner(self.mlp_list_inner[i](conv_source_2))
-
-            deepsets_outer_1 = self.deepsets_outer(batch_1, deepsets_inner_1,i)
-            deepsets_outer_2 = self.deepsets_outer(batch_2, deepsets_inner_2,i)
-
-            diff_rep = torch.exp(-torch.pow(deepsets_outer_1 - deepsets_outer_2, 2)) if i == 0 else torch.cat((diff_rep, torch.exp(-torch.pow(deepsets_outer_1 - deepsets_outer_2,2))), dim = 1)  
-
-        score_rep = self.conv_stack(diff_rep).squeeze()  # (128,64)
-
-        sim_rep = self.NTN(deepsets_outer_1, deepsets_outer_2)
-
-        sim_score = torch.sigmoid(self.score_sim_layer(sim_rep).squeeze())
-
+        query_features = self.encoding_layer(query_features, query_edge_index, query_graph_idx)
+        corpus_features = self.encoding_layer(corpus_features, corpus_edge_index, corpus_graph_idx)
+        
+        diff_rep = torch.exp(-torch.pow(query_features - corpus_features, 2))
+        score_rep = self.conv_stack(diff_rep).squeeze()
         score = torch.sigmoid(self.score_layer(score_rep)).view(-1)
 
+        sim_score = self.interaction_layer(query_features, corpus_features)
         comb_score = self.alpha * score + self.beta * sim_score
 
         return comb_score
