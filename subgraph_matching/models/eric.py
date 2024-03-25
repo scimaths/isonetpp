@@ -1,26 +1,32 @@
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F   
 from torch_geometric.nn import GINConv
 from torch_geometric.data import Batch
+from utils import model_utils
 
 
-class EncodingLayer:
-    def __init__(self, input_dim, filters):
+class EncodingLayer(torch.nn.Module):
+    def __init__(self, input_dim, filters, dropout):
         super(EncodingLayer, self).__init__()
-        self.num_filter = len(filters)
+        self.input_dim = input_dim
+        self.filters = filters
+        self.num_filter = len(self.filters)
+        self.dropout = dropout
 
         self.gnn_list = nn.ModuleList()
-        gnn_filters = [input_dim] + filters
+        self.gnn_filters = [self.input_dim] + self.filters
         for i in range(self.num_filter):
             self.gnn_list.append(
                 GINConv(
                     torch.nn.Sequential(
-                        torch.nn.Linear(gnn_filters[i], gnn_filters[i+1]),
+                        torch.nn.Linear(self.gnn_filters[i], self.gnn_filters[i+1]),
                         torch.nn.ReLU(),
-                        torch.nn.Linear(gnn_filters[i+1], gnn_filters[i+1]),
-                        torch.nn.BatchNorm1d(gnn_filters[i+1]),
-                    ),eps=True
+                        torch.nn.Linear(self.gnn_filters[i+1], self.gnn_filters[i+1]),
+                        torch.nn.BatchNorm1d(self.gnn_filters[i+1]),
+                    ),
+                    eps=True
                 )
             )
 
@@ -30,37 +36,34 @@ class EncodingLayer:
             self.mlp_list_inner.append(nn.Linear(filters[i], filters[i]))
             self.mlp_list_outer.append(nn.Linear(filters[i], filters[i]))
 
-    def regularizer(self, query_node_features, corpus_node_features, query_graph_features, corpus_graph_features, query_graph_idx, corpus_graph_idx, batch_size):
-        query_node_features = torch.stack(query_node_features, dim=0)
-        corpus_node_features = torch.stack(corpus_node_features, dim=0)
-        query_graph_features = torch.stack(query_graph_features, dim=0)
-        corpus_graph_features = torch.stack(corpus_graph_features, dim=0)
+    def regularizer(self, query_node_features_list, corpus_node_features_list, query_graph_features_list, corpus_graph_features_list, query_graph_idx, corpus_graph_idx, batch_size):
+        query_node_features = torch.cat(query_node_features_list, dim=1)
+        corpus_node_features = torch.cat(corpus_node_features_list, dim=1)
+        query_graph_features = torch.cat(query_graph_features_list, dim=1)
+        corpus_graph_features = torch.cat(corpus_graph_features_list, dim=1)
 
-        gamma_i = torch.abs(
-                    torch.sub(
-                        torch.bmm(query_node_features, query_graph_features.t()), # (num_layers, total_num_nodes, batch_size)
-                        torch.bmm(query_node_features, corpus_graph_features.t()), # (num_layers, total_num_nodes, batch_size)
-                    )
-                )
-        gamma_i = model_utils.unsorted_segment_sum(gamma_i, query_graph_idx, batch_size) # (num_layers, batch_size, batch_size)
+        sim_1 = torch.matmul(query_node_features, query_graph_features.t())
+        cross_1 = torch.matmul(query_node_features, corpus_graph_features.t())
+        sim_2 = torch.matmul(corpus_node_features, corpus_graph_features.t())
+        cross_2 = torch.matmul(corpus_node_features, query_graph_features.t())
 
-        gamma_j = torch.sub(
-            torch.bmm(corpus_node_features, query_graph_features.t()), # (num_layers, total_num_nodes, batch_size)
-            torch.bmm(corpus_node_features, corpus_graph_features.t()), # (num_layers, total_num_nodes, batch_size)
-        )
-        gamma_j = model_utils.unsorted_segment_sum(gamma_j, corpus_graph_idx, batch_size) # (num_layers, batch_size, batch_size)
+        mask_1 = torch.zeros_like(sim_1)
+        mask_2 = torch.zeros_like(sim_2)
+        for node, graph in enumerate(zip(query_graph_idx, corpus_graph_idx)):
+            graph_1, graph_2 = graph
+            mask_1[node][graph_1] = 1.
+            mask_2[node][graph_2] = 1.
 
-        gamma = torch.sum(
-                    gamma_i,
-                    gamma_j,
-                    torch.abs(gamma_i - gamma_j),
-                ) / self.num_filter
+        def expectation(sim):
+            return (math.log(2.) - F.softplus(-sim)).sum()
 
-        return gamma
+        gamma_1 = expectation(sim_1 * mask_1) - expectation(cross_1 * mask_1)
+        gamma_2 = expectation(sim_2 * mask_2) - expectation(cross_2 * mask_2)
+        return gamma_1 - gamma_2
 
     def encoder_forward(self, x, edge_index, layer_index):
-        x = self.gnn_list[i](x, edge_index)
-        x = F.relu(layer_index)
+        x = self.gnn_list[layer_index](x, edge_index)
+        x = F.relu(x)
         x = F.dropout(x, p = self.dropout, training=self.training)
         return x
 
@@ -70,21 +73,21 @@ class EncodingLayer:
         x = F.relu(self.mlp_list_outer[layer_index](x))
         return x
 
-    def forward(self, x, edge_index, graph_idx, batch_size):
+    def forward(self, features, edge_index, graph_idx, batch_size):
         layer_wise_node_features = [] # (num_layers, total_num_nodes, num_features)
         layer_wise_graph_features = [] # (num_layers, batch_size, num_features)
         for layer_index in range(self.num_filter):
-            x = self.encoder_forward(x, edge_index, layer_index)
-            layer_wise_node_features.append(x)
-            x = self.deepset_forward(x, graph_idx, batch_size, layer_index)         
-            layer_wise_graph_features.append(x)
+            features = self.encoder_forward(features, edge_index, layer_index)
+            layer_wise_node_features.append(features)
+            pooled_features = self.deepset_forward(features, graph_idx, batch_size, layer_index)         
+            layer_wise_graph_features.append(pooled_features)
         return layer_wise_graph_features, layer_wise_node_features
 
 
-class InteractionLayer:
-    class TensorNetworkInteraction:
+class InteractionLayer(torch.nn.Module):
+    class TensorNetworkInteraction(torch.nn.Module):
         def __init__(self, filters, tensor_neurons):
-            super(TensorNetworkInteraction, self).__init__()
+            super(InteractionLayer.TensorNetworkInteraction, self).__init__()
 
             self.last_filter = filters[-1]
             self.tensor_neurons = tensor_neurons
@@ -116,10 +119,11 @@ class InteractionLayer:
             return scores
 
 
-    class MinkowskiInteraction:
+    class MinkowskiInteraction(torch.nn.Module):
         def __init__(self, filters, reduction, dropout, use_conv_stack=True):
-            super(MinkowskiInteraction, self).__init__()
+            super(InteractionLayer.MinkowskiInteraction, self).__init__()
 
+            self.filters = filters
             self.channel_dim = sum(self.filters)
             self.reduction = reduction
             self.dropout = dropout
@@ -150,22 +154,26 @@ class InteractionLayer:
             return score
 
 
-    def __init__(self, filters, tensor_neurons, reduction):
+    def __init__(self, filters, tensor_neurons, reduction, dropout):
         super(InteractionLayer, self).__init__()
 
         self.filters = filters
         self.tensor_neurons = tensor_neurons
         self.reduction = reduction
+        self.dropout = dropout
 
-        self.TensorNetworkInteraction = TensorNetworkInteraction(self.tensor_neurons, self.filters)
-        self.MinkowskiInteraction = MinkowskiInteraction(self.filters, self.reduction)
+        self.tensor_network_interaction = self.TensorNetworkInteraction(self.filters, self.tensor_neurons)
+        self.minkowski_interaction = self.MinkowskiInteraction(self.filters, self.reduction, self.dropout)
 
         self.alpha = nn.Parameter(torch.Tensor(1))
         self.beta = nn.Parameter(torch.Tensor(1))
 
+        nn.init.zeros_(self.alpha)
+        nn.init.zeros_(self.beta)
+
     def forward(self, query_features, corpus_features, batch_size):
-        score_1 = self.TensorNetworkInteraction(query_features[-1], corpus_features[-1], batch_size)
-        score_2 = self.MinkowskiInteraction(
+        score_1 = self.tensor_network_interaction(query_features[-1], corpus_features[-1], batch_size)
+        score_2 = self.minkowski_interaction(
                     torch.cat(query_features, dim=1),
                     torch.cat(corpus_features, dim=1)
                 )
@@ -187,8 +195,10 @@ class ERIC(torch.nn.Module):
     ):
         super(ERIC, self).__init__()
 
-        self.encoding_layer = EncodingLayer(input_dim, gnn_filters)
-        self.interaction_layer = InteractionLayer(gnn_filters, tensor_neurons)
+        self.encoding_layer = EncodingLayer(input_dim, gnn_filters, dropout)
+        self.interaction_layer = InteractionLayer(gnn_filters, tensor_neurons, reduction, dropout)
+        self.gamma = nn.Parameter(torch.Tensor(1)) 
+        nn.init.zeros_(self.gamma)
 
     def forward(self, graphs, graph_sizes, graph_adj_matrices):
         batch_size = len(graph_sizes)
@@ -202,12 +212,12 @@ class ERIC(torch.nn.Module):
         query_graph_idx, corpus_graph_idx = query_batch.batch, corpus_batch.batch
 
         # Encoding graph level features
-        query_graph_features, query_node_features = self.encoding_layer(query_node_features, query_edge_index, query_graph_idx)
-        corpus_graph_features, corpus_node_features = self.encoding_layer(corpus_node_features, corpus_edge_index, corpus_graph_idx)
+        query_graph_features, query_node_features = self.encoding_layer(query_node_features, query_edge_index, query_graph_idx, batch_size)
+        corpus_graph_features, corpus_node_features = self.encoding_layer(corpus_node_features, corpus_edge_index, corpus_graph_idx, batch_size)
 
         # Interaction
-        score = self.interaction_layer(query_graph_features, corpus_graph_features)
+        score = self.interaction_layer(query_graph_features, corpus_graph_features, batch_size)
 
         # Regularizer Term
-        reg = self.encoding_layer.regularizer(query_graph_features, query_node_features, corpus_graph_features, corpus_node_features, query_graph_idx, corpus_graph_idx, batch_size)
-        return score, reg
+        self.regularizer = self.gamma * self.encoding_layer.regularizer(query_node_features, corpus_node_features, query_graph_features, corpus_graph_features, query_graph_idx, corpus_graph_idx, batch_size)
+        return score
