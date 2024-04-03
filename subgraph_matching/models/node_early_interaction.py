@@ -3,6 +3,8 @@ from utils import model_utils
 from utils.tooling import ReadOnlyConfig
 import GMN.graphembeddingnetwork as gmngen
 from subgraph_matching.models._template import AlignmentModel
+from subgraph_matching.models.consistency import Consistency
+
 
 class NodeEarlyInteraction(torch.nn.Module):
     def __init__(
@@ -15,10 +17,12 @@ class NodeEarlyInteraction(torch.nn.Module):
         time_update_steps,
         sinkhorn_config: ReadOnlyConfig,
         sinkhorn_feature_dim,
-        device
+        device,
+        consistency_config: ReadOnlyConfig = None,
     ):
         super(NodeEarlyInteraction, self).__init__()
         self.max_node_set_size = max_node_set_size
+        self.max_edge_set_size = max_edge_set_size
         self.device = device
 
         self.graph_size_to_mask_map = model_utils.graph_size_to_mask_map(
@@ -44,6 +48,17 @@ class NodeEarlyInteraction(torch.nn.Module):
             torch.nn.ReLU(),
             torch.nn.Linear(sinkhorn_feature_dim, sinkhorn_feature_dim)
         )
+
+        self.consistency_config = consistency_config
+        if self.consistency_config:
+            self.consistency_score = Consistency(
+                self.max_edge_set_size,
+                propagation_layer_config.edge_hidden_sizes[-1],
+                self.sinkhorn_config,
+                sinkhorn_feature_dim,
+                consistency_config,
+                self.device,
+            )
 
     def forward(self, graphs, graph_sizes, graph_adj_matrices):
         query_sizes, corpus_sizes = zip(*graph_sizes)
@@ -102,4 +117,27 @@ class NodeEarlyInteraction(torch.nn.Module):
             )
             node_feature_store[:, node_feature_dim:] = interleaved_node_features[padded_node_indices, node_feature_dim:]
 
-        return model_utils.feature_alignment_score(final_features_query, final_features_corpus, transport_plan)
+
+        score = model_utils.feature_alignment_score(final_features_query, final_features_corpus, transport_plan)
+
+        if self.consistency_config:
+
+            # Computation of edge embeddings
+            edge_features_enc = model_utils.propagation_messages(
+                propagation_layer=self.prop_layer,
+                node_features=node_features_enc,
+                edge_features=edge_features_enc,
+                from_idx=from_idx,
+                to_idx=to_idx
+            )
+
+            return torch.add(
+                score,
+                self.consistency_score(
+                    graphs,
+                    graph_sizes,
+                    edge_features_enc,
+                    transport_plan
+                )
+            )
+        return score
