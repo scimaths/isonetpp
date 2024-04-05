@@ -29,26 +29,36 @@ cd ..
 #    ["ptc_mr"]="4929"
 # )
 
+# declare -A dataset_seeds=(
+#    ["aids"]="7366"
+#    ["mutag"]="7366"
+#    ["ptc_fm"]="7474"
+#    ["ptc_fr"]="7474"
+#    ["ptc_mm"]="7366"
+#    ["ptc_mr"]="7474"
+# )
+
 declare -A dataset_seeds=(
-   ["aids"]="7366"
-   ["mutag"]="7366"
-   ["ptc_fm"]="7474"
-   ["ptc_fr"]="7474"
-   ["ptc_mm"]="7366"
-   ["ptc_mr"]="7474"
+   ["aids"]="7762"
+   ["mutag"]="7762"
+   ["ptc_fm"]="7762"
+   ["ptc_fr"]="7762"
+   ["ptc_mm"]="7474"
+   ["ptc_mr"]="7762"
 )
 
-gpus=(1 2 3)
+gpus=(2 3 0 1)
 overall_counter=0
 
 # Included in RQ2_aggregated
    # "configs/rq1/scoring=agg___tp=masked_attention_pp=lrl_when=post.yaml" \
 for config_file in \
-   "configs/rq1/scoring=attention_pp=lrl___tp=masked_attention_pp=lrl_when=post.yaml" \
-   "configs/rq1/scoring=masked_attention_pp=lrl___tp=masked_attention_pp=lrl_when=post.yaml" \
-   "configs/rq1/scoring=masked_attention_pp=lrl___tp=masked_attention_pp=lrl_when=post___unify=true.yaml" \
-   "configs/rq1/scoring=sinkhorn_pp=lrl___tp=masked_attention_pp=lrl_when=post.yaml" \
+   "configs/rq1/scoring=egsc___tp=masked_attention_pp=lrl_when=post.yaml" \
 ; do
+   # "configs/rq1/scoring=masked_attention_pp=lrl___tp=masked_attention_pp=lrl_when=post___unify=true.yaml" \
+   # "configs/rq1/scoring=sinkhorn_pp=lrl___tp=masked_attention_pp=lrl_when=post.yaml" \
+   # "configs/rq1/scoring=attention_pp=lrl___tp=masked_attention_pp=lrl_when=post.yaml" \
+   # "configs/rq1/scoring=masked_attention_pp=lrl___tp=masked_attention_pp=lrl_when=post.yaml" \
    for dataset in "${!dataset_seeds[@]}"; do
       seed="${dataset_seeds[$dataset]}"
       gpu_index=$(( (overall_counter) % ${#gpus[@]} ))

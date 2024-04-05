@@ -44,9 +44,9 @@ overall_counter=0
 # Not running PRE for 1st paper on dog
    # "configs/rq3/scoring=attention_pp=lrl___tp=attention_pp=lrl_when=pre___unify=true.yaml" \
    # "configs/rq3/scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=pre___unify=true.yaml" \
-   # "configs/rq3/scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=post___unify=true.yaml" \
 for config_file in \
    "configs/rq3/scoring=attention_pp=lrl___tp=attention_pp=lrl_when=post___unify=true.yaml" \
+   "configs/rq3/scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=post___unify=true.yaml" \
 ; do
    for dataset in "${!dataset_seeds[@]}"; do
       seed="${dataset_seeds[$dataset]}"
