@@ -53,9 +53,7 @@ class NodeEarlyInteraction(torch.nn.Module):
         if self.consistency_config:
             self.consistency_score = Consistency(
                 self.max_edge_set_size,
-                propagation_layer_config.edge_hidden_sizes[-1],
                 self.sinkhorn_config,
-                sinkhorn_feature_dim,
                 consistency_config,
                 self.device,
             )

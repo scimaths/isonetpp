@@ -72,9 +72,7 @@ class NodeEdgeEarlyInteraction(torch.nn.Module):
         if self.consistency_config:
             self.consistency_score = Consistency(
                 self.max_edge_set_size,
-                propagation_layer_config.edge_embedding_dim,
                 self.sinkhorn_config,
-                sinkhorn_feature_dim,
                 consistency_config,
                 self.device,
             )
@@ -188,7 +186,7 @@ class NodeEdgeEarlyInteraction(torch.nn.Module):
                 self.node_graph_size_to_mask_map
             )
 
-            edge_transport_plan, interleaved_edge_features, _, _ = compute_transport_plan(
+            _, interleaved_edge_features, _, _ = compute_transport_plan(
                 updated_edge_feature_store,
                 paired_edge_counts,
                 self.max_edge_set_size,
