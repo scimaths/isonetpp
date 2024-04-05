@@ -18,7 +18,7 @@ class NodeEarlyInteraction(torch.nn.Module):
         sinkhorn_config: ReadOnlyConfig,
         sinkhorn_feature_dim,
         device,
-        consistency_config: ReadOnlyConfig = None,
+        consistency_config: ReadOnlyConfig = None
     ):
         super(NodeEarlyInteraction, self).__init__()
         self.max_node_set_size = max_node_set_size
@@ -54,8 +54,8 @@ class NodeEarlyInteraction(torch.nn.Module):
             self.consistency_score = Consistency(
                 self.max_edge_set_size,
                 self.sinkhorn_config,
-                consistency_config,
-                self.device,
+                self.consistency_config,
+                self.device
             )
 
     def forward(self, graphs, graph_sizes, graph_adj_matrices):
@@ -134,7 +134,7 @@ class NodeEarlyInteraction(torch.nn.Module):
                 self.consistency_score(
                     graphs,
                     graph_sizes,
-                    edge_features_enc,
+                    messages,
                     transport_plan
                 )
             )

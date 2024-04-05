@@ -18,7 +18,7 @@ class Consistency(torch.nn.Module):
         self.device = device
         self.sinkhorn_config = sinkhorn_config
 
-    def forward(self, graphs, graph_sizes, edge_features_enc, node_transport_plan):
+    def forward(self, graphs, graph_sizes, messages, node_transport_plan):
 
         _, _, from_idx, to_idx, graph_idx = model_utils.get_graph_features(graphs)
 
@@ -27,7 +27,7 @@ class Consistency(torch.nn.Module):
         )
 
         stacked_features_query, stacked_features_corpus = model_utils.split_and_stack(
-            edge_features_enc, paired_edge_counts, self.max_edge_set_size
+            messages, paired_edge_counts, self.max_edge_set_size
         )
 
         # Computation of edge transport plan
@@ -43,7 +43,7 @@ class Consistency(torch.nn.Module):
         )
 
         return self.consistency_weight * model_utils.feature_alignment_score(
-                query_features=stacked_features_query,
-                corpus_features=stacked_features_corpus,
-                transport_plan=edge_transport_plan
-            )
+            query_features=stacked_features_query,
+            corpus_features=stacked_features_corpus,
+            transport_plan=edge_transport_plan
+        )

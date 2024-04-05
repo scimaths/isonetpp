@@ -53,6 +53,17 @@ class EdgeEarlyInteraction(torch.nn.Module):
 
         self.consistency_config = consistency_config
         if self.consistency_config:
+
+            self.node_sinkhorn_feature_layers = torch.nn.Sequential(
+                torch.nn.Linear(propagation_layer_config.node_state_dim, sinkhorn_feature_dim),
+                torch.nn.ReLU(),
+                torch.nn.Linear(sinkhorn_feature_dim, sinkhorn_feature_dim)
+            )
+
+            self.node_graph_size_to_mask_map = model_utils.graph_size_to_mask_map(
+                max_set_size=max_node_set_size, lateral_dim=sinkhorn_feature_dim, device=self.device
+            )
+
             self.consistency_score = Consistency(
                 self.max_edge_set_size,
                 self.sinkhorn_config,
@@ -134,6 +145,21 @@ class EdgeEarlyInteraction(torch.nn.Module):
         score = model_utils.feature_alignment_score(final_features_query, final_features_corpus, transport_plan)
 
         if self.consistency_config:
+            stacked_feature_store_query, stacked_feature_store_corpus = model_utils.split_and_stack(
+                node_features_enc, graph_sizes, self.max_node_set_size
+            )
+
+            transformed_features_query = self.node_sinkhorn_feature_layers(stacked_feature_store_query)
+            transformed_features_corpus = self.node_sinkhorn_feature_layers(stacked_feature_store_corpus)
+
+            def mask_graphs(features, graph_sizes):
+                mask = torch.stack([self.node_graph_size_to_mask_map[i] for i in graph_sizes])
+                return mask * features
+            masked_features_query = mask_graphs(transformed_features_query, query_sizes)
+            masked_features_corpus = mask_graphs(transformed_features_corpus, corpus_sizes)
+
+            sinkhorn_input = torch.matmul(masked_features_query, masked_features_corpus.permute(0, 2, 1))
+            node_transport_plan = model_utils.sinkhorn_iters(log_alpha=sinkhorn_input, device=self.device, **self.sinkhorn_config)
 
             return torch.add(
                 score,
@@ -141,7 +167,7 @@ class EdgeEarlyInteraction(torch.nn.Module):
                     graphs,
                     graph_sizes,
                     messages,
-                    transport_plan
+                    node_transport_plan
                 )
             )
         return score
