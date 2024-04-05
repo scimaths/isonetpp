@@ -120,10 +120,13 @@ class NodeEarlyInteraction(torch.nn.Module):
 
         if self.consistency_config:
 
+            interaction_features = node_feature_store[:, -node_feature_dim:]
+            combined_features = self.interaction_encoder(torch.cat([node_features_enc, interaction_features], dim=1))
+
             # Computation of edge embeddings
             messages = model_utils.propagation_messages(
                 propagation_layer=self.prop_layer,
-                node_features=node_features_enc,
+                node_features=combined_features,
                 edge_features=edge_features_enc,
                 from_idx=from_idx,
                 to_idx=to_idx
