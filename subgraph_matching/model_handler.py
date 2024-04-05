@@ -22,6 +22,7 @@ model_name_to_class_mappings = {
     'node_early_interaction_consistency': NodeEarlyInteraction,
     'node_edge_early_interaction_consistency': NodeEdgeEarlyInteraction,
     'edge_early_interaction': EdgeEarlyInteraction,
+    'edge_early_interaction_consistency': EdgeEarlyInteraction,
     'nanl_attention_q_to_c': NodeAlignNodeLossAttention,
     'nanl_attention_c_to_q': NodeAlignNodeLossAttention,
     'nanl_attention_max': NodeAlignNodeLossAttention,

@@ -4,6 +4,8 @@ from utils import model_utils
 from subgraph_matching.models._template import AlignmentModel
 from utils.tooling import ReadOnlyConfig
 import GMN.graphembeddingnetwork as gmngen
+from subgraph_matching.models.consistency import Consistency
+
 
 class EdgeEarlyInteraction(torch.nn.Module):
     def __init__(
@@ -16,7 +18,8 @@ class EdgeEarlyInteraction(torch.nn.Module):
         time_update_steps,
         sinkhorn_config: ReadOnlyConfig,
         sinkhorn_feature_dim,
-        device
+        device,
+        consistency_config: ReadOnlyConfig = None
     ):
         super(EdgeEarlyInteraction, self).__init__()
         self.max_node_set_size = max_node_set_size
@@ -47,6 +50,15 @@ class EdgeEarlyInteraction(torch.nn.Module):
             torch.nn.ReLU(),
             torch.nn.Linear(sinkhorn_feature_dim, sinkhorn_feature_dim)
         )
+
+        self.consistency_config = consistency_config
+        if self.consistency_config:
+            self.consistency_score = Consistency(
+                self.max_edge_set_size,
+                self.sinkhorn_config,
+                consistency_config,
+                self.device,
+            )
 
     def forward(self, graphs, graph_sizes, graph_adj_matrices):
         query_sizes, corpus_sizes = zip(*graph_sizes)
@@ -119,4 +131,17 @@ class EdgeEarlyInteraction(torch.nn.Module):
             )
             edge_feature_store[:, self.message_dim:] = interleaved_edge_features[padded_edge_indices, self.message_dim:]
 
-        return model_utils.feature_alignment_score(final_features_query, final_features_corpus, transport_plan)
+        score = model_utils.feature_alignment_score(final_features_query, final_features_corpus, transport_plan)
+
+        if self.consistency_config:
+
+            return torch.add(
+                score,
+                self.consistency_score(
+                    graphs,
+                    graph_sizes,
+                    messages,
+                    transport_plan
+                )
+            )
+        return score

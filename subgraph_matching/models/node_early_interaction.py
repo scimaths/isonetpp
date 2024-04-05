@@ -121,7 +121,7 @@ class NodeEarlyInteraction(torch.nn.Module):
         if self.consistency_config:
 
             # Computation of edge embeddings
-            edge_features_enc = model_utils.propagation_messages(
+            messages = model_utils.propagation_messages(
                 propagation_layer=self.prop_layer,
                 node_features=node_features_enc,
                 edge_features=edge_features_enc,
