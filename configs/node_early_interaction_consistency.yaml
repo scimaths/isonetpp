@@ -4,9 +4,21 @@ inherit:
   - module_configs/prop_layer.yaml
 
 model_config:
+  propagation_layer_config:
+    prop_type: embedding
+
   propagation_steps: 5
-  time_update_steps: 3
-  sinkhorn_feature_dim: 16
+  refinement_steps: 3
+  alignment_feature_dim: 16
+  unify_scoring_and_interaction_preprocessor: True
+  # scoring params
+  scoring: set_aligned
+  scoring_alignment: sinkhorn
+  scoring_alignment_preprocessor_type: lrl
+  # interaction params
+  interaction_alignment: sinkhorn
+  interaction_alignment_preprocessor_type: lrl
+  interaction_when: pre
   consistency_config:
     consistency_weight: 0.7
 
