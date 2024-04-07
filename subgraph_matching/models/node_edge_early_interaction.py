@@ -32,7 +32,6 @@ class NodeEdgeEarlyInteraction(GMNIterativeRefinement):
         combined_features = self.interaction_layer(
             torch.cat([node_features_enc, interaction_features], dim=-1)
         )
-
         aggregated_messages = self.prop_layer._compute_aggregated_messages(
             combined_features, from_idx, to_idx, edge_features_enc
         )
@@ -73,8 +72,7 @@ class NodeEdgeEarlyInteraction(GMNIterativeRefinement):
 
         for refine_idx in range(self.refinement_steps):
             node_features_enc, edge_features_enc = torch.clone(encoded_node_features), torch.clone(encoded_edge_features)
-
-            interaction_features = node_feature_store[:, :node_feature_dim]
+            node_interaction_features = node_feature_store[:, :node_feature_dim]
 
             for prop_idx in range(1, self.propagation_steps + 1):
                 node_interaction_idx = node_feature_dim * prop_idx
@@ -84,17 +82,17 @@ class NodeEdgeEarlyInteraction(GMNIterativeRefinement):
                 edge_combined_features = self.edge_interaction_layer(torch.cat([edge_features_enc, edge_interaction_features], dim=-1))
 
                 node_features_enc = self.propagation_function(
-                    from_idx, to_idx, node_features_enc, edge_combined_features, interaction_features
+                    from_idx, to_idx, node_features_enc, edge_combined_features, node_interaction_features
                 )
 
-                interaction_features = node_feature_store[:, node_interaction_idx : node_interaction_idx + node_feature_dim]
-                combined_features = self.interaction_layer(
-                    torch.cat([node_features_enc, interaction_features], dim=-1)
+                node_interaction_features = node_feature_store[:, node_interaction_idx : node_interaction_idx + node_feature_dim]
+                node_combined_features = self.interaction_layer(
+                    torch.cat([node_features_enc, node_interaction_features], dim=-1)
                 )
 
                 messages = model_utils.propagation_messages(
                     propagation_layer=self.prop_layer,
-                    node_features=combined_features,
+                    node_features=node_combined_features,
                     edge_features=edge_combined_features,
                     from_idx=from_idx,
                     to_idx=to_idx
@@ -109,7 +107,7 @@ class NodeEdgeEarlyInteraction(GMNIterativeRefinement):
             final_features_query = stacked_feature_store_query[:, :, -node_feature_dim:]
             final_features_corpus = stacked_feature_store_corpus[:, :, -node_feature_dim:]
 
-            transport_plan = features_to_transport_plan(
+            node_transport_plan = features_to_transport_plan(
                 final_features_query, final_features_corpus,
                 preprocessor = self.interaction_alignment_preprocessor,
                 alignment_function = self.interaction_alignment_function,
@@ -117,13 +115,12 @@ class NodeEdgeEarlyInteraction(GMNIterativeRefinement):
             )
 
             interleaved_node_features = model_utils.get_interaction_feature_store(
-                transport_plan[0], stacked_feature_store_query, stacked_feature_store_corpus
+                node_transport_plan[0], stacked_feature_store_query, stacked_feature_store_corpus
             )
             node_feature_store[:, node_feature_dim:] = interleaved_node_features[padded_node_indices, node_feature_dim:]
 
-            print(transport_plan)
             straight_mapped_scores, cross_mapped_scores = model_utils.kronecker_product_on_nodes(
-                node_transport_plan=node_transport_plan, from_idx=from_idx,
+                node_transport_plan=node_transport_plan[0], from_idx=from_idx,
                 to_idx=to_idx, paired_edge_counts=paired_edge_counts,
                 graph_sizes=graph_sizes, max_edge_set_size=self.max_edge_set_size
             )
@@ -148,7 +145,15 @@ class NodeEdgeEarlyInteraction(GMNIterativeRefinement):
             )
             edge_feature_store[:, self.message_dim:] = interleaved_edge_features[padded_edge_indices, self.message_dim:]
 
-        score = model_utils.feature_alignment_score(final_features_query, final_features_corpus, node_transport_plan)
-        consistency = self.consistency_config.consistency_weight * model_utils.feature_alignment_score(final_edge_features_query, final_edge_features_corpus, edge_transport_plan)
+        score = model_utils.feature_alignment_score(final_features_query, final_features_corpus, node_transport_plan[0])
 
-        return score
+        if self.consistency_config:
+            consistency_score = model_utils.feature_alignment_score(
+                final_edge_features_query,
+                final_edge_features_corpus,
+                edge_transport_plan
+            ) * self.consistency_config.weight
+
+            score += consistency_score
+
+        return score, node_transport_plan

@@ -20,6 +20,7 @@ model_name_to_class_mappings = {
     'isonet': ISONET,
     'node_early_interaction': NodeEarlyInteraction,
     'node_early_interaction_consistency': NodeEarlyInteraction,
+    'node_edge_early_interaction': NodeEdgeEarlyInteraction,
     'node_edge_early_interaction_consistency': NodeEdgeEarlyInteraction,
     'edge_early_interaction': EdgeEarlyInteraction,
     'edge_early_interaction_consistency': EdgeEarlyInteraction,
