@@ -2,15 +2,7 @@ import torch
 import functools
 from utils import model_utils
 from utils.tooling import ReadOnlyConfig
-import GMN.graphembeddingnetwork as gmngen
-from subgraph_matching.models.gmn_baseline import (
-    GMNBaseline,
-    AGGREGATED, SET_ALIGNED,
-    INTERACTION_POST, INTERACTION_PRE, INTERACTION_MSG_ONLY, INTERACTION_UPD_ONLY
-)
-
 from subgraph_matching.models.gmn_iterative_refinement import GMNIterativeRefinement
-
 
 class NodeEarlyInteraction(GMNIterativeRefinement):
     def __init__(
@@ -72,10 +64,10 @@ class NodeEarlyInteraction(GMNIterativeRefinement):
             )
             node_feature_store[:, node_feature_dim:] = interleaved_node_features[padded_node_indices, node_feature_dim:]
 
-        score = self.set_aligned_scoring(node_features_enc, graph_sizes, features_to_transport_plan)
+        score, final_node_transport_plan = self.set_aligned_scoring(node_features_enc, graph_sizes, features_to_transport_plan)
 
         if self.consistency_config:
-            interaction_features = node_feature_store[:, - node_feature_dim :]
+            interaction_features = node_feature_store[:, -node_feature_dim:]
             combined_features = self.interaction_layer(
                 torch.cat([node_features_enc, interaction_features], dim=-1)
             )
@@ -93,14 +85,11 @@ class NodeEarlyInteraction(GMNIterativeRefinement):
                 graph_sizes=graph_sizes,
                 max_edge_set_size=self.max_edge_set_size,
                 node_transport_plan=transport_plan[0],
-                messages=messages,
-                consistency_weight=self.consistency_config.consistency_weight,
+                edge_features=messages,
                 device=self.device,
                 sinkhorn_config=self.sinkhorn_config
-            )
+            ) * self.consistency_config.weight
 
-            return (
-                score[0] + consistency_score,
-                score[1]
-            )
-        return score
+            score += consistency_score
+
+        return score, final_node_transport_plan

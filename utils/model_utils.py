@@ -190,7 +190,7 @@ def features_to_transport_plan(
 
 def consistency_scoring(
     graphs, graph_sizes, max_edge_set_size, node_transport_plan,
-    messages, consistency_weight, device, sinkhorn_config
+    edge_features, device, sinkhorn_config
 ):
     _, _, from_idx, to_idx, graph_idx = get_graph_features(graphs)
 
@@ -199,7 +199,7 @@ def consistency_scoring(
     )
 
     stacked_features_query, stacked_features_corpus = split_and_stack(
-        messages, paired_edge_counts, max_edge_set_size
+        edge_features, paired_edge_counts, max_edge_set_size
     )
 
     straight_mapped_scores, cross_mapped_scores = kronecker_product_on_nodes(
@@ -213,7 +213,7 @@ def consistency_scoring(
         device=device, **sinkhorn_config
     )
 
-    return consistency_weight * feature_alignment_score(
+    return feature_alignment_score(
         query_features=stacked_features_query,
         corpus_features=stacked_features_corpus,
         transport_plan=edge_transport_plan
