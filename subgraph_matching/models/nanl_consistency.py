@@ -4,6 +4,7 @@ from utils import model_utils
 from subgraph_matching.models._template import AlignmentModel
 from utils.tooling import ReadOnlyConfig
 import GMN.graphembeddingnetwork as gmngen
+from subgraph_matching.models.consistency import Consistency
 
 
 class NodeAlignNodeLossConsistency(torch.nn.Module):
@@ -16,13 +17,12 @@ class NodeAlignNodeLossConsistency(torch.nn.Module):
         propagation_steps,
         sinkhorn_config: ReadOnlyConfig,
         sinkhorn_feature_dim,
-        consistency_weight,
         device,
+        consistency_config: ReadOnlyConfig = None
     ):
         super(NodeAlignNodeLossConsistency, self).__init__()
         self.max_node_set_size = max_node_set_size
         self.max_edge_set_size = max_edge_set_size
-        self.consistency_weight = consistency_weight
         self.device = device
 
         self.graph_size_to_mask_map = model_utils.graph_size_to_mask_map(
@@ -38,6 +38,13 @@ class NodeAlignNodeLossConsistency(torch.nn.Module):
             torch.nn.Linear(propagation_layer_config.node_state_dim, sinkhorn_feature_dim),
             torch.nn.ReLU(),
             torch.nn.Linear(sinkhorn_feature_dim, sinkhorn_feature_dim),
+        )
+
+        self.consistency_score = Consistency(
+            self.max_edge_set_size,
+            self.sinkhorn_config,
+            consistency_config,
+            self.device,
         )
 
     def forward(self, graphs, graph_sizes, graph_adj_matrices):
@@ -80,33 +87,16 @@ class NodeAlignNodeLossConsistency(torch.nn.Module):
             to_idx=to_idx
         )
 
-        paired_edge_counts = model_utils.get_paired_edge_counts(
-            from_idx, to_idx, graph_idx, 2*len(graph_sizes)
-        )
-        stacked_edge_features_query, stacked_edge_features_corpus = model_utils.split_and_stack(
-            edge_features_enc, paired_edge_counts, self.max_edge_set_size
-        )
-
-        # Computation of edge transport plan
-        straight_mapped_scores, cross_mapped_scores = model_utils.kronecker_product_on_nodes(
-            node_transport_plan=node_transport_plan, from_idx=from_idx,
-            to_idx=to_idx, paired_edge_counts=paired_edge_counts,
-            graph_sizes=graph_sizes, max_edge_set_size=self.max_edge_set_size
-        )
-        edge_transport_plan = model_utils.sinkhorn_iters(
-            log_alpha=straight_mapped_scores+cross_mapped_scores,
-            device=self.device, **self.sinkhorn_config
-        )
-
         return torch.add(
             model_utils.feature_alignment_score(
                 query_features=stacked_node_features_query,
                 corpus_features=stacked_node_features_corpus,
                 transport_plan=node_transport_plan
             ),
-            self.consistency_weight * model_utils.feature_alignment_score(
-                query_features=stacked_edge_features_query,
-                corpus_features=stacked_edge_features_corpus,
-                transport_plan=edge_transport_plan
+            self.consistency_score(
+                graphs,
+                graph_sizes,
+                edge_features_enc,
+                node_transport_plan
             )
         )

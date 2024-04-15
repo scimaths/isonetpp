@@ -3,18 +3,31 @@ import subgraph_matching.dataset as dataset
 from subgraph_matching.models.node_align_node_loss import NodeAlignNodeLoss
 from subgraph_matching.models.nanl_consistency import NodeAlignNodeLossConsistency
 from subgraph_matching.models.isonet import ISONET
-from subgraph_matching.models.node_early_interaction import NodeEarlyInteraction
+from subgraph_matching.models.node_early_interaction_1 import NodeEarlyInteraction1
+from subgraph_matching.models.node_early_interaction_2 import NodeEarlyInteraction2
+from subgraph_matching.models.node_early_interaction_3 import NodeEarlyInteraction3
+from subgraph_matching.models.node_edge_early_interaction import NodeEdgeEarlyInteraction
 from subgraph_matching.models.edge_early_interaction import EdgeEarlyInteraction
 from subgraph_matching.models.nanl_attention import NodeAlignNodeLossAttention
 from subgraph_matching.models.gmn_baseline import GMNBaseline
 from subgraph_matching.models.gmn_iterative_refinement import GMNIterativeRefinement
+from subgraph_matching.models.graphsim import GraphSim
+from subgraph_matching.models.egsc_modified import EGSC as EGSC_Modified
+from subgraph_matching.models.egsc import EGSC
+from subgraph_matching.models.eric import ERIC
 
 model_name_to_class_mappings = {
     'node_align_node_loss': NodeAlignNodeLoss,
     'nanl_consistency': NodeAlignNodeLossConsistency,
     'isonet': ISONET,
-    'node_early_interaction': NodeEarlyInteraction,
+    'node_early_interaction_1': NodeEarlyInteraction1,
+    'node_early_interaction_2': NodeEarlyInteraction2,
+    'node_early_interaction_3': NodeEarlyInteraction3,
+    'node_early_interaction_consistency': NodeEarlyInteraction1,
+    'node_edge_early_interaction': NodeEdgeEarlyInteraction,
+    'node_edge_early_interaction_consistency': NodeEdgeEarlyInteraction,
     'edge_early_interaction': EdgeEarlyInteraction,
+    'edge_early_interaction_consistency': EdgeEarlyInteraction,
     'nanl_attention_q_to_c': NodeAlignNodeLossAttention,
     'nanl_attention_c_to_q': NodeAlignNodeLossAttention,
     'nanl_attention_max': NodeAlignNodeLossAttention,
@@ -23,6 +36,10 @@ model_name_to_class_mappings = {
     'nanl_masked_attention_c_to_q': NodeAlignNodeLossAttention,
     'nanl_masked_attention_max': NodeAlignNodeLossAttention,
     'nanl_masked_attention_min': NodeAlignNodeLossAttention,
+    'graphsim': GraphSim,
+    'egsc': EGSC,
+    'egsc_modified': EGSC_Modified,
+    'eric': ERIC,
 }
 
 def get_model_names():
@@ -44,4 +61,6 @@ def get_model(model_name, config, max_node_set_size, max_edge_set_size, device):
     )
 
 def get_data_type_for_model(model_name):
+    if model_name in ['graphsim', 'egsc', 'egsc_modified', 'eric']:
+        return dataset.PYG_DATA_TYPE
     return dataset.GMN_DATA_TYPE
