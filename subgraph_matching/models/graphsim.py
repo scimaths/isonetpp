@@ -184,9 +184,9 @@ class GraphSim(EncodeThenInteractModel):
         query_sizes, corpus_sizes = zip(*graph_sizes)
 
         # Encoding graph level features
-        query_graph_features = self.encoding_layer(query_graphs, query_sizes, batch_size)
-        corpus_graph_features = self.encoding_layer(corpus_graphs, corpus_sizes, batch_size)
+        query_node_features = self.encoding_layer(query_graphs, query_sizes, batch_size)
+        corpus_node_features = self.encoding_layer(corpus_graphs, corpus_sizes, batch_size)
 
         # Interaction
-        score = self.interaction_layer(query_graph_features, corpus_graph_features, batch_size)
+        score = self.interaction_layer(query_node_features, corpus_node_features, batch_size)
         return score
