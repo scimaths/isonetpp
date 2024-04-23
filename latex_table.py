@@ -18,7 +18,7 @@ def get_models(
         "/mnt/nas/vaibhavraj/isonet_experiments_02_april/",
         "/mnt/home/vaibhavraj/isonetpp_enhanced_code/experiments/",
         "/mnt/home/vaibhavraj/isonetpp_enhanced_code/experiments_archived_march_16/",
-        "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments/",
+        "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated/",
     ]
 ):
     for experiment_dir in paths_to_experiment_dir:
@@ -265,7 +265,7 @@ def get_scores(models_to_run):
 
 def main(table_num):
     
-    with open(f"table_{table_num}_main.json", "rb") as f:
+    with open(f"table_{table_num}.json", "rb") as f:
         table_meta = json.load(f)
 
     table_meta_with_scores = get_scores(table_meta)
@@ -276,5 +276,5 @@ def main(table_num):
     dump_latex(table_meta_with_scores)
 
 if __name__ == "__main__":
-    TABLE_NUM = 1
+    TABLE_NUM = 3
     main(TABLE_NUM)
