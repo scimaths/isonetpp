@@ -218,5 +218,10 @@ class ERIC(EncodeThenInteractModel):
         # Regularizer Term
         query_graph_idx = Batch.from_data_list(query_graphs).batch
         corpus_graph_idx = Batch.from_data_list(corpus_graphs).batch
-        self.regularizer = self.gamma * self.encoding_layer.regularizer(query_node_features, corpus_node_features, query_graph_features, corpus_graph_features, query_graph_idx, corpus_graph_idx, batch_size)
+        self.regularizer = self.gamma * self.encoding_layer.regularizer(
+            query_node_features, corpus_node_features,
+            query_graph_features, corpus_graph_features,
+            query_graph_idx, corpus_graph_idx,
+            batch_size
+        )
         return score

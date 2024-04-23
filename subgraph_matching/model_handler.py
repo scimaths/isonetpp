@@ -15,6 +15,8 @@ from subgraph_matching.models.graphsim import GraphSim
 from subgraph_matching.models.egsc_modified import EGSC as EGSC_Modified
 from subgraph_matching.models.egsc import EGSC
 from subgraph_matching.models.eric import ERIC
+from subgraph_matching.models.gotsim import GOTSim
+from subgraph_matching.models.gmn_embed import GMN_embed_hinge
 
 model_name_to_class_mappings = {
     'node_align_node_loss': NodeAlignNodeLoss,
@@ -40,6 +42,8 @@ model_name_to_class_mappings = {
     'egsc': EGSC,
     'egsc_modified': EGSC_Modified,
     'eric': ERIC,
+    'gotsim': GOTSim,
+    'gmn_embed': GMN_embed_hinge
 }
 
 def get_model_names():
@@ -61,6 +65,6 @@ def get_model(model_name, config, max_node_set_size, max_edge_set_size, device):
     )
 
 def get_data_type_for_model(model_name):
-    if model_name in ['graphsim', 'egsc', 'egsc_modified', 'eric']:
+    if model_name in ['graphsim', 'egsc', 'egsc_modified', 'eric', 'gotsim']:
         return dataset.PYG_DATA_TYPE
     return dataset.GMN_DATA_TYPE
