@@ -12,7 +12,6 @@ class NodeEarlyInteraction3(GMNIterativeRefinement):
         super(NodeEarlyInteraction3, self).__init__(**kwargs)
         self.max_edge_set_size = kwargs['max_edge_set_size']
         self.consistency_config = consistency_config
-        self.case = 0
 
     def forward_with_alignment(self, graphs, graph_sizes, graph_adj_matrices):
         query_sizes, corpus_sizes = zip(*graph_sizes)

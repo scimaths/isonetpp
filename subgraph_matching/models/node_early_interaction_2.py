@@ -12,7 +12,6 @@ class NodeEarlyInteraction2(GMNIterativeRefinement):
         super(NodeEarlyInteraction2, self).__init__(**kwargs)
         self.max_edge_set_size = kwargs['max_edge_set_size']
         self.consistency_config = consistency_config
-        self.case = 0
 
     def get_interaction_features(self, node_features, transport_plan, graph_sizes, padded_node_indices):
         if transport_plan is None:
