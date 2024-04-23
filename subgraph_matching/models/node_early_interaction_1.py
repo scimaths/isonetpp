@@ -4,27 +4,14 @@ from utils import model_utils
 from utils.tooling import ReadOnlyConfig
 from subgraph_matching.models.gmn_iterative_refinement import GMNIterativeRefinement
 
-class NodeEarlyInteraction2(GMNIterativeRefinement):
+class NodeEarlyInteraction1(GMNIterativeRefinement):
     def __init__(
         self,
         consistency_config: ReadOnlyConfig = None,
         **kwargs):
-        super(NodeEarlyInteraction2, self).__init__(**kwargs)
+        super(NodeEarlyInteraction1, self).__init__(**kwargs)
         self.max_edge_set_size = kwargs['max_edge_set_size']
         self.consistency_config = consistency_config
-
-    def get_interaction_features(self, node_features, transport_plan, graph_sizes, padded_node_indices):
-        if transport_plan is None:
-            return torch.zeros_like(node_features)
-
-        stacked_feature_store_query, stacked_feature_store_corpus = model_utils.split_and_stack(
-            node_features, graph_sizes, self.max_node_set_size
-        )
-        interleaved_node_features = model_utils.get_interaction_feature_store(
-            transport_plan[0], stacked_feature_store_query, stacked_feature_store_corpus
-        )
-        interaction_features = interleaved_node_features[padded_node_indices]
-        return interaction_features
 
     def forward_with_alignment(self, graphs, graph_sizes, graph_adj_matrices):
         query_sizes, corpus_sizes = zip(*graph_sizes)
@@ -43,38 +30,44 @@ class NodeEarlyInteraction2(GMNIterativeRefinement):
         encoded_node_features, encoded_edge_features = self.encoder(node_features, edge_features)
         num_nodes, node_feature_dim = encoded_node_features.shape
 
-        transport_plan = None
-        interaction_features = None
-
+        node_feature_store = torch.zeros(num_nodes, node_feature_dim * (self.propagation_steps + 1), device=self.device)
+        updated_node_feature_store = torch.zeros_like(node_feature_store)
+    
         for refine_idx in range(self.refinement_steps):
-
             node_features_enc, edge_features_enc = torch.clone(encoded_node_features), torch.clone(encoded_edge_features)
-            interaction_features = torch.zeros(num_nodes, node_feature_dim, device=self.device)
 
             for prop_idx in range(1, self.propagation_steps + 1):
-
+                interaction_idx = node_feature_dim * prop_idx
+                interaction_features = node_feature_store[:, interaction_idx - node_feature_dim : interaction_idx]
+    
                 node_features_enc = self.propagation_function(
                     from_idx, to_idx, node_features_enc, edge_features_enc, interaction_features
                 )
 
-                interaction_features = self.get_interaction_features(
-                    node_features_enc, transport_plan, graph_sizes, padded_node_indices
-                )
-
+                updated_node_feature_store[:, interaction_idx : interaction_idx + node_feature_dim] = torch.clone(node_features_enc)
+    
             stacked_feature_store_query, stacked_feature_store_corpus = model_utils.split_and_stack(
-                node_features_enc, graph_sizes, self.max_node_set_size
+                updated_node_feature_store, graph_sizes, self.max_node_set_size
             )
+            final_features_query = stacked_feature_store_query[:, :, -node_feature_dim:]
+            final_features_corpus = stacked_feature_store_corpus[:, :, -node_feature_dim:]
 
             transport_plan = features_to_transport_plan(
-                stacked_feature_store_query, stacked_feature_store_corpus,
+                final_features_query, final_features_corpus,
                 preprocessor = self.interaction_alignment_preprocessor,
                 alignment_function = self.interaction_alignment_function,
                 what_for = 'interaction'
             )
 
+            interleaved_node_features = model_utils.get_interaction_feature_store(
+                transport_plan[0], stacked_feature_store_query, stacked_feature_store_corpus
+            )
+            node_feature_store[:, node_feature_dim:] = interleaved_node_features[padded_node_indices, node_feature_dim:]
+    
         score, final_node_transport_plan = self.set_aligned_scoring(node_features_enc, graph_sizes, features_to_transport_plan)
 
         if self.consistency_config:
+            interaction_features = node_feature_store[:, -node_feature_dim:]
             combined_features = self.interaction_layer(
                 torch.cat([node_features_enc, interaction_features], dim=-1)
             )
