@@ -39,7 +39,7 @@ class EncodingLayerGraphSim(EncodingLayer):
 
         features = self.GCN_pass(features, edge_index)
         features = [
-            pad_sequence(torch.split(features[i], list(graph_sizes), dim=0), batch_first=True) 
+            pad_sequence(torch.split(features[i], list(graph_sizes), dim=0), batch_first=True)
             for i in range(self.num_gcn_layers)
         ]
         return features
@@ -81,7 +81,7 @@ class InteractionLayerGraphSim(InteractionLayer):
             else:
                 self.padding = torch.nn.ZeroPad2d((padding_temp, padding_temp, padding_temp, padding_temp))
             self.layers = torch.nn.ModuleList([torch.nn.MaxPool2d(kernel_size=self.pool_size, stride=stride) for i in range(num_similarity_matrices)])
-            
+
         def forward(self, similarity_matrices_list):
             result = []
             for i in range(self.num_similarity_matrices):
@@ -149,12 +149,14 @@ class InteractionLayerGraphSim(InteractionLayer):
 
     def forward(self, query_features, corpus_features, batch_size):
         similarity_matrices_list = [
-            torch.matmul(query_features[i], corpus_features[i].permute(0,2,1)) 
+            torch.matmul(query_features[i], corpus_features[i].permute(0,2,1))
             for i in range(self.num_gcn_layers)
         ]
         features = torch.cat(
             self.Conv_pass(similarity_matrices_list), dim=1
-            ).view(-1, 2*self.linear_size[0])
+        )
+        print(features.size())
+        features = features.view(-1, self.linear_size[0])
         features = self.linear_pass(features)
         score = self.scoring_layer(features).view(-1)
         return score

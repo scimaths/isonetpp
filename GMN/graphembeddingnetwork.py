@@ -70,7 +70,7 @@ class GraphEncoder(nn.Module):
         if edge_features is None or self._edge_hidden_sizes is None:
             edge_outputs = edge_features
         else:
-            edge_outputs = self.MLP2(node_features)
+            edge_outputs = self.MLP2(edge_features)
 
         return node_outputs, edge_outputs
 

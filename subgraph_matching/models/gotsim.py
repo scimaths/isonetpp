@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from lap import lapjv
+import lapjv
 import torch.nn.functional as F
 import torch_geometric.nn as pyg_nn
 from torch_geometric.data import Batch
