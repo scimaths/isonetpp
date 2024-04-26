@@ -12,6 +12,7 @@ from torch_scatter import scatter, scatter_add, scatter_max
 from torch_geometric.nn import HypergraphConv, GCNConv, MessagePassing
 from torch_geometric.nn import global_add_pool, global_mean_pool, HypergraphConv
 from torch_geometric.utils import add_remaining_self_loops, remove_self_loops, dense_to_sparse
+from torch_geometric.data import Batch
 
 
 def topk(x, ratio, batch, min_score=None, tol=1e-7):
@@ -452,24 +453,13 @@ class H2MN(nn.Module):
 
         self.mlp = MLPModule(nhid, dropout)
 
-    def forward(self, batch_data,batch_data_sizes,batch_adj):
-        q_graphs = batch_data[0::2]
-        c_graphs = batch_data[1::2]
+    def forward(self, graphs, graph_sizes, graph_adj_matrices):
+        query_graphs, corpus_graphs = zip(*graphs)
 
-        query_batch = pyg.data.Batch.from_data_list(q_graphs)
-        corpus_batch = pyg.data.Batch.from_data_list(c_graphs)
-
-        edge_index_1 = query_batch.edge_index
-        edge_index_2 = corpus_batch.edge_index
-
-        edge_attr_1 = query_batch.edge_attr
-        edge_attr_2 = corpus_batch.edge_attr
-
-        features_1 = query_batch.x
-        features_2 = corpus_batch.x
-
-        batch_1 = query_batch.batch
-        batch_2 = corpus_batch.batch
+        query_batch = Batch.from_data_list(query_graphs)
+        corpus_batch = Batch.from_data_list(corpus_graphs)
+        features_1, edge_index_1, edge_attr_1, batch_1 = query_batch.x, query_batch.edge_index, query_batch.edge_attr, query_batch.batch
+        features_2, edge_index_2, edge_attr_2, batch_2 = corpus_batch.x, corpus_batch.edge_index, corpus_batch.edge_attr, corpus_batch.batch
 
         # Layer 0
         # Graph Convolution Operation
