@@ -38,7 +38,10 @@ class EdgeEarlyInteraction1(torch.nn.Module):
         self.time_update_steps = time_update_steps
 
         self.message_dim = propagation_layer_config.edge_hidden_sizes[-1]
-        interaction_input_dim = self.message_dim + encoder_config.edge_hidden_sizes[-1]
+        assert self.message_dim == encoder_config.edge_hidden_sizes[-1] == propagation_layer_config.edge_embedding_dim, (
+            "keep different edge embedding dimensions identical for simplicity"
+        )
+        interaction_input_dim = self.message_dim * 2
         interaction_output_dim = propagation_layer_config.edge_embedding_dim
         self.interaction_encoder = torch.nn.Sequential(
             torch.nn.Linear(interaction_input_dim, interaction_input_dim),
