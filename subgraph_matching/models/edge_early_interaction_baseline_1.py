@@ -5,9 +5,9 @@ from subgraph_matching.models._template import AlignmentModel
 from utils.tooling import ReadOnlyConfig
 import GMN.graphembeddingnetwork as gmngen
 from subgraph_matching.models.consistency import Consistency
+from subgraph_matching.models.gmn_baseline import INTERACTION_POST, INTERACTION_PRE
 
-
-class EdgeEarlyInteraction1Baseline(torch.nn.Module):
+class EdgeEarlyInteractionBaseline1(torch.nn.Module):
     def __init__(
         self,
         max_node_set_size,
@@ -18,11 +18,13 @@ class EdgeEarlyInteraction1Baseline(torch.nn.Module):
         sinkhorn_config: ReadOnlyConfig,
         sinkhorn_feature_dim,
         device,
+        interaction_when: str = INTERACTION_POST,
         consistency_config: ReadOnlyConfig = None
     ):
-        super(EdgeEarlyInteraction1Baseline, self).__init__()
+        super(EdgeEarlyInteractionBaseline1, self).__init__()
         self.max_node_set_size = max_node_set_size
         self.max_edge_set_size = max_edge_set_size
+        self.interaction_when = interaction_when
         self.device = device
 
         self.graph_size_to_mask_map = model_utils.graph_size_to_mask_map(
@@ -89,19 +91,22 @@ class EdgeEarlyInteraction1Baseline(torch.nn.Module):
         interaction_features = torch.zeros_like(edge_features_enc)
 
         for prop_idx in range(1, self.propagation_steps + 1):
-            # Combine interaction features with node features from previous propagation step
-            combined_features = self.interaction_encoder(torch.cat([edge_features_enc, interaction_features], dim=-1))
+            if self.interaction_when == INTERACTION_PRE:
+                edge_features_enc = self.interaction_encoder(torch.cat([edge_features_enc, interaction_features], dim=-1))
 
             # Message propagation on combined features
-            node_features_enc = self.prop_layer(node_features_enc, from_idx, to_idx, combined_features)
+            node_features_enc = self.prop_layer(node_features_enc, from_idx, to_idx, edge_features_enc)
 
             edge_features_enc = model_utils.propagation_messages(
                 propagation_layer=self.prop_layer,
                 node_features=node_features_enc,
-                edge_features=combined_features,
+                edge_features=edge_features_enc,
                 from_idx=from_idx,
                 to_idx=to_idx
             )
+
+            if self.interaction_when == INTERACTION_POST:
+                edge_features_enc = self.interaction_encoder(torch.cat([edge_features_enc, interaction_features], dim=-1))
 
             stacked_edge_features_query, stacked_edge_features_corpus = model_utils.split_and_stack(
                 edge_features_enc, paired_edge_counts, self.max_edge_set_size
