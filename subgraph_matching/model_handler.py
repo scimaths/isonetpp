@@ -7,6 +7,7 @@ from subgraph_matching.models.node_early_interaction import NodeEarlyInteraction
 from subgraph_matching.models.node_early_interaction_2 import NodeEarlyInteraction2
 from subgraph_matching.models.node_early_interaction_3 import NodeEarlyInteraction3
 from subgraph_matching.models.edge_early_interaction_1 import EdgeEarlyInteraction1
+from subgraph_matching.models.edge_early_interaction_1_baseline import EdgeEarlyInteraction1Baseline
 from subgraph_matching.models.edge_early_interaction_2 import EdgeEarlyInteraction2
 from subgraph_matching.models.edge_early_interaction_3 import EdgeEarlyInteraction3
 from subgraph_matching.models.node_edge_early_interaction import NodeEdgeEarlyInteraction
@@ -33,6 +34,7 @@ model_name_to_class_mappings = {
     'node_edge_early_interaction_consistency': NodeEdgeEarlyInteraction,
     'edge_early_interaction': EdgeEarlyInteraction,
     'edge_early_interaction_1': EdgeEarlyInteraction1,
+    'edge_early_interaction_1_baseline': EdgeEarlyInteraction1Baseline,
     'edge_early_interaction_2': EdgeEarlyInteraction2,
     'edge_early_interaction_3': EdgeEarlyInteraction3,
     'edge_early_interaction_consistency': EdgeEarlyInteraction,
