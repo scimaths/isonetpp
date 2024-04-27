@@ -1,11 +1,15 @@
 import torch
 import torch.nn.functional as F
 from utils import model_utils
+from functools import partial
 from subgraph_matching.models._template import AlignmentModel
 from utils.tooling import ReadOnlyConfig
 import GMN.graphembeddingnetwork as gmngen
 from subgraph_matching.models.consistency import Consistency
 
+# Interaction constants (wrt message-passing)
+INTERACTION_PRE = 'pre'
+INTERACTION_POST = 'post'
 
 class EdgeEarlyInteraction1Baseline(torch.nn.Module):
     def __init__(
@@ -18,16 +22,18 @@ class EdgeEarlyInteraction1Baseline(torch.nn.Module):
         sinkhorn_config: ReadOnlyConfig,
         sinkhorn_feature_dim,
         device,
-        consistency_config: ReadOnlyConfig = None
+        interaction_when = INTERACTION_POST
     ):
         super(EdgeEarlyInteraction1Baseline, self).__init__()
         self.max_node_set_size = max_node_set_size
         self.max_edge_set_size = max_edge_set_size
         self.device = device
 
-        self.graph_size_to_mask_map = model_utils.graph_size_to_mask_map(
-            max_set_size=max_edge_set_size, lateral_dim=sinkhorn_feature_dim, device=self.device
-        )
+        self.graph_size_to_mask_map = {
+            'interaction': model_utils.graph_size_to_mask_map(
+                max_set_size=max_edge_set_size, lateral_dim=sinkhorn_feature_dim, device=self.device
+            )
+        }
 
         self.encoder = gmngen.GraphEncoder(**encoder_config)
         self.prop_layer = gmngen.GraphPropLayer(**propagation_layer_config)
@@ -49,25 +55,95 @@ class EdgeEarlyInteraction1Baseline(torch.nn.Module):
             torch.nn.Linear(sinkhorn_feature_dim, sinkhorn_feature_dim)
         )
 
-        self.consistency_config = consistency_config
-        if self.consistency_config:
+        self.interaction_alignment_function = lambda log_alpha, query_sizes, corpus_sizes: model_utils.sinkhorn_iters(
+            log_alpha=log_alpha,  device=self.device, **self.sinkhorn_config
+        )
 
-            self.node_sinkhorn_feature_layers = torch.nn.Sequential(
-                torch.nn.Linear(propagation_layer_config.node_state_dim, sinkhorn_feature_dim),
-                torch.nn.ReLU(),
-                torch.nn.Linear(sinkhorn_feature_dim, sinkhorn_feature_dim)
+        if interaction_when == INTERACTION_POST:
+            self.propagation_function = self.propagation_step_with_post_interaction
+        elif interaction_when == INTERACTION_PRE:
+            self.propagation_function = self.propagation_step_with_pre_interaction
+
+    def end_to_end_interaction_alignment(
+        self, edge_features_enc, paired_edge_counts,
+        features_to_transport_plan, padded_edge_indices
+    ):
+        stacked_features_query, stacked_features_corpus = model_utils.split_and_stack(
+            edge_features_enc, paired_edge_counts, self.max_edge_set_size
+        )
+
+        transport_plan = features_to_transport_plan(
+            stacked_features_query, stacked_features_corpus,
+            preprocessor = self.sinkhorn_feature_layers,
+            alignment_function = self.interaction_alignment_function,
+            what_for = 'interaction'
+        )
+
+        interaction_features = model_utils.get_interaction_feature_store(
+            transport_plan, stacked_features_query, stacked_features_corpus
+        )[padded_edge_indices, :]
+
+        return interaction_features
+
+    def propagation_step_with_pre_interaction(
+        self, prop_idx, from_idx, to_idx, paired_edge_counts,
+        node_features_enc, edge_features_enc,
+        features_to_transport_plan, padded_edge_indices
+    ):
+        if prop_idx == 0:
+            interaction_features = torch.zeros_like(edge_features_enc)
+        else:
+            interaction_features = self.end_to_end_interaction_alignment(
+                edge_features_enc, paired_edge_counts, features_to_transport_plan, padded_edge_indices
             )
 
-            self.node_graph_size_to_mask_map = model_utils.graph_size_to_mask_map(
-                max_set_size=max_node_set_size, lateral_dim=sinkhorn_feature_dim, device=self.device
-            )
+        combined_features = self.interaction_encoder(
+            torch.cat([edge_features_enc, interaction_features], dim=-1)
+        )
 
-            self.consistency_score = Consistency(
-                self.max_edge_set_size,
-                self.sinkhorn_config,
-                consistency_config,
-                self.device,
-            )
+        aggregated_messages = self.prop_layer._compute_aggregated_messages(
+            node_features_enc, from_idx, to_idx, combined_features
+        )
+        node_features_enc = self.prop_layer._compute_node_update(node_features_enc, [aggregated_messages])
+
+        edge_features_enc = model_utils.propagation_messages(
+            propagation_layer=self.prop_layer,
+            node_features=node_features_enc,
+            edge_features=combined_features,
+            from_idx=from_idx,
+            to_idx=to_idx
+        )
+
+        return node_features_enc, edge_features_enc
+
+    def propagation_step_with_post_interaction(
+        self, prop_idx, from_idx, to_idx, paired_edge_counts,
+        node_features_enc, edge_features_enc,
+        features_to_transport_plan, padded_edge_indices
+    ):
+        interaction_features = self.end_to_end_interaction_alignment(
+            edge_features_enc, paired_edge_counts, features_to_transport_plan, padded_edge_indices
+        )
+
+        aggregated_messages = self.prop_layer._compute_aggregated_messages(
+            node_features_enc, from_idx, to_idx, edge_features_enc
+        )
+        node_features_enc = self.prop_layer._compute_node_update(
+            node_features_enc, [aggregated_messages, aggregated_messages - interaction_features]
+        )
+
+        edge_features_enc = model_utils.propagation_messages(
+            propagation_layer=self.prop_layer,
+            node_features=node_features_enc,
+            edge_features=edge_features_enc,
+            from_idx=from_idx,
+            to_idx=to_idx
+        )
+        edge_features_enc = self.interaction_encoder(
+            torch.cat([edge_features_enc, interaction_features], dim=-1)
+        )
+
+        return node_features_enc, edge_features_enc
 
     def forward(self, graphs, graph_sizes, graph_adj_matrices):
         query_sizes, corpus_sizes = zip(*graph_sizes)
@@ -80,53 +156,40 @@ class EdgeEarlyInteraction1Baseline(torch.nn.Module):
             from_idx, to_idx, graph_idx, 2*len(graph_sizes)
         )
 
+        num_edges_query = [pair[0] for pair in paired_edge_counts]
+        num_edges_corpus = [pair[1] for pair in paired_edge_counts]
+
+        features_to_transport_plan = partial(
+            model_utils.features_to_transport_plan,
+            query_sizes=num_edges_query, corpus_sizes=num_edges_corpus,
+            graph_size_to_mask_map=self.graph_size_to_mask_map
+        )
+
         # Encode node and edge features
         node_features_enc, edge_features_enc = self.encoder(node_features, edge_features)
-        num_edges, edge_feature_dim = edge_features_enc.shape
 
         padded_edge_indices = model_utils.get_padded_indices(paired_edge_counts, self.max_edge_set_size, self.device)
 
-        interaction_features = torch.zeros_like(edge_features_enc)
-
         for prop_idx in range(1, self.propagation_steps + 1):
-            # Combine interaction features with node features from previous propagation step
-            combined_features = self.interaction_encoder(torch.cat([edge_features_enc, interaction_features], dim=-1))
 
             # Message propagation on combined features
-            node_features_enc = self.prop_layer(node_features_enc, from_idx, to_idx, combined_features)
-
-            edge_features_enc = model_utils.propagation_messages(
-                propagation_layer=self.prop_layer,
-                node_features=node_features_enc,
-                edge_features=combined_features,
-                from_idx=from_idx,
-                to_idx=to_idx
+            node_features_enc, edge_features_enc = self.propagation_function(
+                prop_idx, from_idx, to_idx, paired_edge_counts,
+                node_features_enc, edge_features_enc,
+                features_to_transport_plan, padded_edge_indices
             )
 
-            stacked_edge_features_query, stacked_edge_features_corpus = model_utils.split_and_stack(
-                edge_features_enc, paired_edge_counts, self.max_edge_set_size
-            )
+        stacked_features_query, stacked_features_corpus = model_utils.split_and_stack(
+            edge_features_enc, paired_edge_counts, self.max_edge_set_size
+        )
 
-            transformed_features_query = self.sinkhorn_feature_layers(stacked_edge_features_query)
-            transformed_features_corpus = self.sinkhorn_feature_layers(stacked_edge_features_corpus)
+        transport_plan = features_to_transport_plan(
+            stacked_features_query, stacked_features_corpus,
+            preprocessor = self.sinkhorn_feature_layers,
+            alignment_function = self.interaction_alignment_function,
+            what_for = 'interaction'
+        )
 
-            def mask_graphs(features, graph_sizes):
-                mask = torch.stack([self.graph_size_to_mask_map[i] for i in graph_sizes])
-                return mask * features
-            num_edges_query = map(lambda pair: pair[0], paired_edge_counts)
-            masked_features_query = mask_graphs(transformed_features_query, num_edges_query)
-            num_edges_corpus = map(lambda pair: pair[1], paired_edge_counts)
-            masked_features_corpus = mask_graphs(transformed_features_corpus, num_edges_corpus)
-
-            sinkhorn_input = torch.matmul(masked_features_query, masked_features_corpus.permute(0, 2, 1))
-            transport_plan = model_utils.sinkhorn_iters(log_alpha=sinkhorn_input, device=self.device, **self.sinkhorn_config)
-
-            # Compute interaction-based features
-            interleaved_edge_features = model_utils.get_interaction_feature_store(
-                transport_plan, stacked_edge_features_query, stacked_edge_features_corpus
-            )
-            interaction_features = interleaved_edge_features[padded_edge_indices, :]
-
-        score = model_utils.feature_alignment_score(stacked_edge_features_query, stacked_edge_features_corpus, transport_plan)
+        score = model_utils.feature_alignment_score(stacked_features_query, stacked_features_corpus, transport_plan)
 
         return score
