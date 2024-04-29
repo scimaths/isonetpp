@@ -4,11 +4,17 @@ import torch
 import numpy as np
 import pickle
 import json
+import seaborn as sns
+import networkx as nx
+from utils import model_utils
+import matplotlib.pyplot as plt
 from subgraph_matching import dataset
-from subgraph_matching.dataset import SubgraphIsomorphismDataset
+from utils.tooling import read_config
+import networkx.algorithms.isomorphism as iso
 from subgraph_matching.test import evaluate_model
 from subgraph_matching.model_handler import get_model
-from utils.tooling import read_config
+from subgraph_matching.dataset import SubgraphIsomorphismDataset
+
 
 
 def get_models(
@@ -177,6 +183,106 @@ def dump_latex(table_meta):
     print(table_end)
 
 
+def evaluate_improvement_nodes(model, dataset, dataset_name):
+    def get_alignment_nodes(mapping, num_query_nodes, num_corpus_nodes, device):
+
+        p_hat = torch.zeros((num_query_nodes, num_corpus_nodes), device=device)
+
+        for key in mapping.keys():
+            p_hat[mapping[key]][key] = 1
+
+        return p_hat
+
+    def get_norm_qc_pair_nodes(query_edges, corpus_edges, transport_plans, num_query_nodes, num_corpus_nodes):
+
+        Query = nx.Graph()
+        Query.add_edges_from(query_edges)
+
+        Corpus = nx.Graph()
+        Corpus.add_edges_from(corpus_edges)
+
+        GM = iso.GraphMatcher(Corpus,Query)
+
+        best_p_hat = None
+        best_norm_final_transport = torch.zeros(1)
+        for mapping in GM.subgraph_isomorphisms_iter():
+            p_hat = get_alignment_nodes(mapping, num_query_nodes, num_corpus_nodes, transport_plans.device)
+            norm = torch.sum(transport_plans[-1, :num_query_nodes, :num_corpus_nodes] * p_hat)
+            if norm >= best_norm_final_transport:
+                best_norm_final_transport = norm
+                best_p_hat = p_hat
+
+        assert best_p_hat is not None
+        norm = torch.sum(transport_plans[:, :num_query_nodes, :num_corpus_nodes] * best_p_hat.unsqueeze(0), dim=(1,2))
+        return norm.tolist()
+
+    model.eval()
+
+    pos_pairs, neg_pairs = dataset.pos_pairs, dataset.neg_pairs
+
+    num_query_graphs = len(dataset.query_graphs)
+
+    norms_total = []
+    for query_idx in range(num_query_graphs):
+        pos_pairs_for_query = list(filter(lambda pair: pair[0] == query_idx, pos_pairs))
+
+        if len(pos_pairs_for_query) > 0:
+
+            num_batches = dataset.create_custom_batches(pos_pairs_for_query)
+
+            norms_per_query = []
+            for batch_idx in range(num_batches):
+                batch_graphs, batch_graph_sizes, _, batch_adj_matrices = dataset.fetch_batch_by_id(batch_idx)
+                _, _, from_idx, to_idx, graph_idx = model_utils.get_graph_features(batch_graphs)
+
+                batch_data_sizes_flat = [item for sublist in batch_graph_sizes for item in sublist]
+
+                edge_counts  = model_utils.get_paired_edge_counts(from_idx, to_idx, graph_idx, 2*len(batch_graph_sizes))
+                edge_counts = [item for sublist in edge_counts for item in sublist]
+
+                from_idx_suff = torch.cat([
+                    torch.tensor([sum(batch_data_sizes_flat[:node_idx])]).repeat(edge_counts[node_idx])
+                    for node_idx in range(len(edge_counts))
+                ])
+
+                from_idx = from_idx.cpu() -  from_idx_suff
+                to_idx = to_idx.cpu() - from_idx_suff
+
+                transport_plans = model.forward_for_alignment(batch_graphs, batch_graph_sizes, batch_adj_matrices).cpu()
+
+                batch_size = transport_plans.shape[0]
+                for batch_idx in range(batch_size):
+                    query_from = from_idx[sum(edge_counts[:2*batch_idx]):sum(edge_counts[:2*batch_idx+1])].tolist()
+                    query_to = to_idx[sum(edge_counts[:2*batch_idx]):sum(edge_counts[:2*batch_idx+1])].tolist()
+
+                    corpus_from = from_idx[sum(edge_counts[:2*batch_idx+1]):sum(edge_counts[:2*batch_idx+2])].tolist()
+                    corpus_to = to_idx[sum(edge_counts[:2*batch_idx+1]):sum(edge_counts[:2*batch_idx+2])].tolist()
+
+                    query_edges = [(query_from[idx], query_to[idx]) for idx in range(len(query_from))]
+                    corpus_edges = [(corpus_from[idx], corpus_to[idx]) for idx in range(len(corpus_from))]
+
+                    norms_per_pair = get_norm_qc_pair_nodes(query_edges, corpus_edges, transport_plans[batch_idx], batch_data_sizes_flat[batch_idx*2], batch_data_sizes_flat[batch_idx*2+1])
+                    norms_per_query.append(norms_per_pair)
+
+            norms_total.extend(norms_per_query)
+    values_np = np.array(norms_total)
+
+    for time in range(values_np.shape[1]):
+        pickle.dump(values_np[:,time], open(f'histogram_dumps/model_time_{dataset_name}_{time}', 'wb'))
+        sns.histplot(values_np[:,time], binwidth=0.1, binrange=(0, np.ceil(np.max(values_np))), kde=True, label=f'time = {time}', palette='pastel')
+
+    # Adding labels and title
+    plt.xlabel('EntryWise_L1Norm(P * P_hat)')
+    plt.ylabel('Frequency')
+    plt.title(f'Histogram: Node Early ({dataset_name})')
+
+    # Show legend
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(f'histogram_plots/histogram_{dataset_name}.png')
+    plt.clf()
+
+
 def get_scores(models_to_run):
     model_name_to_config_map = load_config()
 
@@ -251,13 +357,15 @@ def get_scores(models_to_run):
             model.load_state_dict(checkpoint['model_state_dict'])
             model.to(device)
 
-            _, test_map_score = evaluate_model(model, test_dataset)
-            print("Test MAP Score:", test_map_score)
-            models_to_run[model_name]["relevant_models"][idx]["map_score"] = str(test_map_score)
+            # evaluate_improvement_nodes(model, test_dataset, relevant_model["dataset"])
 
-            hits_at_20 = hits_at_k(model, test_dataset, 20)
-            print("Test HITS@20 Score:", hits_at_20, "\n")
-            models_to_run[model_name]["relevant_models"][idx]["hits@20"] = str(hits_at_20)
+            # _, test_map_score = evaluate_model(model, test_dataset)
+            # print("Test MAP Score:", test_map_score)
+            # models_to_run[model_name]["relevant_models"][idx]["map_score"] = str(test_map_score)
+
+            # hits_at_20 = hits_at_k(model, test_dataset, 20)
+            # print("Test HITS@20 Score:", hits_at_20, "\n")
+            # models_to_run[model_name]["relevant_models"][idx]["hits@20"] = str(hits_at_20)
 
     return models_to_run
 
@@ -269,6 +377,7 @@ def main(table_num):
         table_meta = json.load(f)
 
     table_meta_with_scores = get_scores(table_meta)
+    
 
     with open(f"table_{table_num}_with_scores.json", "w") as f:
         json.dump(table_meta_with_scores, f)
@@ -276,5 +385,5 @@ def main(table_num):
     dump_latex(table_meta_with_scores)
 
 if __name__ == "__main__":
-    TABLE_NUM = 3
+    TABLE_NUM = 0
     main(TABLE_NUM)
