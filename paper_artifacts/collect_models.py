@@ -1,13 +1,10 @@
 import os
 import json
 import shutil
-from tooling import read_config
+from utils.tooling import read_config
 
 
 def get_models(
-    paths_to_experiment_dir = [
-        "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments/"
-    ]
 ):
     for experiment_dir in paths_to_experiment_dir:
         for experiment in os.listdir(experiment_dir):
@@ -111,15 +108,15 @@ def collect_models(models_to_run):
                 continue
 
             # Construct the destination file path
-            if not os.path.exists("collection/" + relevant_model["name"]):
-                os.makedirs("collection/" + relevant_model["name"])
-                os.makedirs("collection/" + relevant_model["name"] + "/trained_models")
-                os.makedirs("collection/" + relevant_model["name"] + "/logs")
-                os.makedirs("collection/" + relevant_model["name"] + "/configs")
+            if not os.path.exists(collection_path + relevant_model["name"]):
+                os.makedirs(collection_path + relevant_model["name"])
+                os.makedirs(collection_path + relevant_model["name"] + "/trained_models")
+                os.makedirs(collection_path + relevant_model["name"] + "/logs")
+                os.makedirs(collection_path + relevant_model["name"] + "/configs")
 
-            destination_file = os.path.join("collection/" + relevant_model["name"] + "/trained_models", model_file_name)
-            destination_log = os.path.join("collection/" + relevant_model["name"] + "/logs", log_file_name)
-            destination_config = os.path.join("collection/" + relevant_model["name"] + "/configs", config_file_name)
+            destination_file = os.path.join(collection_path + relevant_model["name"] + "/trained_models", model_file_name)
+            destination_log = os.path.join(collection_path + relevant_model["name"] + "/logs", log_file_name)
+            destination_config = os.path.join(collection_path + relevant_model["name"] + "/configs", config_file_name)
 
             try:
                 # Copy the file to the destination directory
@@ -131,13 +128,21 @@ def collect_models(models_to_run):
                 print(f"An error occurred: {e}")
 
 
-def main(table_num):
+def main():
 
-    with open(f"table_{table_num}.json", "rb") as f:
+    with open(table_path, "rb") as f:
         table_meta = json.load(f)
 
     collect_models(table_meta)
 
 if __name__ == "__main__":
-    TABLE_NUM = 1
-    main(TABLE_NUM)
+    base_path = "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/"
+    paths_to_experiment_dir = [
+        base_path + "experiments/"
+    ]
+
+    table_num = 1
+    table_path = base_path + f"paper_artifacts/table_metadata/table_{table_num}.json"
+    
+    collection_path = base_path + "paper_artifacts/collection/"
+    main()

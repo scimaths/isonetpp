@@ -1,14 +1,12 @@
 import os
-
-import torch
-import numpy as np
-import pickle
 import json
-import seaborn as sns
+import torch
+import pickle
+import numpy as np
 import networkx as nx
+import seaborn as sns
 from utils import model_utils
 import matplotlib.pyplot as plt
-from subgraph_matching import dataset
 from utils.tooling import read_config
 import networkx.algorithms.isomorphism as iso
 from subgraph_matching.test import evaluate_model
@@ -16,16 +14,7 @@ from subgraph_matching.model_handler import get_model
 from subgraph_matching.dataset import SubgraphIsomorphismDataset
 
 
-
 def get_models(
-    paths_to_experiment_dir = [
-        "/mnt/nas/vaibhavraj/isonetpp_experiments/",
-        "/mnt/nas/vaibhavraj/isonetpp_experiments_march_16/",
-        "/mnt/nas/vaibhavraj/isonet_experiments_02_april/",
-        "/mnt/home/vaibhavraj/isonetpp_enhanced_code/experiments/",
-        "/mnt/home/vaibhavraj/isonetpp_enhanced_code/experiments_archived_march_16/",
-        "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated/",
-    ]
 ):
     for experiment_dir in paths_to_experiment_dir:
         for experiment in os.listdir(experiment_dir):
@@ -359,31 +348,38 @@ def get_scores(models_to_run):
 
             # evaluate_improvement_nodes(model, test_dataset, relevant_model["dataset"])
 
-            # _, test_map_score = evaluate_model(model, test_dataset)
-            # print("Test MAP Score:", test_map_score)
-            # models_to_run[model_name]["relevant_models"][idx]["map_score"] = str(test_map_score)
+            _, test_map_score = evaluate_model(model, test_dataset)
+            print("Test MAP Score:", test_map_score)
+            models_to_run[model_name]["relevant_models"][idx]["map_score"] = str(test_map_score)
 
-            # hits_at_20 = hits_at_k(model, test_dataset, 20)
-            # print("Test HITS@20 Score:", hits_at_20, "\n")
-            # models_to_run[model_name]["relevant_models"][idx]["hits@20"] = str(hits_at_20)
+            hits_at_20 = hits_at_k(model, test_dataset, 20)
+            print("Test HITS@20 Score:", hits_at_20, "\n")
+            models_to_run[model_name]["relevant_models"][idx]["hits@20"] = str(hits_at_20)
 
     return models_to_run
 
 
 
-def main(table_num):
-    
-    with open(f"table_{table_num}.json", "rb") as f:
+def main():
+
+    with open(table_path, "rb") as f:
         table_meta = json.load(f)
 
     table_meta_with_scores = get_scores(table_meta)
-    
 
-    with open(f"table_{table_num}_with_scores.json", "w") as f:
+    with open(base_path + f"paper_artifacts/table_metadata/table_{table_num}_with_scores.json", "w") as f:
         json.dump(table_meta_with_scores, f)
 
     dump_latex(table_meta_with_scores)
 
 if __name__ == "__main__":
-    TABLE_NUM = 0
-    main(TABLE_NUM)
+    base_path = "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/"
+    paths_to_experiment_dir = [
+        base_path + "paper_artifacts/collection/"
+    ]
+
+    table_num = 1
+    table_path = base_path + f"paper_artifacts/table_metadata/table_{table_num}.json"
+    
+    collection_path = base_path + "paper_artifacts/collection/"
+    main()
