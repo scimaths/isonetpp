@@ -73,6 +73,17 @@ def isomorphic(train_dataset, val_dataset, test_dataset):
     print("Out of ", total_count, " pairs, ", isomorphic_count, " are isomorphic")
 
 
+    total_count = 0
+    isomorphic_count = 0
+
+    for qa in corpus_graphs:
+        for qb in corpus_graphs:
+            total_count += 1
+            if nx.is_isomorphic(qa, qb):
+                isomorphic_count += 1
+
+    print("Out of ", total_count, " pairs, ", isomorphic_count, " are isomorphic")
+
 if __name__ == "__main__":
     parser = Parser()
     args = parser.parse_args()
