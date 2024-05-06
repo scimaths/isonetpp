@@ -7,6 +7,7 @@ from subgraph_matching.models.node_early_interaction import NodeEarlyInteraction
 from subgraph_matching.models.node_early_interaction_2 import NodeEarlyInteraction2
 from subgraph_matching.models.node_early_interaction_3 import NodeEarlyInteraction3
 from subgraph_matching.models.edge_early_interaction_1 import EdgeEarlyInteraction1
+from subgraph_matching.models.edge_early_interaction_baseline_1 import EdgeEarlyInteractionBaseline1
 from subgraph_matching.models.edge_early_interaction_2 import EdgeEarlyInteraction2
 from subgraph_matching.models.edge_early_interaction_3 import EdgeEarlyInteraction3
 from subgraph_matching.models.node_edge_early_interaction import NodeEdgeEarlyInteraction
@@ -18,7 +19,7 @@ from subgraph_matching.models.graphsim import GraphSim
 from subgraph_matching.models.egsc_modified import EGSC as EGSC_Modified
 from subgraph_matching.models.egsc import EGSC
 from subgraph_matching.models.eric import ERIC
-# from subgraph_matching.models.gotsim import GOTSim
+from subgraph_matching.models.gotsim import GOTSim
 from subgraph_matching.models.gmn_embed import GMN_embed_hinge
 # from subgraph_matching.models.h2mn import H2MN
 from subgraph_matching.models.greed import Greed
@@ -35,6 +36,7 @@ model_name_to_class_mappings = {
     'node_edge_early_interaction_consistency': NodeEdgeEarlyInteraction,
     'edge_early_interaction': EdgeEarlyInteraction,
     'edge_early_interaction_1': EdgeEarlyInteraction1,
+    'edge_early_interaction_1_baseline': EdgeEarlyInteractionBaseline1,
     'edge_early_interaction_2': EdgeEarlyInteraction2,
     'edge_early_interaction_3': EdgeEarlyInteraction3,
     'edge_early_interaction_consistency': EdgeEarlyInteraction,
@@ -50,7 +52,7 @@ model_name_to_class_mappings = {
     'egsc': EGSC,
     'egsc_modified': EGSC_Modified,
     'eric': ERIC,
-    # 'gotsim': GOTSim,
+    'gotsim': GOTSim,
     'gmn_embed': GMN_embed_hinge,
     # 'H2MN': H2MN,
     'greed': Greed
@@ -64,6 +66,10 @@ def get_model(model_name, config, max_node_set_size, max_edge_set_size, device):
         model_class = GMNBaseline
     elif model_name.startswith('gmn_iterative_refinement'):
         model_class = GMNIterativeRefinement
+    elif model_name.startswith('edge_early_interaction_baseline_1'):
+        model_class = EdgeEarlyInteractionBaseline1
+    elif model_name.startswith('edge_early_interaction_1'):
+        model_class = EdgeEarlyInteraction1
     else:
         model_class = model_name_to_class_mappings[model_name]
 
