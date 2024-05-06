@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-import lapjv
+from lap import lapjv
 import torch.nn.functional as F
 import torch_geometric.nn as pyg_nn
 from torch_geometric.data import Batch
@@ -30,6 +30,7 @@ class GOTSim(torch.nn.Module):
         self.input_dim = input_dim
         self.dropout = dropout
         self.device = device
+        self.is_sig = is_sig
 
         #Conv layers
         self.conv1 = pyg_nn.GCNConv(self.input_dim, filters_1)
@@ -127,7 +128,7 @@ class GOTSim(torch.nn.Module):
 
         sim_mat_all_cpu = [x.detach().cpu().numpy() for x in sim_mat_all]
         plans = [dense_wasserstein_distance_v3(x) for x in sim_mat_all_cpu ]
-        mcost = [torch.sum(torch.mul(x,torch.tensor(y, device=self.device))) for (x,y) in zip(sim_mat_all,plans)]
+        mcost = [torch.sum(torch.mul(x,torch.tensor(y, device=self.device, dtype=torch.float32))) for (x,y) in zip(sim_mat_all,plans)]
         sz_sum = qgraph_sizes.repeat_interleave(3)+cgraph_sizes.repeat_interleave(3)
         mcost_norm = 2*torch.div(torch.stack(mcost),sz_sum)
         scores_new =  self.ot_scoring_layer(mcost_norm.view(-1,3)).squeeze()

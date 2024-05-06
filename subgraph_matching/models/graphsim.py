@@ -155,7 +155,6 @@ class InteractionLayerGraphSim(InteractionLayer):
         features = torch.cat(
             self.Conv_pass(similarity_matrices_list), dim=1
         )
-        print(features.size())
         features = features.view(-1, self.linear_size[0])
         features = self.linear_pass(features)
         score = self.scoring_layer(features).view(-1)

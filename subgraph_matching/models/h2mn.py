@@ -1,7 +1,6 @@
 import math
 import torch
 import torch.nn as nn
-import torch_geometric as pyg
 import torch.nn.functional as F
 from torch_cluster import random_walk
 from torch_geometric.data import Data
