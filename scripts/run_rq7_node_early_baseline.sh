@@ -13,9 +13,9 @@ gpus=(0 1 2 3 4 5)
 overall_counter=0
 
 for config_file in \
-   "configs/rq7_efficiency/scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=pre___unify=true_T=6.yaml" \
-   "configs/rq7_efficiency/scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=pre___unify=true_T=7.yaml" \
-   "configs/rq7_efficiency/scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=pre___unify=true_T=8.yaml" \
+   "configs/rq7_efficiency/scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=pre___unify=true_K=6.yaml" \
+   "configs/rq7_efficiency/scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=pre___unify=true_K=7.yaml" \
+   "configs/rq7_efficiency/scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=pre___unify=true_K=8.yaml" \
 ; do
    for dataset in "${!dataset_seeds[@]}"; do
       seed="${dataset_seeds[$dataset]}"
