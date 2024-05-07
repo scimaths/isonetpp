@@ -187,3 +187,34 @@ def features_to_transport_plan(
     log_alpha = torch.matmul(masked_features_query, masked_features_corpus.permute(0, 2, 1))
     transport_plan = alignment_function(log_alpha=log_alpha, query_sizes=query_sizes, corpus_sizes=corpus_sizes)
     return transport_plan
+
+def consistency_scoring(
+    graphs, graph_sizes, max_edge_set_size, node_transport_plan,
+    edge_features, device, sinkhorn_config
+):
+    _, _, from_idx, to_idx, graph_idx = get_graph_features(graphs)
+
+    paired_edge_counts = get_paired_edge_counts(
+        from_idx, to_idx, graph_idx, 2*len(graph_sizes)
+    )
+
+    stacked_features_query, stacked_features_corpus = split_and_stack(
+        edge_features, paired_edge_counts, max_edge_set_size
+    )
+
+    straight_mapped_scores, cross_mapped_scores = kronecker_product_on_nodes(
+        node_transport_plan=node_transport_plan, from_idx=from_idx,
+        to_idx=to_idx, paired_edge_counts=paired_edge_counts,
+        graph_sizes=graph_sizes, max_edge_set_size=max_edge_set_size
+    )
+
+    edge_transport_plan = sinkhorn_iters(
+        log_alpha=straight_mapped_scores+cross_mapped_scores,
+        device=device, **sinkhorn_config
+    )
+
+    return feature_alignment_score(
+        query_features=stacked_features_query,
+        corpus_features=stacked_features_corpus,
+        transport_plan=edge_transport_plan
+    )

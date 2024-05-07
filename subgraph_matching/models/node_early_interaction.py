@@ -4,7 +4,7 @@ from utils.tooling import ReadOnlyConfig
 import GMN.graphembeddingnetwork as gmngen
 from subgraph_matching.models._template import AlignmentModel
 
-class NodeEarlyInteraction(torch.nn.Module):
+class NodeEarlyInteraction(AlignmentModel):
     def __init__(
         self,
         max_node_set_size,
@@ -45,7 +45,7 @@ class NodeEarlyInteraction(torch.nn.Module):
             torch.nn.Linear(sinkhorn_feature_dim, sinkhorn_feature_dim)
         )
 
-    def forward(self, graphs, graph_sizes, graph_adj_matrices):
+    def forward_with_alignment(self, graphs, graph_sizes, graph_adj_matrices):
         query_sizes, corpus_sizes = zip(*graph_sizes)
         query_sizes = torch.tensor(query_sizes, device=self.device)
         corpus_sizes = torch.tensor(corpus_sizes, device=self.device)
@@ -102,4 +102,4 @@ class NodeEarlyInteraction(torch.nn.Module):
             )
             node_feature_store[:, node_feature_dim:] = interleaved_node_features[padded_node_indices, node_feature_dim:]
 
-        return model_utils.feature_alignment_score(final_features_query, final_features_corpus, transport_plan)
+        return model_utils.feature_alignment_score(final_features_query, final_features_corpus, transport_plan), transport_plan

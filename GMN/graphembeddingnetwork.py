@@ -70,7 +70,7 @@ class GraphEncoder(nn.Module):
         if edge_features is None or self._edge_hidden_sizes is None:
             edge_outputs = edge_features
         else:
-            edge_outputs = self.MLP2(node_features)
+            edge_outputs = self.MLP2(edge_features)
 
         return node_outputs, edge_outputs
 
@@ -375,14 +375,18 @@ class GraphAggregator(nn.Module):
 
     def build_model(self):
         node_hidden_sizes = self._node_hidden_sizes
-        if self._gated:
-            node_hidden_sizes[-1] = self._graph_state_dim * 2
 
         layer = []
-        layer.append(nn.Linear(self._input_size[0], node_hidden_sizes[0]))
+        if self._gated and len(node_hidden_sizes) == 1:
+          layer.append(nn.Linear(self._input_size[0], node_hidden_sizes[0] * 2))
+        else:
+          layer.append(nn.Linear(self._input_size[0], node_hidden_sizes[0]))
         for i in range(1, len(node_hidden_sizes)):
             layer.append(nn.ReLU())
-            layer.append(nn.Linear(node_hidden_sizes[i - 1], node_hidden_sizes[i]))
+            if self._gated and i == len(node_hidden_sizes) - 1:
+              layer.append(nn.Linear(node_hidden_sizes[i - 1], node_hidden_sizes[i] * 2))
+            else:
+              layer.append(nn.Linear(node_hidden_sizes[i - 1], node_hidden_sizes[i]))
         MLP1 = nn.Sequential(*layer)
 
         if (self._graph_transform_sizes is not None and
@@ -454,14 +458,18 @@ class NodeFeatureProcessor(nn.Module):
         self.MLP = self.build_model()
 
     def build_model(self):
-        node_hidden_sizes = self._node_hidden_sizes
-        node_hidden_sizes[-1] *= 2
 
         layer = []
-        layer.append(nn.Linear(self._input_sizes[0], node_hidden_sizes[0]))
-        for i in range(1, len(node_hidden_sizes)):
+        if len(self._node_hidden_sizes) == 1:
+          layer.append(nn.Linear(self._input_sizes[0], self._node_hidden_sizes[0] * 2))
+        else:
+          layer.append(nn.Linear(self._input_sizes[0], self._node_hidden_sizes[0]))
+        for i in range(1, len(self._node_hidden_sizes)):
             layer.append(nn.ReLU())
-            layer.append(nn.Linear(node_hidden_sizes[i - 1], node_hidden_sizes[i]))
+            if i == len(self._node_hidden_sizes) - 1:
+              layer.append(nn.Linear(self._node_hidden_sizes[i - 1], self._node_hidden_sizes[i] * 2))
+            else:
+              layer.append(nn.Linear(self._node_hidden_sizes[i - 1], self._node_hidden_sizes[i]))
         MLP = nn.Sequential(*layer)
 
         return MLP

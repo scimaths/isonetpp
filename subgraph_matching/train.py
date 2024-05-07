@@ -47,19 +47,9 @@ def train_model(
                 predictions_for_negatives.unsqueeze(1),
                 margin
             )
-            torch.set_printoptions(precision=30, sci_mode=False)
-            print(model.interaction_alignment_preprocessor[0].weight)
-            print(model.interaction_alignment_preprocessor[0].bias)
-            print(model.interaction_alignment_preprocessor[2].weight)
-            print(model.interaction_alignment_preprocessor[2].bias)
+            if hasattr(model, 'regularizer'):
+                losses += model.regularizer
             losses.backward()
-            # print(model)
-            # print(losses.item())
-            print(model.interaction_alignment_preprocessor[0].weight.grad)
-            print(model.interaction_alignment_preprocessor[0].bias.grad)
-            print(model.interaction_alignment_preprocessor[2].weight.grad)
-            print(model.interaction_alignment_preprocessor[2].bias.grad)
-            exit(0)
             optimizer.step()
             epoch_loss += losses.item()
         epoch_training_time = time.time() - training_start_time
@@ -71,16 +61,16 @@ def train_model(
         epoch_validation_time = time.time() - validation_start_time
         experiment.log(f"Run: %d VAL ap_score: %.6f map_score: %.6f Time: %.2f", epoch_num, ap_score, map_score, epoch_validation_time)
 
-        # wandb.log(
-        #     {
-        #     "train_loss": epoch_loss,
-        #     "train_time": epoch_training_time,
-        #     "val_ap_score": ap_score,
-        #     "val_map_score": map_score,
-        #     "val_time": epoch_validation_time,
-        #     },
-        #     step = epoch_num
-        # )
+        wandb.log(
+            {
+            "train_loss": epoch_loss,
+            "train_time": epoch_training_time,
+            "val_ap_score": ap_score,
+            "val_map_score": map_score,
+            "val_time": epoch_validation_time,
+            },
+            step = epoch_num
+        )
 
         es_verdict = early_stopping.check([map_score])
         if es_verdict == es.SAVE:
@@ -108,7 +98,7 @@ if __name__ == "__main__":
     experiment = Experiment(config=experiment_config, device=device)
 
     wandb_params = parser.get_wandb_config(config_dict, device)
-    # wandb.init(**wandb_params, resume=False)
+    wandb.init(**wandb_params, resume=False)
 
     early_stopping_config = parser.get_early_stopping_config()
     early_stopping = es.EarlyStopping(**early_stopping_config)
@@ -137,9 +127,9 @@ if __name__ == "__main__":
     test_dataset = get_datasets(dataset_config, experiment, data_type, modes=['test'])['test']
     test_ap_score, test_map_score = evaluate_model(trained_model, test_dataset)
     experiment.log(f"TEST - ap_score: %.6f map_score: %.6f", test_ap_score, test_map_score)
-    # wandb.log({
-    #     "test_ap_score": test_ap_score,
-    #     "test_map_score": test_map_score,
-    # })
+    wandb.log({
+        "test_ap_score": test_ap_score,
+        "test_map_score": test_map_score,
+    })
 
-    # wandb.finish()
+    wandb.finish()
