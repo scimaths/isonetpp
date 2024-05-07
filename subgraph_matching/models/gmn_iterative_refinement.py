@@ -64,6 +64,8 @@ class GMNIterativeRefinement(GMNBaseline):
         node_feature_store = torch.zeros(num_nodes, node_feature_dim * (self.propagation_steps + 1), device=self.device)
         updated_node_feature_store = torch.zeros_like(node_feature_store)
 
+        transport_plans = []
+
         for refine_idx in range(self.refinement_steps):
             node_features_enc, edge_features_enc = torch.clone(encoded_node_features), torch.clone(encoded_edge_features)
 
@@ -89,6 +91,7 @@ class GMNIterativeRefinement(GMNBaseline):
                 alignment_function = self.interaction_alignment_function,
                 what_for = 'interaction'
             )
+            transport_plans.append(transport_plan)
 
             interleaved_node_features = model_utils.get_interaction_feature_store(
                 transport_plan[0], stacked_feature_store_query, stacked_feature_store_corpus,
@@ -98,6 +101,6 @@ class GMNIterativeRefinement(GMNBaseline):
 
         ############################## SCORING ##############################
         if self.scoring == AGGREGATED:
-            return self.aggregated_scoring(node_features_enc, graph_idx, graph_sizes)
+            return self.aggregated_scoring(node_features_enc, graph_idx, graph_sizes), torch.stack(transport_plans, dim=1)
         elif self.scoring == SET_ALIGNED:
-            return self.set_aligned_scoring(node_features_enc, graph_sizes, features_to_transport_plan)
+            return self.set_aligned_scoring(node_features_enc, graph_sizes, features_to_transport_plan), torch.stack(transport_plans, dim=1)
