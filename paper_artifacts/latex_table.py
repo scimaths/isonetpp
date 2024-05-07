@@ -343,7 +343,8 @@ def get_scores(models_to_run):
                 print("Could not load model from path:", relevant_model["model_path"])
                 continue
 
-            model.load_state_dict(checkpoint['model_state_dict'])
+            # Apply the mapping to the loaded state dictionary keys
+            model.load_state_dict(checkpoint["model_state_dict"])
             model.to(device)
 
             # evaluate_improvement_nodes(model, test_dataset, relevant_model["dataset"])

@@ -514,3 +514,24 @@ def raise_measure_error(measure):
         'Measure `{}` not supported. Supported: {}'.format(measure,
                                                            supported_measures))
 
+    def forward(self, graphs, graph_sizes, graph_adj_matrices):
+        batch_size = len(graph_sizes)
+        query_graphs, corpus_graphs = zip(*graphs)
+
+        # Encoding graph level features
+        query_graph_features, query_node_features = self.encoding_layer(query_graphs, batch_size)
+        corpus_graph_features, corpus_node_features = self.encoding_layer(corpus_graphs, batch_size)
+
+        # Interaction
+        score = self.interaction_layer(query_graph_features, corpus_graph_features, batch_size)
+
+        # Regularizer Term
+        query_graph_idx = Batch.from_data_list(query_graphs).batch
+        corpus_graph_idx = Batch.from_data_list(corpus_graphs).batch
+        self.regularizer = self.gamma * self.encoding_layer.regularizer(
+            query_node_features, corpus_node_features,
+            query_graph_features, corpus_graph_features,
+            query_graph_idx, corpus_graph_idx,
+            batch_size
+        )
+        return score
