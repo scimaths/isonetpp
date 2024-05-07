@@ -72,6 +72,8 @@ def get_model(model_name, config, max_node_set_size, max_edge_set_size, device):
         model_class = EdgeEarlyInteractionBaseline1
     elif model_name.startswith('edge_early_interaction_1'):
         model_class = EdgeEarlyInteraction1
+    elif model_name.startswith('isonet'):
+        model_class = ISONET
     else:
         model_class = model_name_to_class_mappings[model_name]
 
