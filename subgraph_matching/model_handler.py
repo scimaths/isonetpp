@@ -23,6 +23,7 @@ from subgraph_matching.models.gmn_embed import GMN_embed_hinge
 from subgraph_matching.models.h2mn import H2MN
 from subgraph_matching.models.greed import Greed
 from subgraph_matching.models.neuromatch import NeuroMatch
+from subgraph_matching.models.simgnn import SimGNN
 
 model_name_to_class_mappings = {
     'node_align_node_loss': NodeAlignNodeLoss,
@@ -55,7 +56,8 @@ model_name_to_class_mappings = {
     'gmn_embed': GMN_embed_hinge,
     'H2MN': H2MN,
     'neuromatch': NeuroMatch,
-    'greed': Greed
+    'greed': Greed,
+    'simgnn': SimGNN
 }
 
 def get_model_names():

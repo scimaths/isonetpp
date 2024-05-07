@@ -373,13 +373,14 @@ def main():
     dump_latex(table_meta_with_scores)
 
 if __name__ == "__main__":
-    base_path = "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/"
+    base_path = "/raid/infolab/ashwinr/isonetpp/"
+    # base_path = "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/"
     paths_to_experiment_dir = [
         base_path + "paper_artifacts/collection/"
     ]
 
     table_num = 1
     table_path = base_path + f"paper_artifacts/table_metadata/table_{table_num}.json"
-    
+
     collection_path = base_path + "paper_artifacts/collection/"
     main()
