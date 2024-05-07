@@ -1,12 +1,12 @@
 cd ..
 
 declare -A dataset_seeds=(
-   ["aids"]="7762"
-   ["mutag"]="7762"
+   ["aids"]="7474"
+   ["mutag"]="7474"
    ["ptc_fm"]="7474"
-   ["ptc_fr"]="7762"
-   ["ptc_mm"]="7762"
-   ["ptc_mr"]="7366"
+   ["ptc_fr"]="1704"
+   ["ptc_mm"]="4929"
+   ["ptc_mr"]="1704"
 )
 
 gpus=(0 1 2 3 4 5)
