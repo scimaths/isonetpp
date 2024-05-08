@@ -27,7 +27,7 @@ class AttentionModule(torch.nn.Module):
                 )
 
         self.fc1 =  nn.Linear(channel,  channel)
-        
+
     def init_parameters(self):
         torch.nn.init.xavier_uniform_(self.weight_matrix)
 

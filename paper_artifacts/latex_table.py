@@ -418,6 +418,6 @@ if __name__ == "__main__":
 
     table_num = 1
     table_path = base_path + f"paper_artifacts/table_metadata/table_{table_num}.json"
-    
+
     collection_path = base_path + "paper_artifacts/collection/"
     main()
