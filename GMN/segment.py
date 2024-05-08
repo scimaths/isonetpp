@@ -53,7 +53,7 @@ def unsorted_segment_sum(data, segment_ids, num_segments):
     assert data.shape == segment_ids.shape, "data.shape and segment_ids.shape should be equal"
 
     shape = [num_segments] + list(data.shape[1:])
-    tensor = torch.zeros(*shape, device=data.device, dtype=torch.float64).scatter_add(0, segment_ids, data)
+    tensor = torch.zeros(*shape, device=data.device).scatter_add(0, segment_ids, data)
     tensor = tensor.type(data.dtype)
     return tensor
 
