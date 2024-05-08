@@ -33,7 +33,7 @@ class SubgraphIsomorphismDataset:
         self.batch_size = batch_size
         self.data_type = data_type
         self.dataset_base_path = dataset_base_path
-        self.device = experiment.device if experiment else 'cuda:1'
+        self.device = experiment.device if experiment else 'cuda:5'
         self.batch_setting = None
 
         self.load_graphs(experiment=experiment)
@@ -90,7 +90,7 @@ class SubgraphIsomorphismDataset:
 
         edges = list(graph.edges)
         doubled_edges = [[x, y] for (x, y) in edges] + [[y, x] for (x, y) in edges]
-        edge_index = torch.tensor(np.array(doubled_edges).T, device=self.device)
+        edge_index = torch.tensor(np.array(doubled_edges).T, dtype=torch.int64, device=self.device)
         return Data(x = features, edge_index = edge_index), num_nodes
 
     def preprocess_subgraphs_to_pyG_data(self):
@@ -135,9 +135,9 @@ class SubgraphIsomorphismDataset:
             total_edges += num_edges
         
         return GraphCollection(
-            from_idx = torch.tensor(np.concatenate(from_idx, axis=0), device=self.device),
-            to_idx = torch.tensor(np.concatenate(to_idx, axis=0), device=self.device),
-            graph_idx = torch.tensor(np.concatenate(graph_idx, axis=0), device=self.device),
+            from_idx = torch.tensor(np.concatenate(from_idx, axis=0), dtype=torch.int64, device=self.device),
+            to_idx = torch.tensor(np.concatenate(to_idx, axis=0), dtype=torch.int64, device=self.device),
+            graph_idx = torch.tensor(np.concatenate(graph_idx, axis=0), dtype=torch.int64, device=self.device),
             num_graphs = len(all_graphs),
             node_features = torch.ones(total_nodes, 1, dtype=torch.float, device=self.device),
             edge_features = torch.ones(total_edges, 1, dtype=torch.float, device=self.device)
