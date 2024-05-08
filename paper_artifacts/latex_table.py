@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from utils.tooling import read_config
 from utils.tooling import seed_everything
 import networkx.algorithms.isomorphism as iso
-from subgraph_matching.test import evaluate_model
+from utils.eval import compute_average_precision
 from subgraph_matching.model_handler import get_model
 from subgraph_matching.dataset import SubgraphIsomorphismDataset
 
@@ -169,6 +169,15 @@ def dump_latex(table_meta):
             print(" | ".join(hits), end="")
             if dataset_name != "ptc_mr":
                 print(" & ", end="")
+        for dataset_name in ["aids", "mutag", "ptc_fm", "ptc_fr", "ptc_mm", "ptc_mr"]:
+            dataset_std_error_scores = []
+            for relevant_model in relevant_models:
+                if relevant_model["dataset"] == dataset_name:
+                    dataset_std_error_scores.append(relevant_model["std_error"])
+            std_errors = [str(round(float(x), 3)) for x in dataset_std_error_scores]
+            print(" | ".join(std_errors), end="")
+            if dataset_name != "ptc_mr":
+                print(" & ", end="")
         print("\\\\")
     print(table_end)
 
@@ -272,6 +281,30 @@ def evaluate_improvement_nodes(model, dataset, dataset_name):
     plt.savefig(f'histogram_plots/histogram_{dataset_name}.png')
     plt.clf()
 
+def evaluate_model(model, dataset):
+    model.eval()
+
+    # Compute global statistics
+    pos_pairs, neg_pairs = dataset.pos_pairs, dataset.neg_pairs
+    average_precision = compute_average_precision(model, pos_pairs, neg_pairs, dataset)
+
+    # Compute per-query statistics
+    num_query_graphs = len(dataset.query_graphs)
+    per_query_avg_prec = []
+
+    for query_idx in range(num_query_graphs):
+        pos_pairs_for_query = list(filter(lambda pair: pair[0] == query_idx, pos_pairs))
+        neg_pairs_for_query = list(filter(lambda pair: pair[0] == query_idx, neg_pairs))
+
+        if len(pos_pairs_for_query) > 0 and len(neg_pairs_for_query) > 0:
+            per_query_avg_prec.append(
+                compute_average_precision(model, pos_pairs_for_query, neg_pairs_for_query, dataset)
+            )
+    mean_average_precision = np.mean(per_query_avg_prec)
+
+    standard_deviation = np.std(per_query_avg_prec)
+    standard_error = standard_deviation / np.sqrt(len(per_query_avg_prec))
+    return average_precision, mean_average_precision, standard_error
 
 def evaluate_improvement_edges(model, dataset, dataset_name):
 
@@ -421,7 +454,8 @@ def get_scores(models_to_run):
             "model_path": model_path,
             "config_path": model_name_to_config_map[model_name],
             "map_score": "0",
-            "hits@20": "0"
+            "hits@20": "0",
+            "std_error": "0"
         })
 
 
@@ -465,7 +499,8 @@ def get_scores(models_to_run):
                 print("Could not load model from path:", relevant_model["model_path"])
                 continue
 
-            model.load_state_dict(checkpoint['model_state_dict'])
+            # Apply the mapping to the loaded state dictionary keys
+            model.load_state_dict(checkpoint["model_state_dict"])
             model.to(device)
 
             seed_everything(relevant_model["seed"])
@@ -477,6 +512,12 @@ def get_scores(models_to_run):
             # _, test_map_score = evaluate_model(model, test_dataset)
             # print("Test MAP Score:", test_map_score)
             # models_to_run[model_name]["relevant_models"][idx]["map_score"] = str(test_map_score)
+
+            _, test_map_score, test_std_error = evaluate_model(model, test_dataset)
+            print("Test MAP Score:", test_map_score)
+            print("Test Standard Error:", test_std_error)
+            models_to_run[model_name]["relevant_models"][idx]["map_score"] = str(test_map_score)
+            models_to_run[model_name]["relevant_models"][idx]["std_error"] = str(test_std_error)
 
             # hits_at_20 = hits_at_k(model, test_dataset, 20)
             # print("Test HITS@20 Score:", hits_at_20, "\n")
@@ -499,6 +540,7 @@ def main():
     dump_latex(table_meta_with_scores)
 
 if __name__ == "__main__":
+    # base_path = "/raid/infolab/ashwinr/isonetpp/"
     base_path = "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/"
     paths_to_experiment_dir = [
         base_path + "paper_artifacts/collection/"
@@ -506,6 +548,6 @@ if __name__ == "__main__":
 
     table_num = 1
     table_path = base_path + f"paper_artifacts/table_metadata/table_{table_num}.json"
-    
+
     collection_path = base_path + "paper_artifacts/collection/"
     main()

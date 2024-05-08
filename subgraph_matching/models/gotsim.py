@@ -2,7 +2,6 @@ import torch
 import numpy as np
 from lap import lapjv
 import torch.nn.functional as F
-from subgraph.utils import cudavar
 import torch_geometric.nn as pyg_nn
 from torch_geometric.data import Batch
 from torch.nn.utils.rnn import pad_sequence
@@ -13,37 +12,50 @@ def dense_wasserstein_distance_v3(cost_matrix):
     return np.eye(cost_matrix.shape[0])[col_ind_lapjv]
 
 class GOTSim(torch.nn.Module):
-    def __init__(self, av,config,input_dim):
+    def __init__(
+        self,
+        input_dim,
+        max_edge_set_size,
+        max_node_set_size,
+        device,
+        filters_1,
+        filters_2,
+        filters_3,
+        dropout,
+        is_sig,
+    ):
         """
         """
         super(GOTSim, self).__init__()
-        self.av = av
-        self.config = config
         self.input_dim = input_dim
+        self.dropout = dropout
+        self.device = device
+        self.is_sig = is_sig
 
         #Conv layers
-        self.conv1 = pyg_nn.GCNConv(self.input_dim, self.av.filters_1)
-        self.conv2 = pyg_nn.GCNConv(self.av.filters_1, self.av.filters_2)
-        self.conv3 = pyg_nn.GCNConv(self.av.filters_2, self.av.filters_3)
+        self.conv1 = pyg_nn.GCNConv(self.input_dim, filters_1)
+        self.conv2 = pyg_nn.GCNConv(filters_1, filters_2)
+        self.conv3 = pyg_nn.GCNConv(filters_2, filters_3)
         self.num_gcn_layers = 3
 
-        self.n1 = self.av.MAX_QUERY_SUBGRAPH_SIZE
-        self.n2 = self.av.MAX_CORPUS_SUBGRAPH_SIZE
-        self.insertion_constant_matrix = cudavar(self.av,99999 * (torch.ones(self.n1, self.n1)
-                                                - torch.diag(torch.ones(self.n1))))
-        self.deletion_constant_matrix = cudavar(self.av,99999 * (torch.ones(self.n2, self.n2)
-                                                - torch.diag(torch.ones(self.n2))))
+        # TODO: fix this
+        self.n1 = max_node_set_size
+        self.n2 = max_node_set_size
+        self.insertion_constant_matrix = 99999 * (torch.ones(self.n1, self.n1, device=self.device)
+                                                - torch.diag(torch.ones(self.n1, device=self.device)))
+        self.deletion_constant_matrix = 99999 * (torch.ones(self.n2, self.n2, device=self.device)
+                                                - torch.diag(torch.ones(self.n2, device=self.device)))
 
 
         self.ot_scoring_layer = torch.nn.Linear(self.num_gcn_layers, 1)
 
         self.insertion_params, self.deletion_params = torch.nn.ParameterList([]), torch.nn.ParameterList([])
-        self.insertion_params.append(torch.nn.Parameter(torch.ones(self.av.filters_1)))
-        self.insertion_params.append(torch.nn.Parameter(torch.ones(self.av.filters_2)))
-        self.insertion_params.append(torch.nn.Parameter(torch.ones(self.av.filters_3)))
-        self.deletion_params.append(torch.nn.Parameter(torch.zeros(self.av.filters_1)))
-        self.deletion_params.append(torch.nn.Parameter(torch.zeros(self.av.filters_2)))
-        self.deletion_params.append(torch.nn.Parameter(torch.zeros(self.av.filters_3)))
+        self.insertion_params.append(torch.nn.Parameter(torch.ones(filters_1)))
+        self.insertion_params.append(torch.nn.Parameter(torch.ones(filters_2)))
+        self.insertion_params.append(torch.nn.Parameter(torch.ones(filters_3)))
+        self.deletion_params.append(torch.nn.Parameter(torch.zeros(filters_1)))
+        self.deletion_params.append(torch.nn.Parameter(torch.zeros(filters_2)))
+        self.deletion_params.append(torch.nn.Parameter(torch.zeros(filters_3)))
 
     def GNN (self, data):
         """
@@ -52,12 +64,12 @@ class GOTSim(torch.nn.Module):
         features = self.conv1(data.x,data.edge_index)
         gcn_feature_list.append(features)
         features = torch.nn.functional.relu(features)
-        features = torch.nn.functional.dropout(features, p=self.av.dropout, training=self.training)
+        features = torch.nn.functional.dropout(features, p=self.dropout, training=self.training)
 
         features = self.conv2(features,data.edge_index)
         gcn_feature_list.append(features)
         features = torch.nn.functional.relu(features)
-        features = torch.nn.functional.dropout(features, p=self.av.dropout, training=self.training)
+        features = torch.nn.functional.dropout(features, p=self.dropout, training=self.training)
 
         features = self.conv3(features,data.edge_index)
         gcn_feature_list.append(features)
@@ -71,8 +83,8 @@ class GOTSim(torch.nn.Module):
         batch_sz = len(batch_data)
         q_graphs,c_graphs = zip(*batch_data)
         a,b = zip(*batch_data_sizes)
-        qgraph_sizes = cudavar(self.av,torch.tensor(a))
-        cgraph_sizes = cudavar(self.av,torch.tensor(b))
+        qgraph_sizes = torch.tensor(a, device=self.device)
+        cgraph_sizes = torch.tensor(b, device=self.device)
         query_batch = Batch.from_data_list(q_graphs)
         corpus_batch = Batch.from_data_list(c_graphs)
         query_gcn_feature_list = self.GNN(query_batch)
@@ -97,8 +109,8 @@ class GOTSim(torch.nn.Module):
             pad_insertion_similarity_matrices_list.append(torch.diag_embed(-torch.matmul(c, self.insertion_params[i]))+\
                                                      self.deletion_constant_matrix)
 
-            pad_dummy_similarity_matrices_list.append(cudavar(self.av,torch.zeros(batch_sz,self.n2, self.n1, \
-                                                      dtype=q.dtype)))
+            pad_dummy_similarity_matrices_list.append(torch.zeros(batch_sz,self.n2, self.n1, \
+                                                      dtype=q.dtype, device=self.device))
 
 
         sim_mat_all = []
@@ -116,13 +128,13 @@ class GOTSim(torch.nn.Module):
 
         sim_mat_all_cpu = [x.detach().cpu().numpy() for x in sim_mat_all]
         plans = [dense_wasserstein_distance_v3(x) for x in sim_mat_all_cpu ]
-        mcost = [torch.sum(torch.mul(x,cudavar(self.av,torch.Tensor(y)))) for (x,y) in zip(sim_mat_all,plans)]
+        mcost = [torch.sum(torch.mul(x,torch.tensor(y, device=self.device, dtype=torch.float32))) for (x,y) in zip(sim_mat_all,plans)]
         sz_sum = qgraph_sizes.repeat_interleave(3)+cgraph_sizes.repeat_interleave(3)
         mcost_norm = 2*torch.div(torch.stack(mcost),sz_sum)
         scores_new =  self.ot_scoring_layer(mcost_norm.view(-1,3)).squeeze()
         #return scores_new.view(-1)
 
-        if self.av.is_sig:
+        if self.is_sig:
             return torch.sigmoid(scores_new).view(-1)
         else:
             return scores_new.view(-1)

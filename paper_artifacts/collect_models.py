@@ -136,10 +136,14 @@ def main():
     collect_models(table_meta)
 
 if __name__ == "__main__":
+    # base_path = "/raid/infolab/ashwinr/isonetpp/"
     base_path = "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/"
+    # base_path = "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/"
     paths_to_experiment_dir = [
         # base_path + "experiments/",
-        base_path + "experiments_from_infolab_vaibhav/"
+        base_path + "experiments_from_infolab_vaibhav/",
+        base_path + "experiments_updated/",
+        base_path + "experiments_from_gise/experiments/"
     ]
 
     table_num = 1
