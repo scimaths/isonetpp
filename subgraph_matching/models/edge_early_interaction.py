@@ -7,7 +7,7 @@ import GMN.graphembeddingnetwork as gmngen
 from subgraph_matching.models.consistency import Consistency
 
 
-class EdgeEarlyInteraction(torch.nn.Module):
+class EdgeEarlyInteraction(AlignmentModel):
     def __init__(
         self,
         max_node_set_size,
@@ -71,7 +71,7 @@ class EdgeEarlyInteraction(torch.nn.Module):
                 self.device,
             )
 
-    def forward(self, graphs, graph_sizes, graph_adj_matrices):
+    def forward_with_alignment(self, graphs, graph_sizes, graph_adj_matrices):
         query_sizes, corpus_sizes = zip(*graph_sizes)
         query_sizes = torch.tensor(query_sizes, device=self.device)
         corpus_sizes = torch.tensor(corpus_sizes, device=self.device)
@@ -92,6 +92,7 @@ class EdgeEarlyInteraction(torch.nn.Module):
 
         padded_edge_indices = model_utils.get_padded_indices(paired_edge_counts, self.max_edge_set_size, self.device)
 
+        transport_plans = []
         for _ in range(self.time_update_steps):
             node_features_enc, edge_features_enc = torch.clone(encoded_node_features), torch.clone(encoded_edge_features)
 
@@ -135,7 +136,7 @@ class EdgeEarlyInteraction(torch.nn.Module):
 
             sinkhorn_input = torch.matmul(masked_features_query, masked_features_corpus.permute(0, 2, 1))
             transport_plan = model_utils.sinkhorn_iters(log_alpha=sinkhorn_input, device=self.device, **self.sinkhorn_config)
-
+            transport_plans.append(transport_plan)
             # Compute interaction-based features
             interleaved_edge_features = model_utils.get_interaction_feature_store(
                 transport_plan, stacked_feature_store_query, stacked_feature_store_corpus
@@ -144,30 +145,4 @@ class EdgeEarlyInteraction(torch.nn.Module):
 
         score = model_utils.feature_alignment_score(final_features_query, final_features_corpus, transport_plan)
 
-        if self.consistency_config:
-            stacked_feature_store_query, stacked_feature_store_corpus = model_utils.split_and_stack(
-                node_features_enc, graph_sizes, self.max_node_set_size
-            )
-
-            transformed_features_query = self.node_sinkhorn_feature_layers(stacked_feature_store_query)
-            transformed_features_corpus = self.node_sinkhorn_feature_layers(stacked_feature_store_corpus)
-
-            def mask_graphs(features, graph_sizes):
-                mask = torch.stack([self.node_graph_size_to_mask_map[i] for i in graph_sizes])
-                return mask * features
-            masked_features_query = mask_graphs(transformed_features_query, query_sizes)
-            masked_features_corpus = mask_graphs(transformed_features_corpus, corpus_sizes)
-
-            sinkhorn_input = torch.matmul(masked_features_query, masked_features_corpus.permute(0, 2, 1))
-            node_transport_plan = model_utils.sinkhorn_iters(log_alpha=sinkhorn_input, device=self.device, **self.sinkhorn_config)
-
-            return torch.add(
-                score,
-                self.consistency_score(
-                    graphs,
-                    graph_sizes,
-                    messages,
-                    node_transport_plan
-                )
-            )
-        return score
+        return score, torch.stack(transport_plans, dim=1)

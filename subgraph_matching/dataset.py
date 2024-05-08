@@ -33,7 +33,7 @@ class SubgraphIsomorphismDataset:
         self.batch_size = batch_size
         self.data_type = data_type
         self.dataset_base_path = dataset_base_path
-        self.device = experiment.device if experiment else 'cuda:1'
+        self.device = experiment.device if experiment else 'cuda:2'
         self.batch_setting = None
 
         self.load_graphs(experiment=experiment)

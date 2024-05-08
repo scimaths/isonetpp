@@ -8,6 +8,7 @@ import seaborn as sns
 from utils import model_utils
 import matplotlib.pyplot as plt
 from utils.tooling import read_config
+from utils.tooling import seed_everything
 import networkx.algorithms.isomorphism as iso
 from subgraph_matching.test import evaluate_model
 from subgraph_matching.model_handler import get_model
@@ -272,6 +273,127 @@ def evaluate_improvement_nodes(model, dataset, dataset_name):
     plt.clf()
 
 
+def evaluate_improvement_edges(model, dataset, dataset_name):
+
+    def get_alignment_edges(mapping, query_edges, corpus_edges, device):
+
+        num_query_edges = len(query_edges)
+        num_corpus_edges = len(corpus_edges)
+
+        edges_corpus_to_idx = {corpus_edges[idx]: idx for idx in range(len(corpus_edges))}
+        reverse_mapping = {mapping[key]: key for key in mapping}
+
+        s_hat = torch.zeros((num_query_edges, num_corpus_edges), device=device)
+
+        for edge_idx in range(num_query_edges):
+
+            corpus_edge_1 = (reverse_mapping[query_edges[edge_idx][0]], reverse_mapping[query_edges[edge_idx][1]])
+            corpus_edge_2 = (reverse_mapping[query_edges[edge_idx][1]], reverse_mapping[query_edges[edge_idx][0]])
+
+            if corpus_edge_1 in edges_corpus_to_idx:
+                s_hat[edge_idx][edges_corpus_to_idx[corpus_edge_1]] = 1
+
+            if corpus_edge_2 in edges_corpus_to_idx:
+                s_hat[edge_idx][edges_corpus_to_idx[corpus_edge_2]] = 1
+
+        return s_hat
+
+    def get_norm_qc_pair_edges(query_edges, corpus_edges, transport_plans):
+
+        Query = nx.Graph()
+        Query.add_edges_from(query_edges)
+
+        Corpus = nx.Graph()
+        Corpus.add_edges_from(corpus_edges)
+
+        GM = iso.GraphMatcher(Corpus,Query)
+
+        best_s_hat = None
+        best_norm_final_transport = torch.zeros(1)
+        for mapping in GM.subgraph_isomorphisms_iter():
+            p_hat = get_alignment_edges(mapping, query_edges, corpus_edges, transport_plans.device)
+            norm = torch.sum(transport_plans[-1, :len(query_edges), :len(corpus_edges)] * p_hat)
+            if norm >= best_norm_final_transport:
+                best_norm_final_transport = norm
+                best_s_hat = p_hat
+
+        assert best_s_hat is not None
+        norm = torch.sum(transport_plans[:, :len(query_edges), :len(corpus_edges)] * best_s_hat.unsqueeze(0), dim=(1,2))
+        return norm.tolist()
+
+    model.eval()
+
+    pos_pairs, neg_pairs = dataset.pos_pairs, dataset.neg_pairs
+
+    num_query_graphs = len(dataset.query_graphs)
+
+    norms_total = []
+    for query_idx in range(num_query_graphs):
+        pos_pairs_for_query = list(filter(lambda pair: pair[0] == query_idx, pos_pairs))
+
+        if len(pos_pairs_for_query) > 0:
+
+            num_batches = dataset.create_custom_batches(pos_pairs_for_query)
+
+            norms_per_query = []
+            for batch_idx in range(num_batches):
+                batch_graphs, batch_graph_sizes, _, batch_adj_matrices = dataset.fetch_batch_by_id(batch_idx)
+                _, _, from_idx, to_idx, graph_idx = model_utils.get_graph_features(batch_graphs)
+
+
+                batch_data_sizes_flat = [item for sublist in batch_graph_sizes for item in sublist]
+
+                edge_counts  = model_utils.get_paired_edge_counts(from_idx, to_idx, graph_idx, 2*len(batch_graph_sizes))
+                edge_counts = [item for sublist in edge_counts for item in sublist]
+
+                from_idx_suff = torch.cat([
+                    torch.tensor([sum(batch_data_sizes_flat[:node_idx])]).repeat(edge_counts[node_idx])
+                    for node_idx in range(len(edge_counts))
+                ])
+
+                from_idx = from_idx.cpu() - from_idx_suff
+                to_idx = to_idx.cpu() - from_idx_suff
+
+                transport_plans = model(batch_graphs, batch_graph_sizes, batch_adj_matrices).cpu()
+                batch_size = transport_plans.shape[0]
+
+                transport_plans = model.forward_for_alignment(batch_graphs, batch_graph_sizes, batch_adj_matrices).cpu()
+
+                batch_size = transport_plans.shape[0]
+                for batch_idx in range(batch_size):
+                    query_from = from_idx[sum(edge_counts[:2*batch_idx]):sum(edge_counts[:2*batch_idx+1])].tolist()
+                    query_to = to_idx[sum(edge_counts[:2*batch_idx]):sum(edge_counts[:2*batch_idx+1])].tolist()
+
+                    corpus_from = from_idx[sum(edge_counts[:2*batch_idx+1]):sum(edge_counts[:2*batch_idx+2])].tolist()
+                    corpus_to = to_idx[sum(edge_counts[:2*batch_idx+1]):sum(edge_counts[:2*batch_idx+2])].tolist()
+
+                    query_edges = [(query_from[idx], query_to[idx]) for idx in range(len(query_from))]
+                    corpus_edges = [(corpus_from[idx], corpus_to[idx]) for idx in range(len(corpus_from))]
+
+                    norms_per_pair = get_norm_qc_pair_edges(query_edges, corpus_edges, transport_plans[batch_idx])
+                    norms_per_query.append(norms_per_pair)
+
+            norms_total.extend(norms_per_query)
+    values_np = np.array(norms_total)
+
+    for time in range(values_np.shape[1]):
+        pickle.dump(values_np[:,time], open(f'histogram_dumps_edge_early/model_time_{dataset_name}_{time}', 'wb'))
+        sns.histplot(values_np[:,time], binwidth=0.1, binrange=(0, np.ceil(np.max(values_np))), kde=True, label=f'time = {time}', palette='pastel')
+
+    # Adding labels and title
+    plt.xlabel('EntryWise_L1Norm(S * S_hat)')
+    plt.ylabel('Frequency')
+    plt.title(f'Histogram: Edge Early ({dataset_name})')
+
+    # Show legend
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(f'histogram_plots_edge_early/histogram_{dataset_name}.png')
+    plt.clf()
+    
+    return norms_total
+
+
 def get_scores(models_to_run):
     model_name_to_config_map = load_config()
 
@@ -308,7 +430,7 @@ def get_scores(models_to_run):
         print(model_name, ":", len(metadata["relevant_models"]) if "relevant_models" in metadata else 0)
 
 
-    device = 'cuda:1'
+    device = 'cuda:2'
 
     for model_name in models_to_run:
         if "relevant_models" not in models_to_run[model_name]:
@@ -346,15 +468,19 @@ def get_scores(models_to_run):
             model.load_state_dict(checkpoint['model_state_dict'])
             model.to(device)
 
+            seed_everything(relevant_model["seed"])
+
             # evaluate_improvement_nodes(model, test_dataset, relevant_model["dataset"])
 
-            _, test_map_score = evaluate_model(model, test_dataset)
-            print("Test MAP Score:", test_map_score)
-            models_to_run[model_name]["relevant_models"][idx]["map_score"] = str(test_map_score)
+            evaluate_improvement_edges(model, test_dataset, relevant_model["dataset"])
 
-            hits_at_20 = hits_at_k(model, test_dataset, 20)
-            print("Test HITS@20 Score:", hits_at_20, "\n")
-            models_to_run[model_name]["relevant_models"][idx]["hits@20"] = str(hits_at_20)
+            # _, test_map_score = evaluate_model(model, test_dataset)
+            # print("Test MAP Score:", test_map_score)
+            # models_to_run[model_name]["relevant_models"][idx]["map_score"] = str(test_map_score)
+
+            # hits_at_20 = hits_at_k(model, test_dataset, 20)
+            # print("Test HITS@20 Score:", hits_at_20, "\n")
+            # models_to_run[model_name]["relevant_models"][idx]["hits@20"] = str(hits_at_20)
 
     return models_to_run
 
