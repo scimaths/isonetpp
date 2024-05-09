@@ -22,6 +22,7 @@ class Parser:
         dataset_group.add_argument("--dataset_name", type=str, required=True, choices=["aids", "mutag", "ptc_fm", "ptc_fr", "ptc_mm", "ptc_mr"], help="Name of dataset for experiment")
         dataset_group.add_argument("--dataset_size", type=str, default="small", choices=["small", "large"], help="Size of dataset for experiment - small v/s large")
         dataset_group.add_argument("--dataset_path", type=str, default=".", help="Relative path where datasets are stored")
+        dataset_group.add_argument("--dataset_path_override", type=str, help="Absolute path of dataset if overriding; use for a new split")
 
         optimization_group = self.parser.add_argument_group("optimization")
         optimization_group.add_argument("--margin", type=float, default=0.5, help="Margin for hinging paired loss")
@@ -68,6 +69,7 @@ class Parser:
             dataset_name = self.args.dataset_name,
             dataset_size = self.args.dataset_size,
             dataset_base_path = self.args.dataset_path,
+            dataset_path_override = self.args.dataset_path_override,
             batch_size = self.args.batch_size,
         )
 
