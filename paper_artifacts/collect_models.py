@@ -153,10 +153,11 @@ if __name__ == "__main__":
         "/mnt/home/vaibhavraj/isonetpp_enhanced_code/experiments/",
         "/mnt/home/vaibhavraj/isonetpp_enhanced_code/experiments_archived_march_16/",
         "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated/",
-
+        "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated_may_9_9_am/",
+        "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated_may_9_12_pm/",
     ]
 
-    table_num = 1
+    table_num = 4
     table_path = base_path + f"paper_artifacts/table_metadata/table_{table_num}.json"
 
     collection_path = base_path + "paper_artifacts/collection/"

@@ -506,21 +506,21 @@ def get_scores(models_to_run):
 
             seed_everything(relevant_model["seed"])
 
-            # evaluate_improvement_nodes(model, test_dataset, relevant_model["dataset"])
+            evaluate_improvement_nodes(model, test_dataset, relevant_model["dataset"])
 
             # evaluate_improvement_edges(model, test_dataset, relevant_model["dataset"])
 
-            _, test_map_score, test_std_error = evaluate_model(model, test_dataset)
-            print("Test MAP Score:", test_map_score)
-            print("Test Standard Error:", test_std_error)
-            models_to_run[model_name]["relevant_models"][idx]["map_score"] = str(test_map_score)
-            models_to_run[model_name]["relevant_models"][idx]["std_error"] = str(test_std_error)
+            # _, test_map_score, test_std_error = evaluate_model(model, test_dataset)
+            # print("Test MAP Score:", test_map_score)
+            # print("Test Standard Error:", test_std_error)
+            # models_to_run[model_name]["relevant_models"][idx]["map_score"] = str(test_map_score)
+            # models_to_run[model_name]["relevant_models"][idx]["std_error"] = str(test_std_error)
 
-            hits_at_20, test_std_error = hits_at_k(model, test_dataset, 20)
-            print("Test HITS@20 Score:", hits_at_20, "\n")
-            print("Test Standard Error:", test_std_error)
-            models_to_run[model_name]["relevant_models"][idx]["hits@20"] = str(hits_at_20)
-            models_to_run[model_name]["relevant_models"][idx]["std_error_hits@20"] = str(test_std_error)
+            # hits_at_20, test_std_error = hits_at_k(model, test_dataset, 20)
+            # print("Test HITS@20 Score:", hits_at_20, "\n")
+            # print("Test Standard Error:", test_std_error)
+            # models_to_run[model_name]["relevant_models"][idx]["hits@20"] = str(hits_at_20)
+            # models_to_run[model_name]["relevant_models"][idx]["std_error_hits@20"] = str(test_std_error)
 
     return models_to_run
 
@@ -545,7 +545,7 @@ if __name__ == "__main__":
         base_path + "paper_artifacts/collection/"
     ]
 
-    table_num = 1
+    table_num = 4
     table_path = base_path + f"paper_artifacts/table_metadata/table_{table_num}.json"
 
     collection_path = base_path + "paper_artifacts/collection/"
