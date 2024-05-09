@@ -143,7 +143,17 @@ if __name__ == "__main__":
         # base_path + "experiments/",
         base_path + "experiments_from_infolab_vaibhav/",
         base_path + "experiments_updated/",
-        base_path + "experiments_from_gise/experiments/"
+        base_path + "experiments/",
+        base_path + "experiments_from_gise/experiments/",
+        "/mnt/home/vaibhavraj/isonetpp_enhanced_code/experiments_archived_march_16/",
+        "/mnt/home/vaibhavraj/isonetpp_enhanced_code/experiments/",
+        "/mnt/nas/vaibhavraj/isonetpp_experiments/",
+        "/mnt/nas/vaibhavraj/isonetpp_experiments_march_16/",
+        "/mnt/nas/vaibhavraj/isonet_experiments_02_april/",
+        "/mnt/home/vaibhavraj/isonetpp_enhanced_code/experiments/",
+        "/mnt/home/vaibhavraj/isonetpp_enhanced_code/experiments_archived_march_16/",
+        "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated/",
+
     ]
 
     table_num = 1

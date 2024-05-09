@@ -85,8 +85,9 @@ def hits_at_k(model, dataset, k):
             per_query_hits_at_k.append(hits_20)
 
     mean_hits_at_k = np.mean(per_query_hits_at_k)
-
-    return mean_hits_at_k
+    standard_deviation = np.std(per_query_hits_at_k)
+    standard_error = standard_deviation / np.sqrt(len(per_query_hits_at_k))
+    return mean_hits_at_k, standard_error
 
 
 def load_config():
@@ -464,7 +465,7 @@ def get_scores(models_to_run):
         print(model_name, ":", len(metadata["relevant_models"]) if "relevant_models" in metadata else 0)
 
 
-    device = 'cuda:2'
+    device = 'cuda:1'
 
     for model_name in models_to_run:
         if "relevant_models" not in models_to_run[model_name]:
@@ -507,11 +508,7 @@ def get_scores(models_to_run):
 
             # evaluate_improvement_nodes(model, test_dataset, relevant_model["dataset"])
 
-            evaluate_improvement_edges(model, test_dataset, relevant_model["dataset"])
-
-            # _, test_map_score = evaluate_model(model, test_dataset)
-            # print("Test MAP Score:", test_map_score)
-            # models_to_run[model_name]["relevant_models"][idx]["map_score"] = str(test_map_score)
+            # evaluate_improvement_edges(model, test_dataset, relevant_model["dataset"])
 
             _, test_map_score, test_std_error = evaluate_model(model, test_dataset)
             print("Test MAP Score:", test_map_score)
@@ -519,9 +516,11 @@ def get_scores(models_to_run):
             models_to_run[model_name]["relevant_models"][idx]["map_score"] = str(test_map_score)
             models_to_run[model_name]["relevant_models"][idx]["std_error"] = str(test_std_error)
 
-            # hits_at_20 = hits_at_k(model, test_dataset, 20)
-            # print("Test HITS@20 Score:", hits_at_20, "\n")
-            # models_to_run[model_name]["relevant_models"][idx]["hits@20"] = str(hits_at_20)
+            hits_at_20, test_std_error = hits_at_k(model, test_dataset, 20)
+            print("Test HITS@20 Score:", hits_at_20, "\n")
+            print("Test Standard Error:", test_std_error)
+            models_to_run[model_name]["relevant_models"][idx]["hits@20"] = str(hits_at_20)
+            models_to_run[model_name]["relevant_models"][idx]["std_error_hits@20"] = str(test_std_error)
 
     return models_to_run
 
