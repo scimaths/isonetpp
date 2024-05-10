@@ -267,8 +267,12 @@ def evaluate_improvement_nodes(model, dataset, dataset_name):
             norms_total.extend(norms_per_query)
     values_np = np.array(norms_total)
 
+    if not os.path.exists('histogram_dumps_node_early_baseline'):
+        os.makedirs('histogram_dumps_node_early_baseline')
+        os.makedirs('histogram_plots_node_early_baseline')
+
     for time in range(values_np.shape[1]):
-        pickle.dump(values_np[:,time], open(f'histogram_dumps/model_time_{dataset_name}_{time}', 'wb'))
+        pickle.dump(values_np[:,time], open(f'histogram_dumps_node_early_baseline/model_time_{dataset_name}_{time}', 'wb'))
         sns.histplot(values_np[:,time], binwidth=0.1, binrange=(0, np.ceil(np.max(values_np))), kde=True, label=f'time = {time}', palette='pastel')
 
     # Adding labels and title
@@ -279,7 +283,7 @@ def evaluate_improvement_nodes(model, dataset, dataset_name):
     # Show legend
     plt.legend()
     plt.grid(True)
-    plt.savefig(f'histogram_plots/histogram_{dataset_name}.png')
+    plt.savefig(f'histogram_plots_node_early_baseline/histogram_{dataset_name}.png')
     plt.clf()
 
 def evaluate_model(model, dataset):
@@ -410,8 +414,12 @@ def evaluate_improvement_edges(model, dataset, dataset_name):
             norms_total.extend(norms_per_query)
     values_np = np.array(norms_total)
 
+    if not os.path.exists('histogram_dumps_edge_early_baseline'):
+        os.makedirs('histogram_dumps_edge_early_baseline')
+        os.makedirs('histogram_plots_edge_early_baseline')
+
     for time in range(values_np.shape[1]):
-        pickle.dump(values_np[:,time], open(f'histogram_dumps_edge_early/model_time_{dataset_name}_{time}', 'wb'))
+        pickle.dump(values_np[:,time], open(f'histogram_dumps_edge_early_baseline/model_time_{dataset_name}_{time}', 'wb'))
         sns.histplot(values_np[:,time], binwidth=0.1, binrange=(0, np.ceil(np.max(values_np))), kde=True, label=f'time = {time}', palette='pastel')
 
     # Adding labels and title
@@ -422,7 +430,7 @@ def evaluate_improvement_edges(model, dataset, dataset_name):
     # Show legend
     plt.legend()
     plt.grid(True)
-    plt.savefig(f'histogram_plots_edge_early/histogram_{dataset_name}.png')
+    plt.savefig(f'histogram_dumps_edge_early_baseline/histogram_{dataset_name}.png')
     plt.clf()
     
     return norms_total
@@ -506,21 +514,21 @@ def get_scores(models_to_run):
 
             seed_everything(relevant_model["seed"])
 
-            evaluate_improvement_nodes(model, test_dataset, relevant_model["dataset"])
+            # evaluate_improvement_nodes(model, test_dataset, relevant_model["dataset"])
 
             # evaluate_improvement_edges(model, test_dataset, relevant_model["dataset"])
 
-            # _, test_map_score, test_std_error = evaluate_model(model, test_dataset)
-            # print("Test MAP Score:", test_map_score)
-            # print("Test Standard Error:", test_std_error)
-            # models_to_run[model_name]["relevant_models"][idx]["map_score"] = str(test_map_score)
-            # models_to_run[model_name]["relevant_models"][idx]["std_error"] = str(test_std_error)
+            _, test_map_score, test_std_error = evaluate_model(model, test_dataset)
+            print("Test MAP Score:", test_map_score)
+            print("Test Standard Error:", test_std_error)
+            models_to_run[model_name]["relevant_models"][idx]["map_score"] = str(test_map_score)
+            models_to_run[model_name]["relevant_models"][idx]["std_error"] = str(test_std_error)
 
-            # hits_at_20, test_std_error = hits_at_k(model, test_dataset, 20)
-            # print("Test HITS@20 Score:", hits_at_20, "\n")
-            # print("Test Standard Error:", test_std_error)
-            # models_to_run[model_name]["relevant_models"][idx]["hits@20"] = str(hits_at_20)
-            # models_to_run[model_name]["relevant_models"][idx]["std_error_hits@20"] = str(test_std_error)
+            hits_at_20, test_std_error = hits_at_k(model, test_dataset, 20)
+            print("Test HITS@20 Score:", hits_at_20, "\n")
+            print("Test Standard Error:", test_std_error)
+            models_to_run[model_name]["relevant_models"][idx]["hits@20"] = str(hits_at_20)
+            models_to_run[model_name]["relevant_models"][idx]["std_error_hits@20"] = str(test_std_error)
 
     return models_to_run
 

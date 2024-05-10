@@ -154,6 +154,8 @@ if __name__ == "__main__":
         "/mnt/home/vaibhavraj/isonetpp_enhanced_code/experiments_archived_march_16/",
         "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated/",
         "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated_may_9_9_am/",
+        "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated_may_10_9_am/",
+        "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated_may_10_9_pm/",
         "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated_may_9_12_pm/",
     ]
 

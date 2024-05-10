@@ -7,7 +7,7 @@ import GMN.graphembeddingnetwork as gmngen
 from subgraph_matching.models.consistency import Consistency
 from subgraph_matching.models.gmn_baseline import INTERACTION_POST, INTERACTION_PRE
 
-class EdgeEarlyInteractionBaseline1(torch.nn.Module):
+class EdgeEarlyInteractionBaseline1(AlignmentModel):
     def __init__(
         self,
         max_node_set_size,
@@ -74,7 +74,7 @@ class EdgeEarlyInteractionBaseline1(torch.nn.Module):
                 self.device,
             )
 
-    def forward(self, graphs, graph_sizes, graph_adj_matrices):
+    def forward_with_alignment(self, graphs, graph_sizes, graph_adj_matrices):
         query_sizes, corpus_sizes = zip(*graph_sizes)
         query_sizes = torch.tensor(query_sizes, device=self.device)
         corpus_sizes = torch.tensor(corpus_sizes, device=self.device)
@@ -93,6 +93,7 @@ class EdgeEarlyInteractionBaseline1(torch.nn.Module):
 
         interaction_features = torch.zeros_like(edge_features_enc)
 
+        transport_plans = []
         for prop_idx in range(1, self.propagation_steps + 1):
             if self.interaction_when == INTERACTION_PRE:
                 edge_features_enc = self.interaction_encoder(torch.cat([edge_features_enc, interaction_features], dim=-1))
@@ -134,7 +135,9 @@ class EdgeEarlyInteractionBaseline1(torch.nn.Module):
                 transport_plan, stacked_edge_features_query, stacked_edge_features_corpus
             )
             interaction_features = interleaved_edge_features[padded_edge_indices, :]
+            
+            transport_plans.append(transport_plan)
 
         score = model_utils.feature_alignment_score(stacked_edge_features_query, stacked_edge_features_corpus, transport_plan)
 
-        return score
+        return score, torch.stack(transport_plans, dim=1)

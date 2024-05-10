@@ -10,7 +10,7 @@ class AlignmentModel(torch.nn.Module, ABC):
         pass
 
     def forward(self, graphs, graph_sizes, graph_adj_matrices):
-        return self.forward_with_alignment(graphs, graph_sizes, graph_adj_matrices)[0]
+        return self.forward_with_alignment(graphs, graph_sizes, graph_adj_matrices)[0][0]
 
     def forward_for_alignment(self, graphs, graph_sizes, graph_adj_matrices):
         return self.forward_with_alignment(graphs, graph_sizes, graph_adj_matrices)[1]
