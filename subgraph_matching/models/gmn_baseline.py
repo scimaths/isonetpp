@@ -234,17 +234,18 @@ class GMNBaseline(AlignmentModel):
             transport_plan[0], stacked_features_query, stacked_features_corpus, reverse_transport_plan=transport_plan[1]
         )[padded_node_indices, :]
 
-        return interaction_features
+        return interaction_features, transport_plan[0]
 
     def propagation_step_with_pre_interaction(
         self, prop_idx, from_idx, to_idx, graph_sizes,
         node_features_enc, edge_features_enc,
         features_to_transport_plan, padded_node_indices
     ):
+        transport_plan = None
         if prop_idx == 0:
             interaction_features = torch.zeros_like(node_features_enc)
         else:
-            interaction_features = self.end_to_end_interaction_alignment(
+            interaction_features, transport_plan = self.end_to_end_interaction_alignment(
                 node_features_enc, graph_sizes, features_to_transport_plan, padded_node_indices
             )
 
@@ -264,7 +265,7 @@ class GMNBaseline(AlignmentModel):
             features_input_to_msg, from_idx, to_idx, edge_features_enc
         )
         node_features_enc = self.prop_layer._compute_node_update(features_input_to_upd, [aggregated_messages])
-        return node_features_enc
+        return node_features_enc, transport_plan
 
     def propagation_step_with_post_interaction(
         self, prop_idx, from_idx, to_idx, graph_sizes,
@@ -274,13 +275,13 @@ class GMNBaseline(AlignmentModel):
         aggregated_messages = self.prop_layer._compute_aggregated_messages(
             node_features_enc, from_idx, to_idx, edge_features_enc
         )
-        interaction_features = self.end_to_end_interaction_alignment(
+        interaction_features, transport_plan = self.end_to_end_interaction_alignment(
             node_features_enc, graph_sizes, features_to_transport_plan, padded_node_indices
         )
         node_features_enc = self.prop_layer._compute_node_update(
             node_features_enc, [aggregated_messages, node_features_enc - interaction_features]
         )
-        return node_features_enc
+        return node_features_enc, transport_plan
 
     def aggregated_scoring(self, node_features_enc, graph_idx, graph_sizes):
         graph_vectors = self.aggregator(node_features_enc, graph_idx, 2 * len(graph_sizes))
@@ -307,7 +308,7 @@ class GMNBaseline(AlignmentModel):
     
         return model_utils.feature_alignment_score(
             stacked_features_query, stacked_features_corpus, transport_plan[0]
-        ), transport_plan
+        ), transport_plan[0]
 
     def forward_with_alignment(self, graphs, graph_sizes, graph_adj_matrices):
         query_sizes, corpus_sizes = zip(*graph_sizes)
@@ -325,14 +326,20 @@ class GMNBaseline(AlignmentModel):
 
         node_features_enc, edge_features_enc = self.encoder(node_features, edge_features)
 
+        transport_plans = []
         for prop_idx in range(self.propagation_steps):
-            node_features_enc = self.propagation_function(
+            node_features_enc, transport_plan = self.propagation_function(
                 prop_idx, from_idx, to_idx, graph_sizes, node_features_enc,
                 edge_features_enc, features_to_transport_plan, padded_node_indices
             )
+            if transport_plan is not None:
+                transport_plans.append(transport_plan)
+
 
         ############################## SCORING ##############################
         if self.scoring == AGGREGATED:
             return self.aggregated_scoring(node_features_enc, graph_idx, graph_sizes)
         elif self.scoring == SET_ALIGNED:
-            return self.set_aligned_scoring(node_features_enc, graph_sizes, features_to_transport_plan)
+            score, transport_plan = self.set_aligned_scoring(node_features_enc, graph_sizes, features_to_transport_plan)
+            transport_plans.append(transport_plan)
+            return (score, transport_plan), torch.stack(transport_plans, dim=1)

@@ -4,8 +4,7 @@ import shutil
 from utils.tooling import read_config
 
 
-def get_models(
-):
+def get_models():
     for experiment_dir in paths_to_experiment_dir:
         for experiment in os.listdir(experiment_dir):
 
@@ -96,7 +95,7 @@ def collect_models(models_to_run):
             model_file_name = os.path.basename(relevant_model["model_path"])
             log_file_name = os.path.basename(relevant_model["log_path"])
             config_file_name = os.path.basename(relevant_model["config_path"])
-            
+
             # check sanity: margin present in file if 0.1 and TEST - ap_score present
             log_content = open(relevant_model["log_path"], "r").read()
             if "TEST - ap_score" not in log_content:
@@ -154,6 +153,8 @@ if __name__ == "__main__":
         "/mnt/home/vaibhavraj/isonetpp_enhanced_code/experiments_archived_march_16/",
         "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated/",
         "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated_may_9_9_am/",
+        "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated_may_10_9_am/",
+        "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated_may_10_9_pm/",
         "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated_may_9_12_pm/",
     ]
 
