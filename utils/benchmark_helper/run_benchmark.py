@@ -88,7 +88,7 @@ def create_benchmark_status():
 
         # Is this fully trained?
         is_trained = True if "--max_epochs 10" in log_content else False
-        
+
         # Which split?
         if "split_1" in log_content:
             split = 1
