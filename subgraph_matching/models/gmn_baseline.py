@@ -338,7 +338,7 @@ class GMNBaseline(AlignmentModel):
 
         ############################## SCORING ##############################
         if self.scoring == AGGREGATED:
-            return self.aggregated_scoring(node_features_enc, graph_idx, graph_sizes)
+            return self.aggregated_scoring(node_features_enc, graph_idx, graph_sizes), []
         elif self.scoring == SET_ALIGNED:
             score, transport_plan = self.set_aligned_scoring(node_features_enc, graph_sizes, features_to_transport_plan)
             transport_plans.append(transport_plan)
