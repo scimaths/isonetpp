@@ -1,11 +1,12 @@
 import os
+import sys
 import json
 import torch
 import time
 import pickle
 import numpy as np
 import networkx as nx
-import seaborn as sns
+# import seaborn as sns
 from utils import model_utils
 import matplotlib.pyplot as plt
 from utils.tooling import read_config
@@ -124,7 +125,8 @@ def load_datasets(data_type):
             batch_size = 128,
             data_type = data_type,
             dataset_base_path = ".",
-            experiment = None
+            experiment = None,
+            device='cuda:0'
         )
     return dataset_map
 
@@ -236,6 +238,19 @@ def dump_latex(table_meta):
             if dataset_name != "ptc_mr":
                 print(" & ", end="")
 
+                    dataset_map_scores.append(relevant_model["map_score"])
+            maps = [str(round(float(x), 3)) for x in dataset_map_scores]
+            print(" | ".join(maps), end=" & ")
+
+        # for dataset_name in ["aids", "mutag", "ptc_fm", "ptc_fr", "ptc_mm", "ptc_mr"]:
+        #     dataset_std_error_scores = []
+        #     for relevant_model in relevant_models:
+        #         if relevant_model["dataset"] == dataset_name:
+        #             dataset_std_error_scores.append(relevant_model["std_error"])
+        #     std_errors = [str(round(float(x), 3)) for x in dataset_std_error_scores]
+        #     print(" | ".join(std_errors), end="")
+        #     if dataset_name != "ptc_mr":
+        #         print(" & ", end="")
         print("\\\\")
     print(table_end)
 
@@ -629,6 +644,11 @@ def get_scores(models_to_run):
             # print("Test Standard Error:", test_std_error)
             # models_to_run[model_name]["relevant_models"][idx]["hits@20"] = str(hits_at_20)
             # models_to_run[model_name]["relevant_models"][idx]["std_error_hits@20"] = str(test_std_error)
+            _, test_map_score, test_std_error = evaluate_model(model, test_dataset)
+            print("Test MAP Score:", test_map_score)
+            print("Test Standard Error:", test_std_error)
+            models_to_run[model_name]["relevant_models"][idx]["map_score"] = str(test_map_score)
+            models_to_run[model_name]["relevant_models"][idx]["std_error"] = str(test_std_error)
 
             (
                 hits_at_20, hits_std_error,
@@ -672,7 +692,7 @@ def main():
 
 if __name__ == "__main__":
     # base_path = "/raid/infolab/ashwinr/isonetpp/"
-    base_path = "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/"
+    base_path = "/mnt/home/vaibhavraj/isonetpp_enhanced_code/"
     paths_to_experiment_dir = [
         base_path + "paper_artifacts/collection/"
     ]

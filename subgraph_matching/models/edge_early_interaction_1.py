@@ -1,13 +1,13 @@
 import torch
 import torch.nn.functional as F
 from utils import model_utils
-from subgraph_matching.models._template import AlignmentModel
+from subgraph_matching.models._template import AlignmentEdgeModel
 from utils.tooling import ReadOnlyConfig
 import GMN.graphembeddingnetwork as gmngen
 from subgraph_matching.models.consistency import Consistency
 from subgraph_matching.models.gmn_baseline import INTERACTION_POST, INTERACTION_PRE
 
-class EdgeEarlyInteraction1(AlignmentModel):
+class EdgeEarlyInteraction1(AlignmentEdgeModel):
     def __init__(
         self,
         max_node_set_size,

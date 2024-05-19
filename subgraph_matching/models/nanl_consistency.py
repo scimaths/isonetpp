@@ -6,7 +6,6 @@ from utils.tooling import ReadOnlyConfig
 import GMN.graphembeddingnetwork as gmngen
 from subgraph_matching.models.consistency import Consistency
 
-
 class NodeAlignNodeLossConsistency(torch.nn.Module):
     def __init__(
         self,
@@ -40,12 +39,7 @@ class NodeAlignNodeLossConsistency(torch.nn.Module):
             torch.nn.Linear(sinkhorn_feature_dim, sinkhorn_feature_dim),
         )
 
-        self.consistency_score = Consistency(
-            self.max_edge_set_size,
-            self.sinkhorn_config,
-            consistency_config,
-            self.device,
-        )
+        self.consistency_config = consistency_config
 
     def forward(self, graphs, graph_sizes, graph_adj_matrices):
         query_sizes, corpus_sizes = zip(*graph_sizes)
@@ -93,10 +87,13 @@ class NodeAlignNodeLossConsistency(torch.nn.Module):
                 corpus_features=stacked_node_features_corpus,
                 transport_plan=node_transport_plan
             ),
-            self.consistency_score(
-                graphs,
-                graph_sizes,
-                edge_features_enc,
-                node_transport_plan
-            )
+            model_utils.consistency_scoring(
+                graphs=graphs,
+                graph_sizes=graph_sizes,
+                max_edge_set_size=self.max_edge_set_size,
+                node_transport_plan=node_transport_plan,
+                edge_features=edge_features_enc,
+                device=self.device,
+                sinkhorn_config=self.sinkhorn_config
+            ) * self.consistency_config.weight
         )
