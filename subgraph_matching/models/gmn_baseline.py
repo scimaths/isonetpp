@@ -342,4 +342,4 @@ class GMNBaseline(AlignmentModel):
         elif self.scoring == SET_ALIGNED:
             score, transport_plan = self.set_aligned_scoring(node_features_enc, graph_sizes, features_to_transport_plan)
             transport_plans.append(transport_plan)
-            return (score, transport_plan), torch.stack(transport_plans, dim=1)
+            return score, transport_plan#), torch.stack(transport_plans, dim=1)

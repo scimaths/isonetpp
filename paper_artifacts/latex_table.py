@@ -1,6 +1,7 @@
 import os
 import json
 import torch
+import time
 import pickle
 import numpy as np
 import networkx as nx
@@ -47,13 +48,15 @@ def get_models(
                 yield model_path, config_path
 
 
-def hits_at_k(model, dataset, k):
+def hits_mrr_precision_at_k(model, dataset, k):
     model.eval()
 
     pos_pairs, neg_pairs = dataset.pos_pairs, dataset.neg_pairs
 
     num_query_graphs = len(dataset.query_graphs)
     per_query_hits_at_k = []
+    per_query_rr = []
+    per_query_precision_at_k = []
 
     for query_idx in range(num_query_graphs):
         pos_pairs_for_query = list(filter(lambda pair: pair[0] == query_idx, pos_pairs))
@@ -84,10 +87,20 @@ def hits_at_k(model, dataset, k):
             hits_20 = torch.sum(all_labels_ranked[:k_neg_idx]) / (torch.sum(all_labels_ranked))
             per_query_hits_at_k.append(hits_20)
 
-    mean_hits_at_k = np.mean(per_query_hits_at_k)
-    standard_deviation = np.std(per_query_hits_at_k)
-    standard_error = standard_deviation / np.sqrt(len(per_query_hits_at_k))
-    return mean_hits_at_k, standard_error
+            first_pos_idx = torch.where(all_labels_ranked == 1)[0].min() + 1
+            per_query_rr.append(1 / first_pos_idx)
+
+            precision_20 = torch.mean(all_labels_ranked[:k])
+            per_query_precision_at_k.append(precision_20)
+
+    all_metrics_and_errors = []
+    for metric_list in [per_query_hits_at_k, per_query_rr, per_query_precision_at_k]:
+        all_metrics_and_errors.extend([
+            np.mean(metric_list),
+            np.std(metric_list) / np.sqrt(len(metric_list))
+        ])
+
+    return all_metrics_and_errors
 
 
 def load_config():
@@ -155,30 +168,74 @@ def dump_latex(table_meta):
             continue
         relevant_models = model["relevant_models"]
         for dataset_name in ["aids", "mutag", "ptc_fm", "ptc_fr", "ptc_mm", "ptc_mr"]:
-            dataset_map_scores = []
-            for relevant_model in relevant_models:
-                if relevant_model["dataset"] == dataset_name:
-                    dataset_map_scores.append(relevant_model["map_score"])
-            maps = [str(round(float(x), 3)) for x in dataset_map_scores]
-            print(" | ".join(maps), end=" & ")
-        for dataset_name in ["aids", "mutag", "ptc_fm", "ptc_fr", "ptc_mm", "ptc_mr"]:
-            dataset_hit_scores = []
+            dataset_hit_scores, std_errors = [], []
             for relevant_model in relevant_models:
                 if relevant_model["dataset"] == dataset_name:
                     dataset_hit_scores.append(relevant_model["hits@20"])
-            hits = [str(round(float(x), 3)) for x in dataset_hit_scores]
+                    std_errors.append(relevant_model["std_error_hits@20"])
+            hits = [str(round(float(x), 3)) + " $\pm $" + str(round(float(y), 3)) for x, y in zip(dataset_hit_scores, std_errors)]
             print(" | ".join(hits), end="")
             if dataset_name != "ptc_mr":
                 print(" & ", end="")
+
         for dataset_name in ["aids", "mutag", "ptc_fm", "ptc_fr", "ptc_mm", "ptc_mr"]:
-            dataset_std_error_scores = []
+            dataset_mrr_scores, std_errors = [], []
             for relevant_model in relevant_models:
                 if relevant_model["dataset"] == dataset_name:
-                    dataset_std_error_scores.append(relevant_model["std_error"])
-            std_errors = [str(round(float(x), 3)) for x in dataset_std_error_scores]
-            print(" | ".join(std_errors), end="")
+                    dataset_mrr_scores.append(relevant_model["mrr"])
+                    std_errors.append(relevant_model["std_error_rr"])
+            mrrs = [str(round(float(x), 3)) + " $\pm $" + str(round(float(y), 3)) for x, y in zip(dataset_mrr_scores, std_errors)]
+            print(" | ".join(mrrs), end="")
             if dataset_name != "ptc_mr":
                 print(" & ", end="")
+
+        for dataset_name in ["aids", "mutag", "ptc_fm", "ptc_fr", "ptc_mm", "ptc_mr"]:
+            dataset_prec_scores, std_errors = [], []
+            for relevant_model in relevant_models:
+                if relevant_model["dataset"] == dataset_name:
+                    dataset_prec_scores.append(relevant_model["precision@20"])
+                    std_errors.append(relevant_model["std_error_precision@20"])
+            precs = [str(round(float(x), 3)) + " $\pm $" + str(round(float(y), 3)) for x, y in zip(dataset_prec_scores, std_errors)]
+            print(" | ".join(precs), end="")
+            if dataset_name != "ptc_mr":
+                print(" & ", end="")
+        
+
+        # for dataset_name in ["aids", "mutag", "ptc_fm", "ptc_fr", "ptc_mm", "ptc_mr"]:
+        #     dataset_map_scores = []
+        #     for relevant_model in relevant_models:
+        #         if relevant_model["dataset"] == dataset_name:
+        #             dataset_map_scores.append(relevant_model["map_score"])
+        #     maps = [str(round(float(x), 3)) for x in dataset_map_scores]
+        #     print(" | ".join(maps), end=" & ")
+        # for dataset_name in ["aids", "mutag", "ptc_fm", "ptc_fr", "ptc_mm", "ptc_mr"]:
+        #     dataset_hit_scores = []
+        #     for relevant_model in relevant_models:
+        #         if relevant_model["dataset"] == dataset_name:
+        #             dataset_hit_scores.append(relevant_model["hits@20"])
+        #     hits = [str(round(float(x), 3)) for x in dataset_hit_scores]
+        #     print(" | ".join(hits), end="")
+        #     if dataset_name != "ptc_mr":
+        #         print(" & ", end="")
+        # for dataset_name in ["aids", "mutag", "ptc_fm", "ptc_fr", "ptc_mm", "ptc_mr"]:
+        #     dataset_std_error_scores = []
+        #     for relevant_model in relevant_models:
+        #         if relevant_model["dataset"] == dataset_name:
+        #             dataset_std_error_scores.append(relevant_model["std_error"])
+        #     std_errors = [str(round(float(x), 3)) for x in dataset_std_error_scores]
+        #     print(" | ".join(std_errors), end="")
+        #     if dataset_name != "ptc_mr":
+        #         print(" & ", end="")
+        for dataset_name in ["aids", "mutag", "ptc_fm", "ptc_fr", "ptc_mm", "ptc_mr"]:
+            dataset_time_taken = []
+            for relevant_model in relevant_models:
+                if relevant_model["dataset"] == dataset_name:
+                    dataset_time_taken.append(relevant_model["time_taken"])
+            time_taken = [str(round(float(x), 2)) for x in dataset_time_taken]
+            print(" | ".join(time_taken), end="")
+            if dataset_name != "ptc_mr":
+                print(" & ", end="")
+
         print("\\\\")
     print(table_end)
 
@@ -286,6 +343,11 @@ def evaluate_improvement_nodes(model, dataset, dataset_name):
     plt.savefig(f'histogram_plots_node_early_baseline/histogram_{dataset_name}.png')
     plt.clf()
 
+
+
+
+
+
 def evaluate_model(model, dataset):
     model.eval()
 
@@ -296,20 +358,30 @@ def evaluate_model(model, dataset):
     # Compute per-query statistics
     num_query_graphs = len(dataset.query_graphs)
     per_query_avg_prec = []
+    
+    total_running_time = 0
+    total_batches = 0
 
     for query_idx in range(num_query_graphs):
         pos_pairs_for_query = list(filter(lambda pair: pair[0] == query_idx, pos_pairs))
         neg_pairs_for_query = list(filter(lambda pair: pair[0] == query_idx, neg_pairs))
 
         if len(pos_pairs_for_query) > 0 and len(neg_pairs_for_query) > 0:
-            per_query_avg_prec.append(
-                compute_average_precision(model, pos_pairs_for_query, neg_pairs_for_query, dataset)
+            average_precision, running_time, batches = compute_average_precision(
+                model, pos_pairs_for_query, neg_pairs_for_query, dataset, return_running_time=True
             )
-    mean_average_precision = np.mean(per_query_avg_prec)
+            total_running_time += running_time
+            total_batches += batches
 
+            per_query_avg_prec.append(average_precision)
+    mean_average_precision = np.mean(per_query_avg_prec)
+    
     standard_deviation = np.std(per_query_avg_prec)
     standard_error = standard_deviation / np.sqrt(len(per_query_avg_prec))
-    return average_precision, mean_average_precision, standard_error
+    return average_precision, mean_average_precision, standard_error, total_running_time / total_batches*1000
+
+
+
 
 def evaluate_improvement_edges(model, dataset, dataset_name):
 
@@ -435,6 +507,29 @@ def evaluate_improvement_edges(model, dataset, dataset_name):
     
     return norms_total
 
+def measure_time(model, test_dataset):
+
+    pos_pairs, neg_pairs = test_dataset.pos_pairs, test_dataset.neg_pairs
+    all_pairs = pos_pairs + neg_pairs
+
+    want_batches = 2
+    test_dataset.batch_size = len(all_pairs) // want_batches
+    num_batches = test_dataset.create_custom_batches(all_pairs)
+    assert num_batches == want_batches
+
+    num_times = 5
+    avg_time = 0
+
+    for i in range(num_times):
+        total_time = 0
+        for batch_idx in range(num_batches):
+            batch_graphs, batch_graph_sizes, _, batch_adj_matrices = test_dataset.fetch_batch_by_id(batch_idx)
+
+            curr_time = time.time()
+            predictions = model(batch_graphs, batch_graph_sizes, batch_adj_matrices).data
+            total_time += time.time() - curr_time
+        avg_time += total_time
+    return avg_time / num_times
 
 def get_scores(models_to_run):
     model_name_to_config_map = load_config()
@@ -464,7 +559,8 @@ def get_scores(models_to_run):
             "config_path": model_name_to_config_map[model_name],
             "map_score": "0",
             "hits@20": "0",
-            "std_error": "0"
+            "std_error": "0",
+            "time_taken": "0"
         })
 
 
@@ -473,7 +569,7 @@ def get_scores(models_to_run):
         print(model_name, ":", len(metadata["relevant_models"]) if "relevant_models" in metadata else 0)
 
 
-    device = 'cuda:1'
+    device = 'cuda:0'
 
     for model_name in models_to_run:
         if "relevant_models" not in models_to_run[model_name]:
@@ -514,21 +610,49 @@ def get_scores(models_to_run):
 
             seed_everything(relevant_model["seed"])
 
+            # _, test_map_score, _, time_taken = evaluate_model(model, test_dataset)
+            # print("Time Taken", round(time_taken,2), "MAP", test_map_score)
+            # models_to_run[model_name]["relevant_models"][idx]["time_taken"] = str(time_taken)
+
             # evaluate_improvement_nodes(model, test_dataset, relevant_model["dataset"])
 
             # evaluate_improvement_edges(model, test_dataset, relevant_model["dataset"])
 
-            _, test_map_score, test_std_error = evaluate_model(model, test_dataset)
-            print("Test MAP Score:", test_map_score)
-            print("Test Standard Error:", test_std_error)
-            models_to_run[model_name]["relevant_models"][idx]["map_score"] = str(test_map_score)
-            models_to_run[model_name]["relevant_models"][idx]["std_error"] = str(test_std_error)
+            # _, test_map_score, test_std_error = evaluate_model(model, test_dataset)
+            # print("Test MAP Score:", test_map_score)
+            # print("Test Standard Error:", test_std_error)
+            # models_to_run[model_name]["relevant_models"][idx]["map_score"] = str(test_map_score)
+            # models_to_run[model_name]["relevant_models"][idx]["std_error"] = str(test_std_error)
 
-            hits_at_20, test_std_error = hits_at_k(model, test_dataset, 20)
-            print("Test HITS@20 Score:", hits_at_20, "\n")
-            print("Test Standard Error:", test_std_error)
+            # hits_at_20, test_std_error = hits_at_k(model, test_dataset, 20)
+            # print("Test HITS@20 Score:", hits_at_20, "\n")
+            # print("Test Standard Error:", test_std_error)
+            # models_to_run[model_name]["relevant_models"][idx]["hits@20"] = str(hits_at_20)
+            # models_to_run[model_name]["relevant_models"][idx]["std_error_hits@20"] = str(test_std_error)
+
+            (
+                hits_at_20, hits_std_error,
+                mrr, rr_std_error,
+                precision_at_20, precision_std_error,
+            )  = hits_mrr_precision_at_k(model, test_dataset, 20)
+
+            print("Test HITS@20 Score:", hits_at_20)
+            print("Test HITS@20 Standard Error:", hits_std_error, "\n")
             models_to_run[model_name]["relevant_models"][idx]["hits@20"] = str(hits_at_20)
-            models_to_run[model_name]["relevant_models"][idx]["std_error_hits@20"] = str(test_std_error)
+            models_to_run[model_name]["relevant_models"][idx]["std_error_hits@20"] = str(hits_std_error)
+
+            print("Test MRR Score:", mrr)
+            print("Test MRR Standard Error:", rr_std_error, "\n")
+            models_to_run[model_name]["relevant_models"][idx]["mrr"] = str(mrr)
+            models_to_run[model_name]["relevant_models"][idx]["std_error_rr"] = str(rr_std_error)
+
+            print("Test Precision@20 Score:", precision_at_20)
+            print("Test Precision@20 Standard Error:", precision_std_error, "\n")
+            models_to_run[model_name]["relevant_models"][idx]["precision@20"] = str(precision_at_20)
+            models_to_run[model_name]["relevant_models"][idx]["std_error_precision@20"] = str(precision_std_error)
+
+
+        dump_latex(models_to_run)
 
     return models_to_run
 
@@ -553,7 +677,7 @@ if __name__ == "__main__":
         base_path + "paper_artifacts/collection/"
     ]
 
-    table_num = 4
+    table_num = 0
     table_path = base_path + f"paper_artifacts/table_metadata/table_{table_num}.json"
 
     collection_path = base_path + "paper_artifacts/collection/"

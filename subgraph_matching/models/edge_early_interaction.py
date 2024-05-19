@@ -145,4 +145,4 @@ class EdgeEarlyInteraction(AlignmentModel):
 
         score = model_utils.feature_alignment_score(final_features_query, final_features_corpus, transport_plan)
 
-        return score, torch.stack(transport_plans, dim=1)
+        return torch.stack(transport_plans, dim=1)

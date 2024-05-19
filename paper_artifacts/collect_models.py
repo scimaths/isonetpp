@@ -156,6 +156,8 @@ if __name__ == "__main__":
         "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated_may_10_9_am/",
         "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated_may_10_9_pm/",
         "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated_may_9_12_pm/",
+        "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/efficiency_experiments/",
+        "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/rq7_efficiency/"
     ]
 
     table_num = 4
