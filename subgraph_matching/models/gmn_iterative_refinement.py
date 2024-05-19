@@ -101,6 +101,6 @@ class GMNIterativeRefinement(GMNBaseline):
 
         ############################## SCORING ##############################
         if self.scoring == AGGREGATED:
-            return self.aggregated_scoring(node_features_enc, graph_idx, graph_sizes), torch.stack(transport_plans, dim=1)
+            return self.aggregated_scoring(node_features_enc, graph_idx, graph_sizes)#, torch.stack(transport_plans, dim=1)
         elif self.scoring == SET_ALIGNED:
-            return self.set_aligned_scoring(node_features_enc, graph_sizes, features_to_transport_plan), torch.stack(transport_plans, dim=1)
+            return self.set_aligned_scoring(node_features_enc, graph_sizes, features_to_transport_plan)#, torch.stack(transport_plans, dim=1)

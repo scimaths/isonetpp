@@ -24,7 +24,7 @@ GraphCollection = collections.namedtuple(
 )
 
 class SubgraphIsomorphismDataset:
-    def __init__(self, mode, dataset_name, dataset_size, batch_size, data_type, dataset_base_path, experiment):
+    def __init__(self, mode, dataset_name, dataset_size, batch_size, data_type, dataset_base_path, experiment, dataset_path_override=None, device=None):
         assert mode in [TRAIN_MODE, VAL_MODE, TEST_MODE, BROAD_TEST_MODE]
         self.mode = mode
         self.dataset_name = dataset_name
@@ -33,8 +33,9 @@ class SubgraphIsomorphismDataset:
         self.batch_size = batch_size
         self.data_type = data_type
         self.dataset_base_path = dataset_base_path
-        self.device = experiment.device if experiment else 'cuda:5'
+        self.device = experiment.device if experiment else (device if device else 'cuda:0')
         self.batch_setting = None
+        self.dataset_path_override = dataset_path_override
 
         self.load_graphs(experiment=experiment)
         self.preprocess_subgraphs_to_pyG_data()
@@ -47,7 +48,7 @@ class SubgraphIsomorphismDataset:
 
     def load_graphs(self, experiment):
         dataset_accessor = lambda file_name: os.path.join(
-            self.dataset_base_path, f"{self.dataset_size}_dataset",
+            self.dataset_base_path, self.dataset_path_override or f"{self.dataset_size}_dataset",
             "splits", self.mode, file_name
         )
         

@@ -1,13 +1,13 @@
 import torch
 import torch.nn.functional as F
 from utils import model_utils
-from subgraph_matching.models._template import AlignmentModel
+from subgraph_matching.models._template import AlignmentEdgeModel
 from utils.tooling import ReadOnlyConfig
 import GMN.graphembeddingnetwork as gmngen
 from subgraph_matching.models.consistency import Consistency
 from subgraph_matching.models.gmn_baseline import INTERACTION_POST, INTERACTION_PRE
 
-class EdgeEarlyInteraction1(torch.nn.Module):
+class EdgeEarlyInteraction1(AlignmentEdgeModel):
     def __init__(
         self,
         max_node_set_size,
@@ -76,7 +76,7 @@ class EdgeEarlyInteraction1(torch.nn.Module):
                 self.device,
             )
 
-    def forward(self, graphs, graph_sizes, graph_adj_matrices):
+    def forward_with_alignment(self, graphs, graph_sizes, graph_adj_matrices):
         query_sizes, corpus_sizes = zip(*graph_sizes)
         query_sizes = torch.tensor(query_sizes, device=self.device)
         corpus_sizes = torch.tensor(corpus_sizes, device=self.device)
@@ -97,6 +97,7 @@ class EdgeEarlyInteraction1(torch.nn.Module):
 
         padded_edge_indices = model_utils.get_padded_indices(paired_edge_counts, self.max_edge_set_size, self.device)
 
+        transport_plans = []
         for _ in range(self.time_update_steps):
             node_features_enc, edge_features_enc = torch.clone(encoded_node_features), torch.clone(encoded_edge_features)
 
@@ -146,6 +147,7 @@ class EdgeEarlyInteraction1(torch.nn.Module):
 
             sinkhorn_input = torch.matmul(masked_features_query, masked_features_corpus.permute(0, 2, 1))
             transport_plan = model_utils.sinkhorn_iters(log_alpha=sinkhorn_input, device=self.device, **self.sinkhorn_config)
+            transport_plans.append(transport_plan)
 
             # Compute interaction-based features
             interleaved_edge_features = model_utils.get_interaction_feature_store(
@@ -155,4 +157,4 @@ class EdgeEarlyInteraction1(torch.nn.Module):
 
         score = model_utils.feature_alignment_score(final_features_query, final_features_corpus, transport_plan)
 
-        return score
+        return score, torch.stack(transport_plans, dim=1)
