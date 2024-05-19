@@ -1,13 +1,15 @@
 import os
+import sys
 import json
 import torch
 import pickle
 import numpy as np
 import networkx as nx
-import seaborn as sns
+# import seaborn as sns
 from utils import model_utils
 import matplotlib.pyplot as plt
 from utils.tooling import read_config
+from utils.tooling import seed_everything
 import networkx.algorithms.isomorphism as iso
 from utils.eval import compute_average_precision
 from subgraph_matching.model_handler import get_model
@@ -46,13 +48,15 @@ def get_models(
                 yield model_path, config_path
 
 
-def hits_at_k(model, dataset, k):
+def hits_mrr_precision_at_k(model, dataset, k):
     model.eval()
 
     pos_pairs, neg_pairs = dataset.pos_pairs, dataset.neg_pairs
 
     num_query_graphs = len(dataset.query_graphs)
     per_query_hits_at_k = []
+    per_query_rr = []
+    per_query_precision_at_k = []
 
     for query_idx in range(num_query_graphs):
         pos_pairs_for_query = list(filter(lambda pair: pair[0] == query_idx, pos_pairs))
@@ -83,9 +87,20 @@ def hits_at_k(model, dataset, k):
             hits_20 = torch.sum(all_labels_ranked[:k_neg_idx]) / (torch.sum(all_labels_ranked))
             per_query_hits_at_k.append(hits_20)
 
-    mean_hits_at_k = np.mean(per_query_hits_at_k)
+            first_pos_idx = torch.where(all_labels_ranked == 1)[0].min() + 1
+            per_query_rr.append(1 / first_pos_idx)
 
-    return mean_hits_at_k
+            precision_20 = torch.mean(all_labels_ranked[:k])
+            per_query_precision_at_k.append(precision_20)
+
+    all_metrics_and_errors = []
+    for metric_list in [per_query_hits_at_k, per_query_rr, per_query_precision_at_k]:
+        all_metrics_and_errors.extend([
+            np.mean(metric_list),
+            np.std(metric_list) / np.sqrt(len(metric_list))
+        ])
+
+    return all_metrics_and_errors
 
 
 def load_config():
@@ -109,7 +124,8 @@ def load_datasets(data_type):
             batch_size = 128,
             data_type = data_type,
             dataset_base_path = ".",
-            experiment = None
+            experiment = None,
+            device='cuda:0'
         )
     return dataset_map
 
@@ -159,24 +175,48 @@ def dump_latex(table_meta):
                     dataset_map_scores.append(relevant_model["map_score"])
             maps = [str(round(float(x), 3)) for x in dataset_map_scores]
             print(" | ".join(maps), end=" & ")
+
         for dataset_name in ["aids", "mutag", "ptc_fm", "ptc_fr", "ptc_mm", "ptc_mr"]:
-            dataset_hit_scores = []
+            dataset_hit_scores, std_errors = [], []
             for relevant_model in relevant_models:
                 if relevant_model["dataset"] == dataset_name:
                     dataset_hit_scores.append(relevant_model["hits@20"])
-            hits = [str(round(float(x), 3)) for x in dataset_hit_scores]
+                    std_errors.append(relevant_model["std_error_hits@20"])
+            hits = [str(round(float(x), 3)) + " $\pm $" + str(round(float(y), 3)) for x, y in zip(dataset_hit_scores, std_errors)]
             print(" | ".join(hits), end="")
             if dataset_name != "ptc_mr":
                 print(" & ", end="")
+
         for dataset_name in ["aids", "mutag", "ptc_fm", "ptc_fr", "ptc_mm", "ptc_mr"]:
-            dataset_std_error_scores = []
+            dataset_mrr_scores, std_errors = [], []
             for relevant_model in relevant_models:
                 if relevant_model["dataset"] == dataset_name:
-                    dataset_std_error_scores.append(relevant_model["std_error"])
-            std_errors = [str(round(float(x), 3)) for x in dataset_std_error_scores]
-            print(" | ".join(std_errors), end="")
+                    dataset_mrr_scores.append(relevant_model["mrr"])
+                    std_errors.append(relevant_model["std_error_rr"])
+            mrrs = [str(round(float(x), 3)) + " $\pm $" + str(round(float(y), 3)) for x, y in zip(dataset_mrr_scores, std_errors)]
+            print(" | ".join(mrrs), end="")
             if dataset_name != "ptc_mr":
                 print(" & ", end="")
+
+        for dataset_name in ["aids", "mutag", "ptc_fm", "ptc_fr", "ptc_mm", "ptc_mr"]:
+            dataset_prec_scores, std_errors = [], []
+            for relevant_model in relevant_models:
+                if relevant_model["dataset"] == dataset_name:
+                    dataset_prec_scores.append(relevant_model["precision@20"])
+                    std_errors.append(relevant_model["std_error_precision@20"])
+            precs = [str(round(float(x), 3)) + " $\pm $" + str(round(float(y), 3)) for x, y in zip(dataset_prec_scores, std_errors)]
+            print(" | ".join(precs), end="")
+            if dataset_name != "ptc_mr":
+                print(" & ", end="")
+        # for dataset_name in ["aids", "mutag", "ptc_fm", "ptc_fr", "ptc_mm", "ptc_mr"]:
+        #     dataset_std_error_scores = []
+        #     for relevant_model in relevant_models:
+        #         if relevant_model["dataset"] == dataset_name:
+        #             dataset_std_error_scores.append(relevant_model["std_error"])
+        #     std_errors = [str(round(float(x), 3)) for x in dataset_std_error_scores]
+        #     print(" | ".join(std_errors), end="")
+        #     if dataset_name != "ptc_mr":
+        #         print(" & ", end="")
         print("\\\\")
     print(table_end)
 
@@ -265,8 +305,12 @@ def evaluate_improvement_nodes(model, dataset, dataset_name):
             norms_total.extend(norms_per_query)
     values_np = np.array(norms_total)
 
+    if not os.path.exists('histogram_dumps_node_early_baseline'):
+        os.makedirs('histogram_dumps_node_early_baseline')
+        os.makedirs('histogram_plots_node_early_baseline')
+
     for time in range(values_np.shape[1]):
-        pickle.dump(values_np[:,time], open(f'histogram_dumps/model_time_{dataset_name}_{time}', 'wb'))
+        pickle.dump(values_np[:,time], open(f'histogram_dumps_node_early_baseline/model_time_{dataset_name}_{time}', 'wb'))
         sns.histplot(values_np[:,time], binwidth=0.1, binrange=(0, np.ceil(np.max(values_np))), kde=True, label=f'time = {time}', palette='pastel')
 
     # Adding labels and title
@@ -277,7 +321,7 @@ def evaluate_improvement_nodes(model, dataset, dataset_name):
     # Show legend
     plt.legend()
     plt.grid(True)
-    plt.savefig(f'histogram_plots/histogram_{dataset_name}.png')
+    plt.savefig(f'histogram_plots_node_early_baseline/histogram_{dataset_name}.png')
     plt.clf()
 
 def evaluate_model(model, dataset):
@@ -304,6 +348,131 @@ def evaluate_model(model, dataset):
     standard_deviation = np.std(per_query_avg_prec)
     standard_error = standard_deviation / np.sqrt(len(per_query_avg_prec))
     return average_precision, mean_average_precision, standard_error
+
+def evaluate_improvement_edges(model, dataset, dataset_name):
+
+    def get_alignment_edges(mapping, query_edges, corpus_edges, device):
+
+        num_query_edges = len(query_edges)
+        num_corpus_edges = len(corpus_edges)
+
+        edges_corpus_to_idx = {corpus_edges[idx]: idx for idx in range(len(corpus_edges))}
+        reverse_mapping = {mapping[key]: key for key in mapping}
+
+        s_hat = torch.zeros((num_query_edges, num_corpus_edges), device=device)
+
+        for edge_idx in range(num_query_edges):
+
+            corpus_edge_1 = (reverse_mapping[query_edges[edge_idx][0]], reverse_mapping[query_edges[edge_idx][1]])
+            corpus_edge_2 = (reverse_mapping[query_edges[edge_idx][1]], reverse_mapping[query_edges[edge_idx][0]])
+
+            if corpus_edge_1 in edges_corpus_to_idx:
+                s_hat[edge_idx][edges_corpus_to_idx[corpus_edge_1]] = 1
+
+            if corpus_edge_2 in edges_corpus_to_idx:
+                s_hat[edge_idx][edges_corpus_to_idx[corpus_edge_2]] = 1
+
+        return s_hat
+
+    def get_norm_qc_pair_edges(query_edges, corpus_edges, transport_plans):
+
+        Query = nx.Graph()
+        Query.add_edges_from(query_edges)
+
+        Corpus = nx.Graph()
+        Corpus.add_edges_from(corpus_edges)
+
+        GM = iso.GraphMatcher(Corpus,Query)
+
+        best_s_hat = None
+        best_norm_final_transport = torch.zeros(1)
+        for mapping in GM.subgraph_isomorphisms_iter():
+            p_hat = get_alignment_edges(mapping, query_edges, corpus_edges, transport_plans.device)
+            norm = torch.sum(transport_plans[-1, :len(query_edges), :len(corpus_edges)] * p_hat)
+            if norm >= best_norm_final_transport:
+                best_norm_final_transport = norm
+                best_s_hat = p_hat
+
+        assert best_s_hat is not None
+        norm = torch.sum(transport_plans[:, :len(query_edges), :len(corpus_edges)] * best_s_hat.unsqueeze(0), dim=(1,2))
+        return norm.tolist()
+
+    model.eval()
+
+    pos_pairs, neg_pairs = dataset.pos_pairs, dataset.neg_pairs
+
+    num_query_graphs = len(dataset.query_graphs)
+
+    norms_total = []
+    for query_idx in range(num_query_graphs):
+        pos_pairs_for_query = list(filter(lambda pair: pair[0] == query_idx, pos_pairs))
+
+        if len(pos_pairs_for_query) > 0:
+
+            num_batches = dataset.create_custom_batches(pos_pairs_for_query)
+
+            norms_per_query = []
+            for batch_idx in range(num_batches):
+                batch_graphs, batch_graph_sizes, _, batch_adj_matrices = dataset.fetch_batch_by_id(batch_idx)
+                _, _, from_idx, to_idx, graph_idx = model_utils.get_graph_features(batch_graphs)
+
+
+                batch_data_sizes_flat = [item for sublist in batch_graph_sizes for item in sublist]
+
+                edge_counts  = model_utils.get_paired_edge_counts(from_idx, to_idx, graph_idx, 2*len(batch_graph_sizes))
+                edge_counts = [item for sublist in edge_counts for item in sublist]
+
+                from_idx_suff = torch.cat([
+                    torch.tensor([sum(batch_data_sizes_flat[:node_idx])]).repeat(edge_counts[node_idx])
+                    for node_idx in range(len(edge_counts))
+                ])
+
+                from_idx = from_idx.cpu() - from_idx_suff
+                to_idx = to_idx.cpu() - from_idx_suff
+
+                transport_plans = model(batch_graphs, batch_graph_sizes, batch_adj_matrices).cpu()
+                batch_size = transport_plans.shape[0]
+
+                transport_plans = model.forward_for_alignment(batch_graphs, batch_graph_sizes, batch_adj_matrices).cpu()
+
+                batch_size = transport_plans.shape[0]
+                for batch_idx in range(batch_size):
+                    query_from = from_idx[sum(edge_counts[:2*batch_idx]):sum(edge_counts[:2*batch_idx+1])].tolist()
+                    query_to = to_idx[sum(edge_counts[:2*batch_idx]):sum(edge_counts[:2*batch_idx+1])].tolist()
+
+                    corpus_from = from_idx[sum(edge_counts[:2*batch_idx+1]):sum(edge_counts[:2*batch_idx+2])].tolist()
+                    corpus_to = to_idx[sum(edge_counts[:2*batch_idx+1]):sum(edge_counts[:2*batch_idx+2])].tolist()
+
+                    query_edges = [(query_from[idx], query_to[idx]) for idx in range(len(query_from))]
+                    corpus_edges = [(corpus_from[idx], corpus_to[idx]) for idx in range(len(corpus_from))]
+
+                    norms_per_pair = get_norm_qc_pair_edges(query_edges, corpus_edges, transport_plans[batch_idx])
+                    norms_per_query.append(norms_per_pair)
+
+            norms_total.extend(norms_per_query)
+    values_np = np.array(norms_total)
+
+    if not os.path.exists('histogram_dumps_edge_early_baseline'):
+        os.makedirs('histogram_dumps_edge_early_baseline')
+        os.makedirs('histogram_plots_edge_early_baseline')
+
+    for time in range(values_np.shape[1]):
+        pickle.dump(values_np[:,time], open(f'histogram_dumps_edge_early_baseline/model_time_{dataset_name}_{time}', 'wb'))
+        sns.histplot(values_np[:,time], binwidth=0.1, binrange=(0, np.ceil(np.max(values_np))), kde=True, label=f'time = {time}', palette='pastel')
+
+    # Adding labels and title
+    plt.xlabel('EntryWise_L1Norm(S * S_hat)')
+    plt.ylabel('Frequency')
+    plt.title(f'Histogram: Edge Early ({dataset_name})')
+
+    # Show legend
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(f'histogram_dumps_edge_early_baseline/histogram_{dataset_name}.png')
+    plt.clf()
+    
+    return norms_total
+
 
 def get_scores(models_to_run):
     model_name_to_config_map = load_config()
@@ -342,7 +511,7 @@ def get_scores(models_to_run):
         print(model_name, ":", len(metadata["relevant_models"]) if "relevant_models" in metadata else 0)
 
 
-    device = 'cuda:1'
+    device = 'cuda:0'
 
     for model_name in models_to_run:
         if "relevant_models" not in models_to_run[model_name]:
@@ -381,7 +550,11 @@ def get_scores(models_to_run):
             model.load_state_dict(checkpoint["model_state_dict"])
             model.to(device)
 
+            seed_everything(relevant_model["seed"])
+
             # evaluate_improvement_nodes(model, test_dataset, relevant_model["dataset"])
+
+            # evaluate_improvement_edges(model, test_dataset, relevant_model["dataset"])
 
             _, test_map_score, test_std_error = evaluate_model(model, test_dataset)
             print("Test MAP Score:", test_map_score)
@@ -389,9 +562,26 @@ def get_scores(models_to_run):
             models_to_run[model_name]["relevant_models"][idx]["map_score"] = str(test_map_score)
             models_to_run[model_name]["relevant_models"][idx]["std_error"] = str(test_std_error)
 
-            # hits_at_20 = hits_at_k(model, test_dataset, 20)
-            # print("Test HITS@20 Score:", hits_at_20, "\n")
-            # models_to_run[model_name]["relevant_models"][idx]["hits@20"] = str(hits_at_20)
+            (
+                hits_at_20, hits_std_error,
+                mrr, rr_std_error,
+                precision_at_20, precision_std_error,
+            )  = hits_mrr_precision_at_k(model, test_dataset, 20)
+
+            print("Test HITS@20 Score:", hits_at_20)
+            print("Test HITS@20 Standard Error:", hits_std_error, "\n")
+            models_to_run[model_name]["relevant_models"][idx]["hits@20"] = str(hits_at_20)
+            models_to_run[model_name]["relevant_models"][idx]["std_error_hits@20"] = str(hits_std_error)
+
+            print("Test MRR Score:", mrr)
+            print("Test MRR Standard Error:", rr_std_error, "\n")
+            models_to_run[model_name]["relevant_models"][idx]["mrr"] = str(mrr)
+            models_to_run[model_name]["relevant_models"][idx]["std_error_rr"] = str(rr_std_error)
+
+            print("Test Precision@20 Score:", precision_at_20)
+            print("Test Precision@20 Standard Error:", precision_std_error, "\n")
+            models_to_run[model_name]["relevant_models"][idx]["precision@20"] = str(precision_at_20)
+            models_to_run[model_name]["relevant_models"][idx]["std_error_precision@20"] = str(precision_std_error)
 
     return models_to_run
 
@@ -410,13 +600,13 @@ def main():
     dump_latex(table_meta_with_scores)
 
 if __name__ == "__main__":
-    base_path = "/raid/infolab/ashwinr/isonetpp/"
-    # base_path = "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/"
+    # base_path = "/raid/infolab/ashwinr/isonetpp/"
+    base_path = "/mnt/home/vaibhavraj/isonetpp_enhanced_code/"
     paths_to_experiment_dir = [
         base_path + "paper_artifacts/collection/"
     ]
 
-    table_num = 1
+    table_num = int(sys.argv[1])
     table_path = base_path + f"paper_artifacts/table_metadata/table_{table_num}.json"
 
     collection_path = base_path + "paper_artifacts/collection/"
