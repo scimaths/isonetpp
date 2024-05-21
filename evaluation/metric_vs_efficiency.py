@@ -79,32 +79,32 @@ if __name__ == "__main__":
 
     model_paths = {
         'aids': [
-            'efficiency_experiments/trained_models/gmn_baseline_scoring=agg___tp=attention_pp=identity_when=post_aids_large_dataset_seed_7366_2024-04-18_01:23:36.pth',
+            # 'efficiency_experiments/trained_models/gmn_baseline_scoring=agg___tp=attention_pp=identity_when=post_aids_large_dataset_seed_7366_2024-04-18_01:23:36.pth',
             'efficiency_experiments/trained_models/gmn_baseline_scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=pre___unify=true_aids_large_dataset_seed_7762_2024-04-18_14:19:00.pth',
             'efficiency_experiments/trained_models/gmn_iterative_refinement_scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=pre___unify=true_aids_large_dataset_seed_7762_2024-04-02_14:00:34.pth',
         ],
         'mutag': [
-            'efficiency_experiments/trained_models/gmn_baseline_scoring=agg___tp=attention_pp=identity_when=post_mutag_large_dataset_seed_4929_2024-04-02_13:58:29.pth',
+            # 'efficiency_experiments/trained_models/gmn_baseline_scoring=agg___tp=attention_pp=identity_when=post_mutag_large_dataset_seed_4929_2024-04-02_13:58:29.pth',
             'efficiency_experiments/trained_models/gmn_baseline_scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=pre___unify=true_mutag_large_dataset_seed_7762_2024-04-18_14:18:10.pth',
             'efficiency_experiments/trained_models/gmn_iterative_refinement_scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=pre___unify=true_mutag_large_dataset_seed_7762_2024-04-02_13:59:44.pth',
         ],
         'ptc_fm': [
-            'efficiency_experiments/trained_models/gmn_baseline_scoring=agg___tp=attention_pp=identity_when=post_ptc_fm_large_dataset_seed_7366_2024-04-02_13:59:05.pth',
+            # 'efficiency_experiments/trained_models/gmn_baseline_scoring=agg___tp=attention_pp=identity_when=post_ptc_fm_large_dataset_seed_7366_2024-04-02_13:59:05.pth',
             'efficiency_experiments/trained_models/gmn_baseline_scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=pre___unify=true_ptc_fm_large_dataset_seed_7474_2024-04-18_01:25:26.pth',
             'efficiency_experiments/trained_models/gmn_iterative_refinement_scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=pre___unify=true_ptc_fm_large_dataset_seed_7474_2024-04-01_23:49:26.pth',
         ],
         'ptc_fr': [
-            'efficiency_experiments/trained_models/gmn_baseline_scoring=agg___tp=attention_pp=identity_when=post_ptc_fr_large_dataset_seed_7474_2024-04-18_01:23:16.pth',
+            # 'efficiency_experiments/trained_models/gmn_baseline_scoring=agg___tp=attention_pp=identity_when=post_ptc_fr_large_dataset_seed_7474_2024-04-18_01:23:16.pth',
             'efficiency_experiments/trained_models/gmn_baseline_scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=pre___unify=true_ptc_fr_large_dataset_seed_7762_2024-04-18_14:18:40.pth',
             'efficiency_experiments/trained_models/gmn_iterative_refinement_scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=pre___unify=true_ptc_fr_large_dataset_seed_7762_2024-04-02_14:00:14.pth',
         ],
         'ptc_mm': [
-            'efficiency_experiments/trained_models/gmn_baseline_scoring=agg___tp=attention_pp=identity_when=post_ptc_mm_large_dataset_seed_7474_2024-04-18_14:23:55.pth',
+            # 'efficiency_experiments/trained_models/gmn_baseline_scoring=agg___tp=attention_pp=identity_when=post_ptc_mm_large_dataset_seed_7474_2024-04-18_14:23:55.pth',
             'efficiency_experiments/trained_models/gmn_baseline_scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=pre___unify=true_ptc_mm_large_dataset_seed_7762_2024-02-29_00:55:10.pth',
             'efficiency_experiments/trained_models/gmn_iterative_refinement_scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=pre___unify=true_ptc_mm_large_dataset_seed_7762_2024-03-24_16:09:04.pth',
         ],
         'ptc_mr': [
-            'efficiency_experiments/trained_models/gmn_baseline_scoring=agg___tp=attention_pp=identity_when=post_ptc_mr_large_dataset_seed_7366_2024-03-28_01:21:03.pth',
+            # 'efficiency_experiments/trained_models/gmn_baseline_scoring=agg___tp=attention_pp=identity_when=post_ptc_mr_large_dataset_seed_7366_2024-03-28_01:21:03.pth',
             'efficiency_experiments/trained_models/gmn_baseline_scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=pre___unify=true_ptc_mr_large_dataset_seed_7366_2024-02-29_00:54:39.pth',
             'efficiency_experiments/trained_models/gmn_iterative_refinement_scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=pre___unify=true_ptc_mr_large_dataset_seed_7366_2024-03-24_16:08:54.pth',
         ],
@@ -135,18 +135,17 @@ if __name__ == "__main__":
                     all_map_scores[dataset_name][model_name][f"({propagation_steps})"] = (map_score, all_running_times)
                     json.dump(all_map_scores, open('metric_vs_efficiency.json', 'w'))
             elif "gmn_iterative_refinement" in model_name:
-                for refinement_steps in range(3, 6):
-                    for propagation_steps in range(3, 9):
-                        all_running_times = []
-                        for iter in range(ITER_COUNT):
-                            map_score, avg_running_time = modify_and_evaluate_model(
-                                model, test_dataset,
-                                modifications={
-                                    'propagation_steps': propagation_steps,
-                                    'refinement_steps': refinement_steps,
-                                }
-                            )
-                            all_running_times.append(avg_running_time)
-                            print(dataset_name, model_name, f"T={refinement_steps}, K={propagation_steps}", map_score, avg_running_time)
-                        all_map_scores[dataset_name][model_name][f"({refinement_steps},{propagation_steps})"] = (map_score, all_running_times)
-                        json.dump(all_map_scores, open('metric_vs_efficiency.json', 'w'))
+                for refinement_steps, propagation_steps in [(3, 5), (3, 10), (4, 5), (5, 5)]:
+                    all_running_times = []
+                    for iter in range(ITER_COUNT):
+                        map_score, avg_running_time = modify_and_evaluate_model(
+                            model, test_dataset,
+                            modifications={
+                                'propagation_steps': propagation_steps,
+                                'refinement_steps': refinement_steps,
+                            }
+                        )
+                        all_running_times.append(avg_running_time)
+                        print(dataset_name, model_name, f"T={refinement_steps}, K={propagation_steps}", map_score, avg_running_time)
+                    all_map_scores[dataset_name][model_name][f"({refinement_steps},{propagation_steps})"] = (map_score, all_running_times)
+                    json.dump(all_map_scores, open('metric_vs_efficiency.json', 'w'))
