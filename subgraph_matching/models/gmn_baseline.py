@@ -22,7 +22,8 @@ POSSIBLE_ALIGNMENTS = [ATTENTION, MASKED_ATTENTION, SINKHORN, None]
 # Scoring constants
 AGGREGATED = 'aggregated'
 SET_ALIGNED = 'set_aligned'
-POSSIBLE_SCORINGS = [AGGREGATED, SET_ALIGNED]
+NEURAL = 'neural'
+POSSIBLE_SCORINGS = [AGGREGATED, SET_ALIGNED, NEURAL]
 
 # Interaction constants (wrt message-passing)
 INTERACTION_PRE = 'pre'
@@ -41,7 +42,7 @@ class GMNBaseline(AlignmentModel):
         device,
         alignment_feature_dim: Optional[int] = None,
         # Arguments to manage scoring-time alignment
-        scoring: str = AGGREGATED, # one of 'aggregated', 'set_aligned'
+        scoring: str = AGGREGATED, # one of 'aggregated', 'set_aligned', 'neural'
         aggregator_config: Optional[ReadOnlyConfig] = None,
         scoring_alignment: Optional[str] = None, # one of 'attention', 'sinkhorn' or None
         scoring_alignment_preprocessor_type: str = IDENTITY, # one of 'lrl' or 'identity'
@@ -65,12 +66,12 @@ class GMNBaseline(AlignmentModel):
             f"`scoring_alignment` must be one of {POSSIBLE_ALIGNMENTS}, found {scoring_alignment}"
         )
         # ensure aggregator_config is present when needed and not when not
-        assert (scoring != AGGREGATED) ^ (aggregator_config is not None), (
-            "`aggregator_config` should not be None iff aggregated scoring is used"
+        assert (scoring != AGGREGATED and scoring != NEURAL) ^ (aggregator_config is not None), (
+            "`aggregator_config` should not be None iff aggregated/neural scoring is used"
         )
         # set_aligned scoring should use some non-None alignment
-        assert (scoring == AGGREGATED) ^ (scoring_alignment is not None), (
-            "`scoring_alignment` should be None iff aggregated scoring is used"
+        assert (scoring == AGGREGATED or scoring == NEURAL) ^ (scoring_alignment is not None), (
+            "`scoring_alignment` should be None iff aggregated/neural scoring is used"
         )
         # require feature_dim for LRL preprocessing
         assert (scoring_alignment_preprocessor_type != LRL) or (alignment_feature_dim is not None), (
@@ -89,8 +90,8 @@ class GMNBaseline(AlignmentModel):
         #########################################
         # CONSTRAINTS for interaction
         # unification of interaction and scoring
-        assert not(unify_scoring_and_interaction_preprocessor) or (scoring != AGGREGATED), (
-            "Can't unify with aggregated scoring"
+        assert not(unify_scoring_and_interaction_preprocessor) or (scoring not in [AGGREGATED, NEURAL]), (
+            "Can't unify with aggregated/neural scoring"
         )
         assert not(unify_scoring_and_interaction_preprocessor) or (
             interaction_alignment_preprocessor_type == scoring_alignment_preprocessor_type
@@ -205,8 +206,17 @@ class GMNBaseline(AlignmentModel):
         self.interaction_alignment_function = self.get_alignment_function(alignment_type=self.interaction_alignment_type)
 
     def setup_scoring(self, node_state_dim):
-        if self.scoring == AGGREGATED:
+        if self.scoring in [AGGREGATED, NEURAL]:
             self.aggregator = gmngen.GraphAggregator(**self.aggregator_config)
+
+            if self.scoring == NEURAL:
+                graph_vector_dim = self.aggregator.get_output_dim()
+                self.scoring_mlp = torch.nn.Sequential(
+                    torch.nn.Linear(2 * graph_vector_dim, graph_vector_dim),
+                    torch.nn.ReLU(),
+                    torch.nn.Linear(graph_vector_dim, 1)
+                )
+
         elif self.scoring == SET_ALIGNED:
             self.scoring_alignment_preprocessor = self.get_alignment_preprocessor(
                 preprocessor_type = self.scoring_alignment_preprocessor_type,
@@ -283,6 +293,12 @@ class GMNBaseline(AlignmentModel):
         )
         return node_features_enc, transport_plan
 
+    def neural_scoring(self, node_features_enc, graph_idx, graph_sizes):
+        graph_vectors = self.aggregator(node_features_enc, graph_idx, 2 * len(graph_sizes))
+        graph_vector_dim = graph_vectors.shape[-1]
+        reshaped_graph_vectors = graph_vectors.reshape(-1, graph_vector_dim * 2)
+        return self.scoring_mlp(reshaped_graph_vectors)[:, 0], []
+
     def aggregated_scoring(self, node_features_enc, graph_idx, graph_sizes):
         graph_vectors = self.aggregator(node_features_enc, graph_idx, 2 * len(graph_sizes))
         graph_vector_dim = graph_vectors.shape[-1]
@@ -338,8 +354,10 @@ class GMNBaseline(AlignmentModel):
 
         ############################## SCORING ##############################
         if self.scoring == AGGREGATED:
-            return self.aggregated_scoring(node_features_enc, graph_idx, graph_sizes), []
+            return self.aggregated_scoring(node_features_enc, graph_idx, graph_sizes)
         elif self.scoring == SET_ALIGNED:
             score, transport_plan = self.set_aligned_scoring(node_features_enc, graph_sizes, features_to_transport_plan)
             transport_plans.append(transport_plan)
             return (score, transport_plan)#, torch.stack(transport_plans, dim=1)
+        elif self.scoring == NEURAL:
+            return self.neural_scoring(node_features_enc, graph_idx, graph_sizes)
