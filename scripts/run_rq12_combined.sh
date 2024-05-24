@@ -15,19 +15,14 @@ gpus=(0 1 2 3 4 5)
 overall_counter=0
 
 for config_file in \
-    "configs/rq12_combined/scoring=agg___tp=attention_pp=lrl_when=post.yaml" \
-    "configs/rq12_combined/scoring=agg___tp=masked_attention_pp=lrl_when=post.yaml" \
-    "configs/rq12_combined/scoring=agg___tp=sinkhorn_pp=lrl_when=post.yaml" \
-    "configs/rq12_combined/scoring=attention_pp=lrl___tp=attention_pp=lrl_when=post.yaml" \
-    "configs/rq12_combined/scoring=attention_pp=lrl___tp=attention_pp=lrl_when=post___unify=true.yaml" \
-    "configs/rq12_combined/scoring=attention_pp=lrl___tp=masked_attention_pp=lrl_when=post.yaml" \
-    "configs/rq12_combined/scoring=attention_pp=lrl___tp=sinkhorn_pp=lrl_when=post.yaml" \
-    "configs/rq12_combined/scoring=masked_attention_pp=lrl___tp=masked_attention_pp=lrl_when=post.yaml" \
-    "configs/rq12_combined/scoring=masked_attention_pp=lrl___tp=masked_attention_pp=lrl_when=post___unify=true.yaml" \
-    "configs/rq12_combined/scoring=sinkhorn_pp=lrl___tp=attention_pp=lrl_when=post.yaml" \
-    "configs/rq12_combined/scoring=sinkhorn_pp=lrl___tp=masked_attention_pp=lrl_when=post.yaml" \
-    "configs/rq12_combined/scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=post.yaml" \
-    "configs/rq12_combined/scoring=sinkhorn_pp=lrl___tp=sinkhorn_pp=lrl_when=post___unify=true.yaml" \
+   "configs/rq12_combined/scoring=agg___tp=attention_pp=hinge_when=post.yaml" \
+   "configs/rq12_combined/scoring=agg___tp=attention_pp=identity_when=post.yaml" \
+   "configs/rq12_combined/scoring=agg___tp=sinkhorn_pp=hinge_when=post.yaml" \
+   "configs/rq12_combined/scoring=agg___tp=sinkhorn_pp=identity_when=post.yaml" \
+   "configs/rq12_combined/scoring=attention_pp=hinge___tp=attention_pp=hinge_when=post.yaml" \
+   "configs/rq12_combined/scoring=attention_pp=identity___tp=attention_pp=identity_when=post.yaml" \
+   "configs/rq12_combined/scoring=sinkhorn_pp=hinge___tp=sinkhorn_pp=hinge_when=post.yaml" \
+   "configs/rq12_combined/scoring=sinkhorn_pp=identity___tp=sinkhorn_pp=identity_when=post.yaml" \
 ; do
    for dataset in "${!dataset_seeds[@]}"; do
       seed="${dataset_seeds[$dataset]}"
@@ -40,10 +35,10 @@ for config_file in \
          --dataset_name $dataset \
          --seed $seed \
          --dataset_size large \
-         --dataset_path_override large_dataset_split_1/ \
          --max_epochs 10 \
          --wandb_config_path configs/wandb_benchmark_paper.yaml \
          &
+         # --dataset_path_override large_dataset_split_1/ \
 
       ((overall_counter++))
       sleep 10s
