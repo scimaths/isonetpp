@@ -175,16 +175,23 @@ def features_to_transport_plan(
     # arguments below can be set exactly once during every forward pass with functools.partial
     graph_size_to_mask_map, query_sizes, corpus_sizes
 ):
-    transformed_features_query = preprocessor(query_features)
-    transformed_features_corpus = preprocessor(corpus_features)
+    if isinstance(preprocessor, str) and preprocessor == "hinge":
+        feature_hinge_diff = torch.nn.functional.relu(
+            query_features.unsqueeze(2) - corpus_features.unsqueeze(1)
+        )
+        log_alpha = -feature_hinge_diff.sum(-1)
+    else:
+        transformed_features_query = preprocessor(query_features)
+        transformed_features_corpus = preprocessor(corpus_features)
 
-    def mask_graphs(features, graph_sizes):
-        mask = torch.stack([graph_size_to_mask_map[what_for][i] for i in graph_sizes])
-        return mask * features
-    masked_features_query = mask_graphs(transformed_features_query, query_sizes)
-    masked_features_corpus = mask_graphs(transformed_features_corpus, corpus_sizes)
+        def mask_graphs(features, graph_sizes):
+            mask = torch.stack([graph_size_to_mask_map[what_for][i] for i in graph_sizes])
+            return mask * features
+        masked_features_query = mask_graphs(transformed_features_query, query_sizes)
+        masked_features_corpus = mask_graphs(transformed_features_corpus, corpus_sizes)
 
-    log_alpha = torch.matmul(masked_features_query, masked_features_corpus.permute(0, 2, 1))
+        log_alpha = torch.matmul(masked_features_query, masked_features_corpus.permute(0, 2, 1))
+
     transport_plan = alignment_function(log_alpha=log_alpha, query_sizes=query_sizes, corpus_sizes=corpus_sizes)
     return transport_plan
 

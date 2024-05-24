@@ -11,7 +11,8 @@ from subgraph_matching.models._template import AlignmentModel
 # Alignment preprocessing constants
 LRL = 'lrl'
 IDENTITY = 'identity'
-POSSIBLE_ALIGNMENT_PREPROCESSOR_TYPES = [LRL, IDENTITY]
+HINGE = 'hinge'
+POSSIBLE_ALIGNMENT_PREPROCESSOR_TYPES = [LRL, IDENTITY, HINGE]
 
 # Alignment constants
 SINKHORN = 'sinkhorn'
@@ -45,12 +46,12 @@ class GMNBaseline(AlignmentModel):
         scoring: str = AGGREGATED, # one of 'aggregated', 'set_aligned', 'neural'
         aggregator_config: Optional[ReadOnlyConfig] = None,
         scoring_alignment: Optional[str] = None, # one of 'attention', 'sinkhorn' or None
-        scoring_alignment_preprocessor_type: str = IDENTITY, # one of 'lrl' or 'identity'
+        scoring_alignment_preprocessor_type: str = IDENTITY, # one of 'lrl', 'hinge' or 'identity'
         # Use scoring arguments for interaction
         unify_scoring_and_interaction_preprocessor: bool = False,
         # Arguments to manage interaction-time alignment
         interaction_alignment: Optional[str] = ATTENTION, # one of 'attention' or 'sinkhorn' if not unified, else None
-        interaction_alignment_preprocessor_type: str = IDENTITY, # one of 'lrl' or 'identity'
+        interaction_alignment_preprocessor_type: str = IDENTITY, # one of 'lrl', 'hinge' or 'identity'
         # Arguments to manage alignment configs - shared if `scoring_alignment` and `interaction_alignment` are identical
         sinkhorn_config: Optional[ReadOnlyConfig] = None,
         attention_config: Optional[ReadOnlyConfig] = None,
@@ -178,6 +179,8 @@ class GMNBaseline(AlignmentModel):
                 torch.nn.ReLU(),
                 torch.nn.Linear(preprocessor_feature_dim, preprocessor_feature_dim)
             )
+        elif preprocessor_type == HINGE:
+            return HINGE
         else:
             raise NotImplementedError(f"preprocessor is implemented only for these modes - {POSSIBLE_ALIGNMENT_PREPROCESSOR_TYPES}")
 
