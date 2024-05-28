@@ -137,27 +137,29 @@ def main():
 if __name__ == "__main__":
     # base_path = "/raid/infolab/ashwinr/isonetpp/"
     base_path = "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/"
-    # base_path = "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/"
+    # # base_path = "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/"
     paths_to_experiment_dir = [
         # base_path + "experiments/",
-        base_path + "experiments_from_infolab_vaibhav/",
-        base_path + "experiments_updated/",
-        base_path + "experiments/",
-        base_path + "experiments_from_gise/experiments/",
-        "/mnt/home/vaibhavraj/isonetpp_enhanced_code/experiments_archived_march_16/",
-        "/mnt/home/vaibhavraj/isonetpp_enhanced_code/experiments/",
-        "/mnt/nas/vaibhavraj/isonetpp_experiments/",
-        "/mnt/nas/vaibhavraj/isonetpp_experiments_march_16/",
-        "/mnt/nas/vaibhavraj/isonet_experiments_02_april/",
-        "/mnt/home/vaibhavraj/isonetpp_enhanced_code/experiments/",
-        "/mnt/home/vaibhavraj/isonetpp_enhanced_code/experiments_archived_march_16/",
-        "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated/",
-        "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated_may_9_9_am/",
-        "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated_may_10_9_am/",
-        "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated_may_10_9_pm/",
-        "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated_may_9_12_pm/",
-        "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/efficiency_experiments/",
-        "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/rq7_efficiency/"
+        # base_path + "experiments_from_infolab_vaibhav/",
+        # base_path + "experiments_updated/",
+        # base_path + "experiments/",
+        # base_path + "experiments_from_gise/experiments/",
+        # "/mnt/home/vaibhavraj/isonetpp_enhanced_code/experiments_archived_march_16/",
+        # "/mnt/home/vaibhavraj/isonetpp_enhanced_code/experiments/",
+        # "/mnt/nas/vaibhavraj/isonetpp_experiments/",
+        # "/mnt/nas/vaibhavraj/isonetpp_experiments_march_16/",
+        # "/mnt/nas/vaibhavraj/isonet_experiments_02_april/",
+        # "/mnt/home/vaibhavraj/isonetpp_enhanced_code/experiments/",
+        # "/mnt/home/vaibhavraj/isonetpp_enhanced_code/experiments_archived_march_16/",
+        # "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated/",
+        # "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated_may_9_9_am/",
+        # "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated_may_10_9_am/",
+        # "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated_may_10_9_pm/",
+        # "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/experiments_updated_may_9_12_pm/",
+        # "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/efficiency_experiments/",
+        # "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/rq7_efficiency/",
+        # "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/egsc_margin_01/",
+        "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/edge_mutag/"
     ]
 
     table_num = 4

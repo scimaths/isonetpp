@@ -238,10 +238,6 @@ def dump_latex(table_meta):
             if dataset_name != "ptc_mr":
                 print(" & ", end="")
 
-                    dataset_map_scores.append(relevant_model["map_score"])
-            maps = [str(round(float(x), 3)) for x in dataset_map_scores]
-            print(" | ".join(maps), end=" & ")
-
         # for dataset_name in ["aids", "mutag", "ptc_fm", "ptc_fr", "ptc_mm", "ptc_mr"]:
         #     dataset_std_error_scores = []
         #     for relevant_model in relevant_models:
@@ -573,8 +569,13 @@ def get_scores(models_to_run):
             "model_path": model_path,
             "config_path": model_name_to_config_map[model_name],
             "map_score": "0",
-            "hits@20": "0",
             "std_error": "0",
+            "hits@20": "0",
+            "std_error_hits@20": "0",
+            "precision@20": "0",
+            "std_error_precision@20": "0",
+            "mrr": "0",
+            "std_error_rr": "0",
             "time_taken": "0"
         })
 
@@ -625,8 +626,8 @@ def get_scores(models_to_run):
 
             seed_everything(relevant_model["seed"])
 
-            # _, test_map_score, _, time_taken = evaluate_model(model, test_dataset)
-            # print("Time Taken", round(time_taken,2), "MAP", test_map_score)
+            _, test_map_score, test_std_error, time_taken = evaluate_model(model, test_dataset)
+            print("Time Taken", round(time_taken,3), "MAP", round(test_map_score,3))
             # models_to_run[model_name]["relevant_models"][idx]["time_taken"] = str(time_taken)
 
             # evaluate_improvement_nodes(model, test_dataset, relevant_model["dataset"])
@@ -644,32 +645,32 @@ def get_scores(models_to_run):
             # print("Test Standard Error:", test_std_error)
             # models_to_run[model_name]["relevant_models"][idx]["hits@20"] = str(hits_at_20)
             # models_to_run[model_name]["relevant_models"][idx]["std_error_hits@20"] = str(test_std_error)
-            _, test_map_score, test_std_error = evaluate_model(model, test_dataset)
-            print("Test MAP Score:", test_map_score)
-            print("Test Standard Error:", test_std_error)
-            models_to_run[model_name]["relevant_models"][idx]["map_score"] = str(test_map_score)
-            models_to_run[model_name]["relevant_models"][idx]["std_error"] = str(test_std_error)
+            # _, test_map_score, test_std_error = evaluate_model(model, test_dataset)
+            # print("Test MAP Score:", test_map_score)
+            # print("Test Standard Error:", test_std_error)
+            # models_to_run[model_name]["relevant_models"][idx]["map_score"] = str(test_map_score)
+            # models_to_run[model_name]["relevant_models"][idx]["std_error"] = str(test_std_error)
 
-            (
-                hits_at_20, hits_std_error,
-                mrr, rr_std_error,
-                precision_at_20, precision_std_error,
-            )  = hits_mrr_precision_at_k(model, test_dataset, 20)
+            # (
+            #     hits_at_20, hits_std_error,
+            #     mrr, rr_std_error,
+            #     precision_at_20, precision_std_error,
+            # )  = hits_mrr_precision_at_k(model, test_dataset, 20)
 
-            print("Test HITS@20 Score:", hits_at_20)
-            print("Test HITS@20 Standard Error:", hits_std_error, "\n")
-            models_to_run[model_name]["relevant_models"][idx]["hits@20"] = str(hits_at_20)
-            models_to_run[model_name]["relevant_models"][idx]["std_error_hits@20"] = str(hits_std_error)
+            # print("Test HITS@20 Score:", hits_at_20)
+            # print("Test HITS@20 Standard Error:", hits_std_error, "\n")
+            # models_to_run[model_name]["relevant_models"][idx]["hits@20"] = str(hits_at_20)
+            # models_to_run[model_name]["relevant_models"][idx]["std_error_hits@20"] = str(hits_std_error)
 
-            print("Test MRR Score:", mrr)
-            print("Test MRR Standard Error:", rr_std_error, "\n")
-            models_to_run[model_name]["relevant_models"][idx]["mrr"] = str(mrr)
-            models_to_run[model_name]["relevant_models"][idx]["std_error_rr"] = str(rr_std_error)
+            # print("Test MRR Score:", mrr)
+            # print("Test MRR Standard Error:", rr_std_error, "\n")
+            # models_to_run[model_name]["relevant_models"][idx]["mrr"] = str(mrr)
+            # models_to_run[model_name]["relevant_models"][idx]["std_error_rr"] = str(rr_std_error)
 
-            print("Test Precision@20 Score:", precision_at_20)
-            print("Test Precision@20 Standard Error:", precision_std_error, "\n")
-            models_to_run[model_name]["relevant_models"][idx]["precision@20"] = str(precision_at_20)
-            models_to_run[model_name]["relevant_models"][idx]["std_error_precision@20"] = str(precision_std_error)
+            # print("Test Precision@20 Score:", precision_at_20)
+            # print("Test Precision@20 Standard Error:", precision_std_error, "\n")
+            # models_to_run[model_name]["relevant_models"][idx]["precision@20"] = str(precision_at_20)
+            # models_to_run[model_name]["relevant_models"][idx]["std_error_precision@20"] = str(precision_std_error)
 
 
         dump_latex(models_to_run)
@@ -692,12 +693,12 @@ def main():
 
 if __name__ == "__main__":
     # base_path = "/raid/infolab/ashwinr/isonetpp/"
-    base_path = "/mnt/home/vaibhavraj/isonetpp_enhanced_code/"
+    base_path = "/mnt/home/ashwinr/btp24/grph/gitlab_repo/isonetpp/"
     paths_to_experiment_dir = [
         base_path + "paper_artifacts/collection/"
     ]
 
-    table_num = 0
+    table_num = 4
     table_path = base_path + f"paper_artifacts/table_metadata/table_{table_num}.json"
 
     collection_path = base_path + "paper_artifacts/collection/"
