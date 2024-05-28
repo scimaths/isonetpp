@@ -400,6 +400,9 @@ class GraphAggregator(nn.Module):
 
         return MLP1, MLP2
 
+    def get_output_dim(self):
+        return self._graph_transform_sizes[-1]
+
     def forward(self, node_states, graph_idx, n_graphs):
         """Compute aggregated graph representations.
 
