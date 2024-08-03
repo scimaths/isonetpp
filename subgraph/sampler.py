@@ -1,7 +1,6 @@
-import numpy as np
-import networkx as nx
-import scipy
 import random
+import numpy as np
+from scipy import stats
 
 from subgraph.graphs import TUDatasetGraph
 
@@ -25,7 +24,7 @@ class OnTheFlySubgraphSampler(object):
     """
     ps = np.array([len(g) for g in self.graphs], dtype=np.float)
     ps /= np.sum(ps)
-    dist = scipy.stats.rv_discrete(values=(np.arange(len(self.graphs)), ps))
+    dist = stats.rv_discrete(values=(np.arange(len(self.graphs)), ps))
     return dist
 
   def sample_subgraph(self):

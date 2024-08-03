@@ -1,7 +1,6 @@
 import numpy as np
 import networkx as nx
 from collections import defaultdict
-from logger import logger
 import pickle
 import os
 
@@ -47,6 +46,8 @@ class TUDatasetGraph(object):
         d = TUDataset(root="/tmp/PTC_MM", name="PTC_MM")   
       elif self.dataset_name == "ptc_mr":
         d = TUDataset(root="/tmp/PTC_MR", name="PTC_MR")  
+      elif self.dataset_name == "dhfr":
+        d = TUDataset(root="/tmp/DHFR", name="DHFR")  
       else:
         raise NotImplementedError()
       with open(fname,"wb") as f:

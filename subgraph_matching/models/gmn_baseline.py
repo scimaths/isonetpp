@@ -134,7 +134,6 @@ class GMNBaseline(AlignmentModel):
 
         #########################################
         # Actual implementation begins
-        self.max_node_set_size = max_node_set_size
         self.device = device
 
         # Handle common layers
@@ -143,32 +142,36 @@ class GMNBaseline(AlignmentModel):
 
         # Propagation params and function
         self.propagation_steps = propagation_steps
-        prop_layer_node_state_dim = propagation_layer_config.node_state_dim
+        self.prop_layer_node_state_dim = propagation_layer_config.node_state_dim
+        self.set_max_node_set_size(max_node_set_size)
 
         if self.interaction_when in [INTERACTION_PRE, INTERACTION_MSG_ONLY, INTERACTION_UPD_ONLY]:
             self.interaction_layer = torch.nn.Sequential(
-                torch.nn.Linear(2 * prop_layer_node_state_dim, 2 * prop_layer_node_state_dim),
+                torch.nn.Linear(2 * self.prop_layer_node_state_dim, 2 * self.prop_layer_node_state_dim),
                 torch.nn.ReLU(),
-                torch.nn.Linear(2 * prop_layer_node_state_dim, prop_layer_node_state_dim)
+                torch.nn.Linear(2 * self.prop_layer_node_state_dim, self.prop_layer_node_state_dim)
             )
             self.propagation_function = self.propagation_step_with_pre_interaction
         elif self.interaction_when == INTERACTION_POST:
             self.propagation_function = self.propagation_step_with_post_interaction
 
+        # Setup scoring and interaction layer
+        self.setup_scoring(self.prop_layer_node_state_dim)
+        self.setup_interaction(self.prop_layer_node_state_dim)
+
+    def set_max_node_set_size(self, max_node_set_size):
+        self.max_node_set_size = max_node_set_size
+
         # Handle unification of graph_size_to_mask_map
         self.graph_size_to_mask_map = {
             key: model_utils.graph_size_to_mask_map(
                 max_set_size = max_node_set_size, device=self.device,
-                lateral_dim = alignment_feature_dim if preprocessor_type == LRL else prop_layer_node_state_dim
+                lateral_dim = self.alignment_feature_dim if preprocessor_type == LRL else self.prop_layer_node_state_dim
             ) for (key, preprocessor_type) in [
-                ('scoring', scoring_alignment_preprocessor_type),
-                ('interaction', interaction_alignment_preprocessor_type),
+                ('scoring', self.scoring_alignment_preprocessor_type),
+                ('interaction', self.interaction_alignment_preprocessor_type),
             ]
         }
-
-        # Setup scoring and interaction layer
-        self.setup_scoring(prop_layer_node_state_dim)
-        self.setup_interaction(prop_layer_node_state_dim)
 
     def get_alignment_preprocessor(self, preprocessor_type, preprocessor_feature_dim, node_state_dim):
         if preprocessor_type == IDENTITY:

@@ -29,7 +29,7 @@ class SubgraphIsomorphismDataset:
         self.mode = mode
         self.dataset_name = dataset_name
         self.dataset_size = dataset_size
-        self.max_node_set_size = {"small": 15, "large": 20}[dataset_size]
+        self.max_node_set_size = {"small": 15, "large": 20, "massive": 50}[dataset_size]
         self.batch_size = batch_size
         self.data_type = data_type
         self.dataset_base_path = dataset_base_path
@@ -53,7 +53,11 @@ class SubgraphIsomorphismDataset:
         )
         
         # Load query graphs
-        pair_count = f"{80 if self.dataset_size == 'small' else 240}k"
+        pair_count = {
+            "small": "80",
+            "large": "240",
+            "massive": "50",
+        }[self.dataset_size] + "k"
         mode_prefix = "test" if "test" in self.mode else self.mode
         query_graph_file = dataset_accessor(f"{mode_prefix}_{self.dataset_name}{pair_count}_query_subgraphs.pkl")
         self.query_graphs = pickle.load(open(query_graph_file, 'rb'))
