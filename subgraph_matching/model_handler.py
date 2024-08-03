@@ -15,6 +15,21 @@ from subgraph_matching.models.edge_early_interaction import EdgeEarlyInteraction
 from subgraph_matching.models.nanl_attention import NodeAlignNodeLossAttention
 from subgraph_matching.models.gmn_baseline import GMNBaseline
 from subgraph_matching.models.gmn_iterative_refinement import GMNIterativeRefinement
+from subgraph_matching.models.graphsim import GraphSim
+from subgraph_matching.models.egsc_modified import EGSC as EGSC_Modified
+from subgraph_matching.models.egsc import EGSC
+from subgraph_matching.models.eric import ERIC
+# from subgraph_matching.models.h2mn import H2MN
+from subgraph_matching.models.greed import Greed
+from subgraph_matching.models.eric import ERIC
+from subgraph_matching.models.gotsim import GOTSim
+from subgraph_matching.models.gmn_embed import GMN_embed_hinge
+# from subgraph_matching.models.h2mn import H2MN
+from subgraph_matching.models.greed import Greed
+from subgraph_matching.models.neuromatch import NeuroMatch
+from subgraph_matching.models.simgnn import SimGNN
+from subgraph_matching.models.egsc import EGSC
+from subgraph_matching.models.eric import ERIC
 # from subgraph_matching.models.graphsim import GraphSim
 # from subgraph_matching.models.egsc_modified import EGSC as EGSC_Modified
 # from subgraph_matching.models.egsc import EGSC
@@ -59,6 +74,22 @@ model_name_to_class_mappings = {
     'nanl_masked_attention_c_to_q': NodeAlignNodeLossAttention,
     'nanl_masked_attention_max': NodeAlignNodeLossAttention,
     'nanl_masked_attention_min': NodeAlignNodeLossAttention,
+    'graphsim': GraphSim,
+    'egsc': EGSC,
+    'egsc_modified': EGSC_Modified,
+    'eric': ERIC,
+    # 'H2MN': H2MN,
+    'egsc_modified': EGSC_Modified,
+    'eric': ERIC,
+    'gotsim': GOTSim,
+    'gmn_embed': GMN_embed_hinge,
+    # 'H2MN': H2MN,
+    'neuromatch': NeuroMatch,
+    'greed': Greed,
+    'simgnn': SimGNN,
+    'egsc': EGSC,
+    'egsc_modified': EGSC_Modified,
+    'eric': ERIC,
     # 'graphsim': GraphSim,
     # 'egsc': EGSC,
     # 'egsc_modified': EGSC_Modified,
