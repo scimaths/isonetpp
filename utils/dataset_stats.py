@@ -10,8 +10,8 @@ def get_stats():
     for dataset_name in ["aids", "mutag", "ptc_fm", "ptc_fr", "ptc_mm", "ptc_mr"]:
         corpus_graphs = pickle.load(open(os.path.join(source_base_path, "splits", f"{dataset_name}240k_corpus_subgraphs.pkl"), 'rb'))
         query_graphs, query_relations = load_first_split(dataset_name)
-        query_graph_sizes = [g.size() for g in query_graphs]
-        corpus_graph_sizes = [g.size() for g in corpus_graphs]
+        query_graph_sizes = [len(g.nodes) for g in query_graphs]
+        corpus_graph_sizes = [len(g.nodes) for g in corpus_graphs]
         query_edge_count = [len(g.edges()) for g in query_graphs]
         corpus_edge_count = [len(g.edges()) for g in corpus_graphs]
         pos_total = np.sum([len(dic['pos']) for dic in query_relations])
