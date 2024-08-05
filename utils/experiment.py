@@ -38,7 +38,7 @@ class Experiment:
             exit()
 
         if not os.path.isdir(os.path.join(self.home_dir, self.experiment_id)):
-            os.mkdir(os.path.join(self.home_dir, self.experiment_id))
+            os.makedirs(os.path.join(self.home_dir, self.experiment_id), exist_ok=True)
         for subdir in [LOG_DIR, INITIAL_MODELS_DIR, TRAINED_MODELS_DIR, CONFIG_DIR]:
             os.makedirs(os.path.join(self.home_dir, self.experiment_id, subdir), exist_ok=True)
             
