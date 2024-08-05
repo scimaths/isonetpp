@@ -56,7 +56,7 @@ class SubgraphIsomorphismDataset:
         pair_count = {
             "small": "80",
             "large": "240",
-            "massive": "50",
+            "massive": "240",
         }[self.dataset_size] + "k"
         mode_prefix = "test" if "test" in self.mode else self.mode
         query_graph_file = dataset_accessor(f"{mode_prefix}_{self.dataset_name}{pair_count}_query_subgraphs.pkl")
