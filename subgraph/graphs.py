@@ -48,6 +48,8 @@ class TUDatasetGraph(object):
         d = TUDataset(root="/tmp/PTC_MR", name="PTC_MR")  
       elif self.dataset_name == "dhfr":
         d = TUDataset(root="/tmp/DHFR", name="DHFR")  
+      elif self.dataset_name == "msrc_21":
+        d = TUDataset(root="/tmp/MSRC_21", name="MSRC_21")  
       else:
         raise NotImplementedError()
       with open(fname,"wb") as f:
