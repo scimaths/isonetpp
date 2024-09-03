@@ -27,6 +27,7 @@ NEURAL = 'neural'
 POSSIBLE_SCORINGS = [AGGREGATED, SET_ALIGNED, NEURAL]
 
 # Interaction constants (wrt message-passing)
+INTERACTION_NEVER = 'never'
 INTERACTION_PRE = 'pre'
 INTERACTION_POST = 'post'
 INTERACTION_MSG_ONLY = 'msg_passing_only'
@@ -50,7 +51,7 @@ class GMNBaseline(AlignmentModel):
         # Use scoring arguments for interaction
         unify_scoring_and_interaction_preprocessor: bool = False,
         # Arguments to manage interaction-time alignment
-        interaction_alignment: Optional[str] = ATTENTION, # one of 'attention' or 'sinkhorn' if not unified, else None
+        interaction_alignment: Optional[str] = None, # one of 'attention' or 'sinkhorn' if not unified, else None
         interaction_alignment_preprocessor_type: str = IDENTITY, # one of 'lrl', 'hinge' or 'identity'
         # Arguments to manage alignment configs - shared if `scoring_alignment` and `interaction_alignment` are identical
         sinkhorn_config: Optional[ReadOnlyConfig] = None,
@@ -102,19 +103,36 @@ class GMNBaseline(AlignmentModel):
             "`alignment_feature_dim` should be non-zero if LRL preprocessing is used in interaction"
         )
         # require interaction is pre/post
-        assert interaction_when in [INTERACTION_PRE, INTERACTION_POST, INTERACTION_MSG_ONLY, INTERACTION_UPD_ONLY], (
-            "`interaction_when` must be one of `pre`/`post`/`msg_passing_only`/`update_only`"
+        assert interaction_when in [
+            INTERACTION_NEVER, INTERACTION_PRE, INTERACTION_POST,
+            INTERACTION_MSG_ONLY, INTERACTION_UPD_ONLY
+        ], (
+            "`interaction_when` must be one of `none`/`pre`/`post`/`msg_passing_only`/`update_only`"
         )
         assert (interaction_when, propagation_layer_config.prop_type) in [
+            (INTERACTION_NEVER, 'embedding'),
             (INTERACTION_PRE, 'embedding'),
             (INTERACTION_MSG_ONLY, 'embedding'),
             (INTERACTION_UPD_ONLY, 'embedding'),
             (INTERACTION_POST, 'matching'),
         ]
 
+        #########################################
+        # CONSTRAINTS for no interaction
+        assert (interaction_when != INTERACTION_NEVER or scoring == SET_ALIGNED) or (
+            sinkhorn_config is None and attention_config is None
+        ), "For no interaction and non-set-aligned scoring, no alignment procedure is required"
+
+        assert (interaction_alignment is None) == (interaction_when == INTERACTION_NEVER), (
+            "Alignment kind and stage of interaction should be consistent for the no interaction case"
+        )
+
+        assert (interaction_when != INTERACTION_NEVER) or (not unify_scoring_and_interaction_preprocessor), (
+            "Unification of LRL preprocessors not possible in the case of no interaction"
+        )
+
         self.unify_scoring_and_interaction_preprocessor = unify_scoring_and_interaction_preprocessor
         self.interaction_alignment_type = interaction_alignment
-        self.alignment_feature_dim = alignment_feature_dim
         self.interaction_alignment_preprocessor_type = interaction_alignment_preprocessor_type
         self.interaction_when = interaction_when
 
@@ -154,6 +172,8 @@ class GMNBaseline(AlignmentModel):
             self.propagation_function = self.propagation_step_with_pre_interaction
         elif self.interaction_when == INTERACTION_POST:
             self.propagation_function = self.propagation_step_with_post_interaction
+        elif self.interaction_when == INTERACTION_NEVER:
+            self.propagation_function = self.propagation_step_without_interaction
 
         # Setup scoring and interaction layer
         self.setup_scoring(self.prop_layer_node_state_dim)
@@ -201,6 +221,7 @@ class GMNBaseline(AlignmentModel):
             ))
 
     def setup_interaction(self, node_state_dim):
+        if self.interaction_when == INTERACTION_NEVER: return
         if self.unify_scoring_and_interaction_preprocessor:
             self.interaction_alignment_preprocessor = self.scoring_alignment_preprocessor
         else:
@@ -298,6 +319,19 @@ class GMNBaseline(AlignmentModel):
             node_features_enc, [aggregated_messages, node_features_enc - interaction_features]
         )
         return node_features_enc, transport_plan
+
+    def propagation_step_without_interaction(
+            self, prop_idx, from_idx, to_idx, graph_sizes,
+            node_features_enc, edge_features_enc,
+            features_to_transport_plan, padded_node_indices
+    ):
+        aggregated_messages = self.prop_layer._compute_aggregated_messages(
+            node_features_enc, from_idx, to_idx, edge_features_enc
+        )
+        node_features_enc = self.prop_layer._compute_node_update(
+            node_features_enc, [aggregated_messages]
+        )
+        return node_features_enc, None
 
     def neural_scoring(self, node_features_enc, graph_idx, graph_sizes):
         graph_vectors = self.aggregator(node_features_enc, graph_idx, 2 * len(graph_sizes))
