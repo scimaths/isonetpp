@@ -103,7 +103,7 @@ if __name__ == "__main__":
                 continue
             pos_c, neg_c = [], []
             
-            future = pool.map(check_isomorphism, zip(corpus_subgraph_list, itertools.repeat(sgraph)), timeout=30)
+            future = pool.map(check_isomorphism, zip(corpus_subgraph_list, itertools.repeat(sgraph)), timeout=120)
             iterator = future.result()
 
             for c_i in range(no_of_corpus_subgraphs): 
@@ -147,7 +147,7 @@ if __name__ == "__main__":
 
     joint_path_string = (
         f"{args.DATASET_NAME}{pair_count_str}_query_{no_of_query_subgraphs}_corpus_{no_of_corpus_subgraphs}" +
-        f"_minq_{args.MIN_QUERY_SUBGRAPH_SIZE}_maxq_{args.MIN_QUERY_SUBGRAPH_SIZE}" +
+        f"_minq_{args.MIN_QUERY_SUBGRAPH_SIZE}_maxq_{args.MAX_QUERY_SUBGRAPH_SIZE}" +
         f"_minc_{args.MIN_CORPUS_SUBGRAPH_SIZE}_maxc_{args.MAX_CORPUS_SUBGRAPH_SIZE}" +
         f"_rel_{subgraph_rel_type}.pkl"
     )

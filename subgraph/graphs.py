@@ -34,6 +34,8 @@ class TUDatasetGraph(object):
         d = TUDataset(root="/tmp/PROTEINS", name="PROTEINS")
       elif self.dataset_name == "cox2":
         d = TUDataset(root="/tmp/cox2", name="COX2")
+      elif self.dataset_name == "cox2_repeat":
+        d = TUDataset(root="/tmp/cox2_repeat", name="COX2")
       elif self.dataset_name == "aids":
         d = TUDataset(root="/tmp/AIDS", name="AIDS")
       elif self.dataset_name == "mutag":

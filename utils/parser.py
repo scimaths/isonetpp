@@ -19,7 +19,7 @@ class Parser:
         early_stopping_group.add_argument("--patience", type=int, default=50, help="Maximum number of epochs with no improvements")
 
         dataset_group = self.parser.add_argument_group("dataset")
-        dataset_group.add_argument("--dataset_name", type=str, required=True, choices=["aids", "mutag", "ptc_fm", "ptc_fr", "ptc_mm", "ptc_mr", "dhfr", "cox2", "msrc_21"], help="Name of dataset for experiment")
+        dataset_group.add_argument("--dataset_name", type=str, required=True, choices=["aids", "mutag", "ptc_fm", "ptc_fr", "ptc_mm", "ptc_mr", "dhfr", "cox2", "msrc_21", "cox2_repeat"], help="Name of dataset for experiment")
         dataset_group.add_argument("--dataset_size", type=str, default="small", choices=["small", "large", "massive", "less_massive"], help="Size of dataset for experiment - small v/s large")
         dataset_group.add_argument("--dataset_path", type=str, default=".", help="Relative path where datasets are stored")
         dataset_group.add_argument("--dataset_path_override", type=str, help="Absolute path of dataset if overriding; use for a new split")
