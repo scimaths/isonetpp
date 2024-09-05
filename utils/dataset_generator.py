@@ -28,8 +28,8 @@ if __name__ == "__main__":
     # Dataset specifics
     parser.add_argument("--DATASET_NAME", type=str)
     parser.add_argument("--TASK", type=str, default="NESGIso", help="PermGnnPointEmbedBON/PermGnnPointEmbedBOE")
-    parser.add_argument("--NUM_QUERY_SUBGRAPHS", type=int, default=100)
-    parser.add_argument("--NUM_CORPUS_SUBGRAPHS", type=int, default=500)
+    parser.add_argument("--NUM_QUERY_SUBGRAPHS", type=int, default=300)
+    parser.add_argument("--NUM_CORPUS_SUBGRAPHS", type=int, default=800)
 
     args = parser.parse_args()
     os.makedirs(os.path.join(args.DIR_PATH, "Datasets"), exist_ok=True)
@@ -93,7 +93,7 @@ if __name__ == "__main__":
     rel_dict = {}
     n_queries = 0
 
-    with ProcessPool(max_workers=100) as pool:
+    with ProcessPool(max_workers=200) as pool:
         while n_queries < no_of_query_subgraphs:
             start = time.time()
 

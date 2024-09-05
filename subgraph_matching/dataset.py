@@ -29,7 +29,7 @@ class SubgraphIsomorphismDataset:
         self.mode = mode
         self.dataset_name = dataset_name
         self.dataset_size = dataset_size
-        self.max_node_set_size = {"small": 15, "large": 20, "less_massive": 50, "massive": 50}[dataset_size]
+        self.max_node_set_size = {"small": 15, "large": 20, "less_massive": 50, "massive": 50, "new":50}[dataset_size]
         self.batch_size = batch_size
         self.data_type = data_type
         self.dataset_base_path = dataset_base_path
@@ -58,6 +58,7 @@ class SubgraphIsomorphismDataset:
             "large": "240",
             "less_massive": "50",
             "massive": "240",
+            "new": "240",
         }[self.dataset_size] + "k"
         mode_prefix = "test" if "test" in self.mode else self.mode
         query_graph_file = dataset_accessor(f"{mode_prefix}_{self.dataset_name}{pair_count}_query_subgraphs.pkl")

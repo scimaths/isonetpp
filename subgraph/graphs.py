@@ -52,6 +52,16 @@ class TUDatasetGraph(object):
         d = TUDataset(root="/tmp/DHFR", name="DHFR")  
       elif self.dataset_name == "msrc_21":
         d = TUDataset(root="/tmp/MSRC_21", name="MSRC_21")  
+      elif self.dataset_name == "reddit_binary":
+        d = TUDataset(root="/tmp/REDDIT-BINARY", name="REDDIT-BINARY") 
+      elif self.dataset_name == "dd":
+        d = TUDataset(root="/tmp/DD", name="DD")  
+      elif self.dataset_name == "mcf7h":
+        d = TUDataset(root="/tmp/MCF-7H", name="MCF-7H")  
+      elif self.dataset_name == "molt4h":
+        d = TUDataset(root="/tmp/MOLT-4H", name="MOLT-4H")    
+      elif self.dataset_name == "ncih23h":
+        d = TUDataset(root="/tmp/NCI-H23H", name="NCI-H23H")         
       else:
         raise NotImplementedError()
       with open(fname,"wb") as f:
