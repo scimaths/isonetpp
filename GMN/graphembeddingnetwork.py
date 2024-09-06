@@ -345,7 +345,8 @@ class GraphAggregator(nn.Module):
                  input_size=None,
                  gated=True,
                  aggregation_type='sum',
-                 name='graph-aggregator'):
+                 name='graph-aggregator',
+                 constituent='node'):
         """Constructor.
 
         Args:

@@ -14,6 +14,7 @@ from subgraph_matching.models.node_edge_early_interaction import NodeEdgeEarlyIn
 from subgraph_matching.models.edge_early_interaction import EdgeEarlyInteraction
 from subgraph_matching.models.nanl_attention import NodeAlignNodeLossAttention
 from subgraph_matching.models.gmn_baseline import GMNBaseline
+from subgraph_matching.models.gmn_edge_baseline import GMNEdgeBaseline
 from subgraph_matching.models.gmn_iterative_refinement import GMNIterativeRefinement
 from subgraph_matching.models.graphsim import GraphSim
 from subgraph_matching.models.egsc_modified import EGSC as EGSC_Modified
@@ -118,6 +119,8 @@ def get_model_names():
 def get_model(model_name, config, max_node_set_size, max_edge_set_size, device):
     if model_name.startswith('gmn_baseline'):
         model_class = GMNBaseline
+    elif model_name.startswith('gmn_edge_baseline'):
+        model_class = GMNEdgeBaseline
     elif model_name.startswith('gmn_iterative_refinement'):
         model_class = GMNIterativeRefinement
     elif model_name.startswith('edge_early_interaction_baseline_1'):
