@@ -3,6 +3,7 @@ import subgraph_matching.dataset as dataset
 from subgraph_matching.models.node_align_node_loss import NodeAlignNodeLoss
 from subgraph_matching.models.nanl_consistency import NodeAlignNodeLossConsistency
 from subgraph_matching.models.isonet import ISONET
+from subgraph_matching.models.isonet_modified import ModifiedISONET
 from subgraph_matching.models.node_early_interaction import NodeEarlyInteraction
 from subgraph_matching.models.node_early_interaction_2 import NodeEarlyInteraction2
 from subgraph_matching.models.node_early_interaction_3 import NodeEarlyInteraction3
@@ -55,6 +56,7 @@ model_name_to_class_mappings = {
     'node_align_node_loss': NodeAlignNodeLoss,
     'nanl_consistency': NodeAlignNodeLossConsistency,
     'isonet': ISONET,
+    'modified_isonet': ModifiedISONET,
     'node_early_interaction': NodeEarlyInteraction,
     'node_early_interaction_2': NodeEarlyInteraction2,
     'node_early_interaction_3': NodeEarlyInteraction3,
