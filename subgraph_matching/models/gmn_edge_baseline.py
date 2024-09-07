@@ -368,6 +368,8 @@ class GMNEdgeBaseline(AlignmentModel):
             from_idx, to_idx, graph_idx, 2 * len(graph_sizes)
         )
         num_edges_query, num_edges_corpus = zip(*paired_edge_counts)
+        num_edges_query = torch.tensor(num_edges_query, device=self.device)
+        num_edges_corpus = torch.tensor(num_edges_corpus, device=self.device)
         padded_edge_indices = model_utils.get_padded_indices(paired_edge_counts, self.max_edge_set_size, self.device)
 
         edge_graph_idx = torch.arange(
