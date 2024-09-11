@@ -7,8 +7,10 @@ class NeuralTensorNetwork(nn.Module):
         self.embedding_dim = embedding_dim
         self.score_dim = score_dim
 
-        self.ntn_multi_score_layer = nn.Linear(
-            embedding_dim, embedding_dim * score_dim, bias=False
+        self.ntn_bilinear_layer = nn.Bilinear(
+            in1_features = embedding_dim,
+            in2_features = embedding_dim,
+            out_features = score_dim
         )
         self.ntn_concat_layer = nn.Linear(2 * embedding_dim, score_dim)
         self.ntn_activation = nn.ReLU()
@@ -23,15 +25,7 @@ class NeuralTensorNetwork(nn.Module):
         self.post_scoring_layers.append(nn.Linear(post_scoring_layer_sizes[-1], 1))
 
     def forward(self, embedding_1, embedding_2):
-        transformed_embedding_1 = self.ntn_multi_score_layer(embedding_1)
-        transformed_shape = list(transformed_embedding_1.size()) + [self.embedding_dim]
-        transformed_shape[-2] = transformed_shape[-2] // self.embedding_dim
-        transformed_embedding_1 = transformed_embedding_1.reshape(*transformed_shape)
-
-        ntn_multi_score_output = torch.matmul(
-            transformed_embedding_1,
-            embedding_2.unsqueeze(-1)
-        ).squeeze(-1)
+        ntn_bilinear_output = self.ntn_bilinear_layer(embedding_1, embedding_2)
         ntn_concat_output = self.ntn_concat_layer(torch.concat([embedding_1, embedding_2], dim=-1))
-        activation_output = self.ntn_activation(ntn_multi_score_output + ntn_concat_output)
+        activation_output = self.ntn_activation(ntn_bilinear_output + ntn_concat_output)
         return self.post_scoring_layers(activation_output).squeeze(-1)
