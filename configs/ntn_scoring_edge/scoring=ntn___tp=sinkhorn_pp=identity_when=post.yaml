@@ -1,5 +1,6 @@
 inherit:
   - ../module_configs/encoder.yaml
+  - ../module_configs/sinkhorn.yaml
   - ../module_configs/prop_layer.yaml
   - ../module_configs/edge_aggregator.yaml
   - ../module_configs/ntn_edge.yaml
@@ -13,9 +14,12 @@ model_config:
     edge_hidden_sizes: [20]
 
   propagation_steps: 5
+  alignment_feature_dim: 16
   # scoring params
   scoring: ntn
   # interaction params
-  interaction_when: never
+  interaction_alignment: sinkhorn
+  interaction_alignment_preprocessor_type: identity
+  interaction_when: post
 
-name: gmn_edge_baseline_scoring=ntn___tp=none
+name: gmn_edge_baseline_scoring=ntn___tp=sinkhorn_pp=identity_when=post
