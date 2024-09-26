@@ -216,8 +216,6 @@ class ERIC(nn.Module):
         if self.use_ssl:
             self.GCL_model                      = GCL(self.config, sum(self.filters))
             self.gamma                          = nn.Parameter(torch.Tensor(1)) 
-            
-            
 
     def setup_score_layer(self):
         if self.config['deepsets']:
@@ -374,33 +372,19 @@ class ERIC(nn.Module):
             sim_score = torch.sigmoid(self.score_sim_layer(sim_rep).squeeze())
 
         score = torch.sigmoid(self.score_layer(score_rep)).view(-1)
-            
+
+        self.regularizer = L_cl
+
         if self.config.get('use_sim', False):
             if self.config.get('output_comb', False):
                 comb_score = self.alpha * score + self.beta * sim_score
-                comb_score = -0.5 * (qgraph_sizes + cgraph_sizes) * torch.log(comb_score)
-
-                return comb_score, L_cl
+                return comb_score
             else:
                 comb_score = (score + sim_score)/2
-                comb_score = -0.5 * (qgraph_sizes + cgraph_sizes) * torch.log(comb_score)
-                return comb_score , L_cl
+                return comb_score 
         else:
-            score = -0.5 * (qgraph_sizes + cgraph_sizes) * torch.log(score)
-            return score , L_cl
-        
+            return score
 
-        # score -> exp(-GED/(0.5 * n1+n2))
-        
-
-
-    def compute_loss(self, lower_bound, upper_bound, out):
-        loss = (
-            torch.nn.functional.relu(lower_bound - out) ** 2
-            + torch.nn.functional.relu(out - upper_bound) ** 2
-        )
-        return loss.mean()
-   
 
 class GCL(nn.Module):
 
