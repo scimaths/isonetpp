@@ -118,10 +118,16 @@ class FF(nn.Module):
         return self.block(x) + self.linear_shortcut(x)
 
 class ERIC(nn.Module):
-    def __init__(self, conf):
+    def __init__(
+        self,
+        conf,
+        max_node_set_size,
+        max_edge_set_size,
+        device
+    ):
         super(ERIC, self).__init__()
-        self.config                     = conf.model
-        self.n_feat                     = conf.dataset.one_hot_dim
+        self.config                     = conf
+        self.n_feat                     = conf.input_dim
         self.setup_layers()
         self.setup_score_layer()
         self.scale_init()
@@ -285,13 +291,10 @@ class ERIC(nn.Module):
 
         return graph_embs_dicts
 
-    def forward(self, batch_data, batch_data_sizes): # batch_data is list
-        q_graphs = batch_data[0::2]
-        c_graphs = batch_data[1::2]  
-        qgraph_sizes = batch_data_sizes[0::2]
-        cgraph_sizes = batch_data_sizes[1::2]
-        
-        
+    def forward(self, batch_data, batch_data_sizes, batch_adj_matrices): # batch_data is list
+        q_graphs = list(map(lambda pair: pair[0], batch_data))
+        c_graphs = list(map(lambda pair: pair[1], batch_data))
+
         query_batch = pyg.data.Batch.from_data_list(q_graphs)
         corpus_batch = pyg.data.Batch.from_data_list(c_graphs)
 
@@ -497,25 +500,3 @@ def raise_measure_error(measure):
     raise NotImplementedError(
         'Measure `{}` not supported. Supported: {}'.format(measure,
                                                            supported_measures))
-
-    def forward(self, graphs, graph_sizes, graph_adj_matrices):
-        batch_size = len(graph_sizes)
-        query_graphs, corpus_graphs = zip(*graphs)
-
-        # Encoding graph level features
-        query_graph_features, query_node_features = self.encoding_layer(query_graphs, batch_size)
-        corpus_graph_features, corpus_node_features = self.encoding_layer(corpus_graphs, batch_size)
-
-        # Interaction
-        score = self.interaction_layer(query_graph_features, corpus_graph_features, batch_size)
-
-        # Regularizer Term
-        query_graph_idx = Batch.from_data_list(query_graphs).batch
-        corpus_graph_idx = Batch.from_data_list(corpus_graphs).batch
-        self.regularizer = self.gamma * self.encoding_layer.regularizer(
-            query_node_features, corpus_node_features,
-            query_graph_features, corpus_graph_features,
-            query_graph_idx, corpus_graph_idx,
-            batch_size
-        )
-        return score
